@@ -1,5 +1,6 @@
 from construct import Struct, Byte, Bytes, Int16ul, Int32ul, Padding, this, \
                       Embedded, BitStruct, Nibble, Flag
+from fs_info import FS_information_sector
 
 # Core Bootsector, which is the same for all FAT types
 FATCoreBootsector = Struct(
@@ -64,6 +65,9 @@ FAT12_16Bootsector = Struct(
 FAT32Bootsector = Struct(
         Embedded(FATCoreBootsector),
         Embedded(FAT32_ExtendedBootsector),
-        Padding(this.sector_size - FATCoreBootsector.sizeof()
-                - FAT32_ExtendedBootsector.sizeof()),
+        # Embedded(FS_information_sector),
+        Padding(this.sector_size - FATCoreBootsector.sizeof() -
+                FAT32_ExtendedBootsector.sizeof()
+                # - FS_information_sector.sizeof()
+                ),
         )

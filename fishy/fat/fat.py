@@ -13,39 +13,28 @@ example to print all entries in root directory:
 """
 
 from bootsector import FAT12_16Bootsector, FAT32Bootsector
-from construct import Struct, Array, Padding, Embedded, Bytes, this, Range
+from construct import Struct, Array, Padding, Embedded, Bytes, this
 from dir_entry import DirEntry, LfnEntry
 from fat_entry import FAT12Entry, FAT16Entry, FAT32Entry
 from io import BytesIO, BufferedReader
 
 
-# Due to FAT12 12 Bit addresses and strange alignment
-# we cant parse fats directly but need to do that 
-# while __init__ of FAT12
 FAT12PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
-        # FATs
-        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size / FAT12Entry.sizeof(), FAT12Entry)),
+        # FATs. Due to 12 bit addresses in FAT12 we will parse the
+        # actual structure later in __init__ method
         "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
-        # We are missing the half of the fat somehow???
-        # TODO: Figure out whats going wrong here
-        # Padding(this.sector_size),
         # RootDir Table
         "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
         )
-FAT12
 
 FAT16PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
-        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size / FAT12Entry.sizeof(), FAT12Entry)),
-        "fats" / Array(1, Array(this.sectors_per_fat * this.sector_size \
-                                / FAT16Entry.sizeof(), FAT16Entry)),
-        # We are missing the half of the fat somehow???
-        # TODO: Figure out whats going wrong here
-        Padding(this.sector_size),
+        "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
+                                             / 2, FAT16Entry)),
         # RootDir Table
         "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
         )
@@ -55,13 +44,9 @@ FAT32PreDataRegion = Struct(
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
         # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size / FAT12Entry.sizeof(), FAT12Entry)),
-        "fats" / Array(1, Array(this.sectors_per_fat * this.sector_size \
-                                / FAT32Entry.sizeof(), FAT32Entry)),
-        # We are missing the half of the fat somehow???
-        # TODO: Figure out whats going wrong here
-        Padding(this.sector_size),
-        # RootDir Table
-        "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
+        "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
+                                             / FAT32Entry.sizeof(), FAT32Entry)),
+        # "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         )
 
 
@@ -227,21 +212,27 @@ class FAT:
 class FAT12(FAT):
     def __init__(self, stream):
         """
-        :param stream: filedescriptor of a FAT filesystem
+        :param stream: filedescriptor of a FAT12 filesystem
         """
         super().__init__(stream, FAT12PreDataRegion)
+        self._parse_fats()
 
     def _parse_fats(self):
         """
-        parses raw bytes of fat
+        parses raw bytes of fat and replaces those raw
+        bytes with useful datastructure
+        Only use once per FAT in __init__
         """
         # calculate entries per fat
-        entries_per_fat = int(self.pre.sectors_per_fat \
-                              * self.pre.sector_size \
+        entries_per_fat = int(self.pre.sectors_per_fat
+                              * self.pre.sector_size
                               * 8 / 12)
-        # for fat in self.pre.fats:
-        pass
-            
+        # define fat datastructure
+        fatarray = Array(entries_per_fat, FAT12Entry)
+        # parse each fat and replace raw data with
+        # parsed result
+        for fat_id, fat in enumerate(self.pre.fats):
+            self.pre.fats[fat_id] = fatarray.parse(fat)
 
     def _root_to_stream(self, stream):
         """
@@ -254,7 +245,7 @@ class FAT12(FAT):
 class FAT16(FAT):
     def __init__(self, stream):
         """
-        :param stream: filedescriptor of a FAT filesystem
+        :param stream: filedescriptor of a FAT16 filesystem
         """
         super().__init__(stream, FAT16PreDataRegion)
 
@@ -267,11 +258,64 @@ class FAT16(FAT):
 
 
 class FAT32(FAT):
+    def __init__(self, stream):
+        """
+        :param stream: filedescriptor of a FAT32 filesystem
+        """
+        super().__init__(stream, FAT32PreDataRegion)
+
     def _root_to_stream(self, stream):
         """
         write root directory into a given stream
         :param stream: stream, where the root directory will be written into
         """
-        # TODO: there needs to be an end-marker
-        # instead of parsing the whole cluster
-        self.cluster_to_stream(self.pre.rootdir_cluster, stream)
+        raise NotImplementedError
+
+    def get_root_dir_entries(self):
+        return self.get_dir_entries(self.pre.rootdir_cluster)
+
+    def _get_dir_entries(self, cluster_id):
+        """
+        iterator for reading a cluster as directory and parse its content
+        :param cluster_id: int, cluster to parse,
+                           if cluster_id == 0, parse rootdir
+        :return: tuple of (DirEntry, lfn)
+        """
+        lfn = ''
+        de = DirEntry
+        lfne = LfnEntry
+
+        start_cluster_id = self.get_cluster_start(cluster_id)
+        self.stream.seek(start_cluster_id)
+        end_marker = 0xff
+        while end_marker != 0x00:
+            # read 32 bit into variable
+            raw = self.stream.read(32)
+            # parse as DirEntry
+            d = de.parse(raw)
+            a = d.attributes
+            # If LFN attributes are set, parse it as LfnEntry instead
+            if a.volumeLabel and a.system and a.hidden and a.readonly:
+                # if lfn attributes set, convert it to lfnEntry
+                # and save it for later use
+                d = lfne.parse(raw)
+                lfnpart = d.name1 + d.name2 + d.name3
+
+                # remove non-chars after padding
+                retlfn = b''
+                for i in range(int(len(lfnpart) / 2)):
+                    i *= 2
+                    b = lfnpart[i:i+2]
+                    if b != b'\x00\x00':
+                        retlfn += b
+                    else:
+                        break
+                # append our lfn part to the global lfn, that will
+                # later used as the filename
+                lfn = retlfn.decode('utf-8') + lfn
+            else:
+                retlfn = lfn
+                lfn = ''
+                end_marker = d.name[0]
+                print(end_marker, d)
+                yield (d, retlfn)
