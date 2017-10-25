@@ -220,7 +220,7 @@ class FAT:
                                 break
                         # append our lfn part to the global lfn, that will
                         # later used as the filename
-                        lfn = retlfn.decode('utf-8') + lfn
+                        lfn = retlfn.decode('utf-16') + lfn
                     else:
                         retlfn = lfn
                         lfn = ''
