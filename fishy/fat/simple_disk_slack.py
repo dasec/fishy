@@ -114,8 +114,8 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='Read and write into slackspace of a file')
-    parser.add_argument('-d', '--device', dest='dev', help='Path to filesystem')
-    parser.add_argument('-f', '--file', dest='file', help='absolute path to file on filesystem')
+    parser.add_argument('-d', '--device', dest='dev', required=True, help='Path to filesystem')
+    parser.add_argument('-f', '--file', dest='file', required=True, help='absolute path to file on filesystem')
     parser.add_argument('-r', '--read', dest='read', action='store_true', help='read from slackspace')
     parser.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     args = parser.parse_args()
