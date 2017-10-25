@@ -33,8 +33,9 @@ FAT16PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
-        "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
-                                             / 2, FAT16Entry)),
+        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
+        #                                      / 2, FAT16Entry)),
+        "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         # RootDir Table
         "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
         )
@@ -43,10 +44,9 @@ FAT32PreDataRegion = Struct(
         "bootsector" / Embedded(FAT32Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
-        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size / FAT12Entry.sizeof(), FAT12Entry)),
-        "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
-                                             / FAT32Entry.sizeof(), FAT32Entry)),
-        # "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
+        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
+        #                                      / FAT32Entry.sizeof(), FAT32Entry)),
+        "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         )
 
 
@@ -62,6 +62,15 @@ class FAT:
         self.pre = predataregion.parse_stream(stream)
         self.start_dataregion = stream.tell()
 
+    def _get_cluster_value(self, cluster_id):
+        """
+        finds the value that is written into fat
+        for given cluster_id
+        :param cluster_id: int, cluster that will be looked up
+        :return: int or string
+        """
+        return self.pre.fats[0][cluster_id]
+
     def follow_cluster(self, start_cluster):
         """
         collect all cluster, that belong to a file
@@ -71,7 +80,7 @@ class FAT:
         clusters = [start_cluster]
         while True:
             next_cluster_id = clusters[-1]
-            next_cluster = self.pre.fats[0][next_cluster_id]
+            next_cluster = self._get_cluster_value(next_cluster_id)
             if next_cluster == 'last_cluster':
                 return clusters
             elif next_cluster == 'free_cluster':
@@ -135,9 +144,7 @@ class FAT:
         only aplicable to FAT12 and FAT16
         :param stream: stream, where the root directory will be written into
         """
-        # TODO: implement in FAT12 and FAT16
-        # and raise a NotImplementedError here
-        stream.write(self.pre.rootdir)
+        raise NotImplementedError
 
     def get_root_dir_entries(self):
         """
@@ -215,24 +222,43 @@ class FAT12(FAT):
         :param stream: filedescriptor of a FAT12 filesystem
         """
         super().__init__(stream, FAT12PreDataRegion)
-        self._parse_fats()
-
-    def _parse_fats(self):
-        """
-        parses raw bytes of fat and replaces those raw
-        bytes with useful datastructure
-        Only use once per FAT in __init__
-        """
-        # calculate entries per fat
-        entries_per_fat = int(self.pre.sectors_per_fat
+        self.entries_per_fat = int(self.pre.sectors_per_fat
                               * self.pre.sector_size
                               * 8 / 12)
-        # define fat datastructure
-        fatarray = Array(entries_per_fat, FAT12Entry)
-        # parse each fat and replace raw data with
-        # parsed result
-        for fat_id, fat in enumerate(self.pre.fats):
-            self.pre.fats[fat_id] = fatarray.parse(fat)
+
+    def _get_cluster_value(self, cluster_id):
+        """
+        finds the value that is written into fat
+        for given cluster_id
+        :param cluster_id: int, cluster that will be looked up
+        :return: int or string
+        """
+        # as python read does not allow to read simply 12 bit,
+        # we need to do some fancy stuff to extract those from
+        # 16 bit long reads
+        # this strange layout results from the little endianess
+        # which causes that:
+        # * clusternumbers beginning at the start of a byte use this
+        #   byte + the second nibble of the following byte.
+        # * clusternumbers beginning in the middle of a byte use
+        #   the first nibble of this byte + the second byte
+        # because of little endianess these nibbles need to be
+        # reordered as by default int() interpretes hexstrings as
+        # big endian
+        #
+        byte = cluster_id + int(cluster_id/2)
+        sl = self.pre.fats[0][byte:byte+2]
+        if cluster_id % 2 == 0:
+            # if cluster_number is even, we need to wipe the third nibble
+            hexvalue = sl.hex()
+            print(hexvalue)
+            value = int(hexvalue[3] + hexvalue[0:2], 16)
+        else:
+            # if cluster_number is odd, we need to wipe the first nibble
+            hexvalue = sl.hex()
+            print(hexvalue)
+            value = int(hexvalue[2:4] + hexvalue[0], 16)
+        return FAT12Entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -248,6 +274,21 @@ class FAT16(FAT):
         :param stream: filedescriptor of a FAT16 filesystem
         """
         super().__init__(stream, FAT16PreDataRegion)
+        self.entries_per_fat = int(self.pre.sectors_per_fat
+                              * self.pre.sector_size
+                              / 2)
+
+    def _get_cluster_value(self, cluster_id):
+        """
+        finds the value that is written into fat
+        for given cluster_id
+        :param cluster_id: int, cluster that will be looked up
+        :return: int or string
+        """
+        byte = cluster_id*2
+        sl = self.pre.fats[0][byte:byte+2]
+        value = int.from_bytes(sl, byteorder='little')
+        return FAT16Entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -263,6 +304,22 @@ class FAT32(FAT):
         :param stream: filedescriptor of a FAT32 filesystem
         """
         super().__init__(stream, FAT32PreDataRegion)
+        self.entries_per_fat = int(self.pre.sectors_per_fat
+                              * self.pre.sector_size
+                              / 4)
+
+    def _get_cluster_value(self, cluster_id):
+        """
+        finds the value that is written into fat
+        for given cluster_id
+        :param cluster_id: int, cluster that will be looked up
+        :return: int or string
+        """
+        byte = cluster_id*4
+        # TODO: Use active FAT
+        sl = self.pre.fats[0][byte:byte+2]
+        value = int.from_bytes(sl, byteorder='little')
+        return FAT16Entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -289,6 +346,7 @@ class FAT32(FAT):
         self.stream.seek(start_cluster_id)
         end_marker = 0xff
         while end_marker != 0x00:
+        # for i in range(10):
             # read 32 bit into variable
             raw = self.stream.read(32)
             # parse as DirEntry
@@ -317,5 +375,9 @@ class FAT32(FAT):
                 retlfn = lfn
                 lfn = ''
                 end_marker = d.name[0]
-                print(end_marker, d)
+                # print(end_marker, d)
+                start_cluster = int.from_bytes(d.firstCluster + \
+                                               d.accessRightsBitmap,
+                                               byteorder='little')
+                d.start_cluster = start_cluster
                 yield (d, retlfn)

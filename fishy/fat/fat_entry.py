@@ -6,7 +6,8 @@ def ClusterAddress12Bit():
     """
     Mapping of a FAT12 File Allocation Table Entry
     """
-    subcon = Bitwise(Int12ul())
+    # subcon = Bitwise(Int12ul())
+    subcon = Int16ul
     default = Pass
     mapping = {}
     mapping[0x0] = 'free_cluster'

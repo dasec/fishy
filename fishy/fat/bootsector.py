@@ -38,10 +38,11 @@ FAT32_ExtendedBootsector = Struct(
         "flags" / BitStruct(
             "active_fat" / Nibble,  # only interesting if fat is not mirrored
             "mirrored" / Flag,
-            Padding(3)
+            Padding(3),
+            Padding(8)
             ),
         "version" / Int16ul,
-        "rootdir_cluster" / Int16ul,
+        "rootdir_cluster" / Int32ul,
         "fsinfo_sector" / Int16ul,
         "bootsector_copy_sector" / Int16ul,
         Padding(12),  # reserved
@@ -50,7 +51,9 @@ FAT32_ExtendedBootsector = Struct(
         "extended_bootsignature" / Byte,
         "volume_id" / Int32ul,
         "volume_label" / Bytes(11),
-        "fs_type" / Bytes(11),
+        "fs_type" / Bytes(8),
+        "boot_code" / Bytes(420),
+        "boot_sector_signature" / Bytes(2),
         )
 
 # ready to use bootsector definition for FAT12 and FAT16

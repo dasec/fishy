@@ -16,10 +16,11 @@ DirEntry = Struct(
         "hidden" / Flag,
         "readonly" / Flag,
     ),
-    Padding(10),
+    Padding(8),
+    "accessRightsBitmap" / Bytes(2),
     "timeRecorded" / Int16ul,
     "dateRecorded" / Int16ul,
-    "firstCluster" / Int16ul,
+    "firstCluster" / Bytes(2),
     "fileSize" / Int32ul,
 )
 
