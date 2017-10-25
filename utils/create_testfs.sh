@@ -43,4 +43,4 @@ copy_files testfs-fat16.dd
 # Create a 2GB FAT32 image
 dd if=/dev/zero of=testfs-fat32.dd bs=512 count=4000500
 mkfs.vfat testfs-fat32.dd
-copy_files testfs-fat16.dd
+copy_files testfs-fat32.dd

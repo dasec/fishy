@@ -77,8 +77,9 @@ class SimpleDiskSlack:
         if type(bufferv) == str:
             bufferv = bufferv.encode('utf-8')
         # write to slackspace
-        self.stream.seek(self.fs.get_cluster_start(entry.start_cluster) + \
-                         occupied_of_last_cluster)
+        last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
+        last_cluster_start = self.fs.get_cluster_start(last_cluster)
+        self.stream.seek(last_cluster_start + occupied_of_last_cluster)
         self.stream.write(bufferv)
 
     def read(self, outstream, filepath):
@@ -97,8 +98,10 @@ class SimpleDiskSlack:
         occupied_of_last_cluster = entry.fileSize % cluster_size
         free_slack = cluster_size - occupied_of_last_cluster
         # read slack space
-        self.stream.seek(self.fs.get_cluster_start(entry.start_cluster) + \
-                occupied_of_last_cluster)
+        last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
+        last_cluster_start = self.fs.get_cluster_start(last_cluster)
+        self.stream.seek(last_cluster_start + occupied_of_last_cluster)
+
         bufferv = self.stream.read(free_slack)
         try:
             outstream.write(bufferv)
