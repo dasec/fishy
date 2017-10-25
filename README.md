@@ -5,6 +5,8 @@ Toolkit for filesystem hiding techniques
 
 * FAT:
 	* Disk Slack
+		* Simple: Only writing to slackspace of one file  [✓]
+		* Advanced: Writing to slackspace of multiple files
 	* Partition Slack
 	* Mark Clusters as 'bad', but write content to them
 	* Allocate Clusters without adding them as directory entries
