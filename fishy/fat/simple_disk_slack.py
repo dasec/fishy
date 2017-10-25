@@ -74,9 +74,6 @@ class SimpleDiskSlack:
         bufferv = instream.read()
         if len(bufferv) > free_slack:
             raise IOError("Not enough slack space available to write input")
-        if type(bufferv) == str:
-            bufferv = bufferv.encode('utf-8')
-        # write to slackspace
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
         self.stream.seek(last_cluster_start + occupied_of_last_cluster)
@@ -103,10 +100,7 @@ class SimpleDiskSlack:
         self.stream.seek(last_cluster_start + occupied_of_last_cluster)
 
         bufferv = self.stream.read(free_slack)
-        try:
-            outstream.write(bufferv)
-        except TypeError:
-             outstream.write(bufferv.decode('utf-8'))
+        outstream.write(bufferv)
 
 
 if __name__ == "__main__":
@@ -125,6 +119,6 @@ if __name__ == "__main__":
     filename = args.file
     fs = SimpleDiskSlack(f)
     if args.write:
-        fs.write(sys.stdin, filename)
+        fs.write(sys.stdin.buffer, filename)
     if args.read:
-        fs.read(sys.stdout, filename)
+        fs.read(sys.stdout.buffer, filename)
