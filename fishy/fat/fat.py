@@ -3,13 +3,24 @@ FAT12, FAT16 and FAT32 reader
 
 By now FAT16 and FAT32 are not really implemented
 
-example to print all entries in root directory:
-
+examples:
 >>> with open('testfs.dd', 'rb') as filesystem:
 >>>     fs = FAT12(filesystem)
+
+example to print all entries in root directory:
 >>>     for i, v in fs.get_root_dir_entries():
 >>>         if v != "":
 >>>             print(v)
+
+example to print all fat entries
+>>>     for i in range(fs.entries_per_fat):
+>>>         print(i,fs._get_cluster_value(i))
+
+example to print all root directory entries
+>>>     for i,v in fs.get_root_dir_entries():
+>>>         if v != "":
+>>>             print(v, i.start_cluster)
+
 """
 
 from bootsector import FAT12_16Bootsector, FAT32Bootsector
@@ -213,6 +224,9 @@ class FAT:
                     else:
                         retlfn = lfn
                         lfn = ''
+                        # add start_cluster attribute for convenience
+                        d.start_cluster = int.from_bytes(d.firstCluster,
+                                                         byteorder='little')
                         yield (d, retlfn)
 
 
@@ -251,12 +265,10 @@ class FAT12(FAT):
         if cluster_id % 2 == 0:
             # if cluster_number is even, we need to wipe the third nibble
             hexvalue = sl.hex()
-            print(hexvalue)
             value = int(hexvalue[3] + hexvalue[0:2], 16)
         else:
             # if cluster_number is odd, we need to wipe the first nibble
             hexvalue = sl.hex()
-            print(hexvalue)
             value = int(hexvalue[2:4] + hexvalue[0], 16)
         return FAT12Entry.parse(value.to_bytes(2, 'little'))
 
@@ -375,7 +387,7 @@ class FAT32(FAT):
                 retlfn = lfn
                 lfn = ''
                 end_marker = d.name[0]
-                # print(end_marker, d)
+                # add start_cluster attribute for convenience
                 start_cluster = int.from_bytes(d.firstCluster + \
                                                d.accessRightsBitmap,
                                                byteorder='little')
