@@ -7,6 +7,7 @@ example:
 
 
 from fat_wrapper import FAT
+from io import BytesIO, BufferedReader
 
 class SimpleDiskSlack:
     def __init__(self, stream):
@@ -52,6 +53,20 @@ class SimpleDiskSlack:
                         current_directory.append( (entry, lfn) )
         return entry
 
+    def calculate_slack_space(self, entry):
+        """
+        calculates the slack space for a given DirEntry
+        :param entry: DirEntry, directory entry of the file
+        :return: tuple of (occupation, free_slack), whereas occupation
+                 is the occupied size of the last cluster by the file.
+                 And free_slack is the size of the slack space
+        """
+        cluster_size = self.fs.pre.sector_size * \
+                       self.fs.pre.sectors_per_cluster
+        occupied_of_last_cluster = entry.fileSize % cluster_size
+        free_slack = cluster_size - occupied_of_last_cluster
+        return (occupied_of_last_cluster, free_slack)
+
     def write(self, instream, filepath):
         """
         writes from instream into slackspace of filename
@@ -63,10 +78,7 @@ class SimpleDiskSlack:
         if entry.start_cluster < 2:
             raise IOError("File '%s' has no slackspace" % filepath)
         # calculate slack space
-        cluster_size = self.fs.pre.sector_size * \
-                       self.fs.pre.sectors_per_cluster
-        occupied_of_last_cluster = entry.fileSize % cluster_size
-        free_slack = cluster_size - occupied_of_last_cluster
+        occupied_of_last_cluster, free_slack = self.calculate_slack_space(entry)
         if free_slack == 0:
             raise IOError("No slack space available for file '%s'" \
                            % filepath)
@@ -90,10 +102,7 @@ class SimpleDiskSlack:
         if entry.start_cluster < 2:
             raise IOError("File '%s' has no slackspace" % filepath)
         # calculate slack space
-        cluster_size = self.fs.pre.sector_size * \
-                self.fs.pre.sectors_per_cluster
-        occupied_of_last_cluster = entry.fileSize % cluster_size
-        free_slack = cluster_size - occupied_of_last_cluster
+        occupied_of_last_cluster, free_slack = self.calculate_slack_space(entry)
         # read slack space
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
@@ -101,6 +110,22 @@ class SimpleDiskSlack:
 
         bufferv = self.stream.read(free_slack)
         outstream.write(bufferv)
+
+    def clear(self, filepath):
+        """
+        clears the slackspace of a given file
+        :param filepath: string, path to file
+        """
+        # calculate slack space size
+        entry = self._find_file(filepath)
+        occupied, slack_size = self.calculate_slack_space(entry)
+        # write zeros into stream
+        with BytesIO() as mem:
+            data = slack_size * b'\x00'
+            mem.write(data)
+            mem.seek(0)
+            with BufferedReader(mem) as reader:
+                self.write(reader, filepath)
 
 
 if __name__ == "__main__":
@@ -112,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument('-f', '--file', dest='file', required=True, help='absolute path to file on filesystem')
     parser.add_argument('-r', '--read', dest='read', action='store_true', help='read from slackspace')
     parser.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
+    parser.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
     args = parser.parse_args()
 
     # just for supid testing while we dont have a nicer cli option
@@ -122,3 +148,5 @@ if __name__ == "__main__":
         fs.write(sys.stdin.buffer, filename)
     if args.read:
         fs.read(sys.stdout.buffer, filename)
+    if args.clear:
+        fs.clear(filename)

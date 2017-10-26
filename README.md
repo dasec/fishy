@@ -9,7 +9,7 @@ Toolkit for filesystem hiding techniques
 		* Advanced: Writing to slackspace of multiple files
 	* Partition Slack
 	* Mark Clusters as 'bad', but write content to them
-	* Allocate Clusters without adding them as directory entries
+	* Allocate More Clusters for a file
 	* Overwrite Bootsector Copy?
 	* Overwrite FAT Copies when they are not FAT0 or FAT1
 
