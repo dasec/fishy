@@ -21,10 +21,10 @@ example to print all root directory entries
 
 """
 
-from bootsector import FAT12_16Bootsector, FAT32Bootsector
+from .bootsector import FAT12_16Bootsector, FAT32Bootsector
+from .dir_entry import DirEntry, LfnEntry
+from .fat_entry import FAT12Entry, FAT16Entry, FAT32Entry
 from construct import Struct, Array, Padding, Embedded, Bytes, this
-from dir_entry import DirEntry, LfnEntry
-from fat_entry import FAT12Entry, FAT16Entry, FAT32Entry
 from io import BytesIO, BufferedReader
 
 

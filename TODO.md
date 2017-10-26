@@ -1,3 +1,8 @@
+# CLI
+
+* Shorter subcommand name(s)
+* Autodetect filesystem type and check if requested hiding technique is available for it
+
 # Metadata
 
 To restore hidden data we need to store some additional information about the data that was hidden and the location the information was written to.
@@ -13,10 +18,6 @@ To restore hidden data we need to store some additional information about the da
 * Stored data length
 
 # FAT
-
-## Filesystem Parser
-
-* Make FS\_Info Block available
 
 ## Simple Disk Slack
 

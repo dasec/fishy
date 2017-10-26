@@ -1,5 +1,5 @@
 # fishy
-Toolkit for filesystem hiding techniques
+Toolkit for filesystem based data hiding techniques
 
 # Techniques we found
 
@@ -15,9 +15,23 @@ Toolkit for filesystem hiding techniques
 
 # Installation
 
-By now there is no ready to use install routine. But to install all required python modules you need, simply run:
+```bash
+$ sudo pip install -r requirements.txt
+$ sudo python setup.py install
 ```
-sudo pip install -r requirements.txt
+
+# Usage
+
+Currently only hiding in slack space of a single file on FAT filesystems is available:
+
+```bash
+# write into slack space
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -w
+# read from slack space
+$ fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -r
+TOP SECRET
+# Wipe slack space
+$ fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -c
 ```
 
 # Development

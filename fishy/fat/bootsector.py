@@ -1,6 +1,6 @@
+from .fs_info import FS_information_sector
 from construct import Struct, Byte, Bytes, Int16ul, Int32ul, Padding, this, \
                       Embedded, BitStruct, Nibble, Flag
-from fs_info import FS_information_sector
 
 # Core Bootsector, which is the same for all FAT types
 FATCoreBootsector = Struct(

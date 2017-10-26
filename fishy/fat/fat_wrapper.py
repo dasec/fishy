@@ -5,7 +5,7 @@ detects the FAT filesystem an uses the right class
 >>> f = open('testfs.dd', 'rb')
 >>> fs = FAT(f)
 """
-from fat import FAT12, FAT16, FAT32
+from .fat import FAT12, FAT16, FAT32
 
 
 class UnsupportedFilesystemError(Exception):
