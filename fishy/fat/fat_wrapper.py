@@ -13,7 +13,7 @@ class UnsupportedFilesystemError(Exception):
 
 def FAT(stream):
     """
-    :param stream: filedescriptor of a FAT12 filesystem
+    :param stream: filedescriptor of a FAT filesystem
     :return: FAT filesystem object
     """
     # save stream offset

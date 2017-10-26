@@ -1,4 +1,4 @@
-from construct import Bitwise, Pass, Mapping, Int16ul, Int32ul
+from construct import Pass, Mapping, Int16ul, Int32ul
 
 
 def ClusterAddress12Bit():

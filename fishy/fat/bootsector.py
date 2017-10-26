@@ -72,7 +72,7 @@ FAT32Bootsector = Struct(
                 - FAT32_ExtendedBootsector.sizeof()
                 ),
         Embedded(FS_information_sector),
-        Padding(this.sector_size 
+        Padding(this.sector_size
                 - FS_information_sector.sizeof()
                 ),
         )

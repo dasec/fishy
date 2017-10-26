@@ -24,6 +24,9 @@ from io import BytesIO, BufferedReader
 
 class SimpleDiskSlack:
     def __init__(self, stream):
+        """
+        :param stream: filedescriptor of a FAT filesystem
+        """
         self.fs = FAT(stream)
         self.stream = stream
 
@@ -95,13 +98,18 @@ class SimpleDiskSlack:
         if free_slack == 0:
             raise IOError("No slack space available for file '%s'"
                           % filepath)
-        # read what to write
-        bufferv = instream.read()
-        if len(bufferv) > free_slack:
+        # read what to write. ensure that we only read the amount of data,
+        # that fits into slack
+        bufferv = instream.read(free_slack)
+        # check if there is still data in instream. if that is the case
+        # the user wants to write more data than we can store.
+        if instream.peek():
             raise IOError("Not enough slack space available to write input")
+        # find position where we can start writing data
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
         self.stream.seek(last_cluster_start + occupied)
+        # write bytes into stream
         self.stream.write(bufferv)
 
     def read(self, outstream, filepath):
