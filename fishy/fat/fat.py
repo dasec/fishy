@@ -1,8 +1,6 @@
 """
 FAT12, FAT16 and FAT32 reader
 
-By now FAT16 and FAT32 are not really implemented
-
 examples:
 >>> with open('testfs.dd', 'rb') as filesystem:
 >>>     fs = FAT12(filesystem)
@@ -44,8 +42,6 @@ FAT16PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
-        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
-        #                                      / 2, FAT16Entry)),
         "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         # RootDir Table
         "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
@@ -55,8 +51,6 @@ FAT32PreDataRegion = Struct(
         "bootsector" / Embedded(FAT32Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
         # FATs
-        # "fats" / Array(this.fat_count, Array(this.sectors_per_fat * this.sector_size \
-        #                                      / FAT32Entry.sizeof(), FAT32Entry)),
         "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         )
 
@@ -111,8 +105,8 @@ class FAT:
         """
         # offset of requested cluster to the start of dataregion in bytes
         cluster_offset = (cluster_id - 2) \
-                * self.pre.sectors_per_cluster \
-                * self.pre.sector_size
+            * self.pre.sectors_per_cluster \
+            * self.pre.sector_size
         # offset of requested cluster to the start of the stream
         cluster_start = self.start_dataregion + cluster_offset
         return cluster_start
@@ -237,8 +231,8 @@ class FAT12(FAT):
         """
         super().__init__(stream, FAT12PreDataRegion)
         self.entries_per_fat = int(self.pre.sectors_per_fat
-                              * self.pre.sector_size
-                              * 8 / 12)
+                                   * self.pre.sector_size
+                                   * 8 / 12)
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -287,8 +281,8 @@ class FAT16(FAT):
         """
         super().__init__(stream, FAT16PreDataRegion)
         self.entries_per_fat = int(self.pre.sectors_per_fat
-                              * self.pre.sector_size
-                              / 2)
+                                   * self.pre.sector_size
+                                   / 2)
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -317,8 +311,8 @@ class FAT32(FAT):
         """
         super().__init__(stream, FAT32PreDataRegion)
         self.entries_per_fat = int(self.pre.sectors_per_fat
-                              * self.pre.sector_size
-                              / 4)
+                                   * self.pre.sector_size
+                                   / 4)
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -358,7 +352,6 @@ class FAT32(FAT):
         self.stream.seek(start_cluster_id)
         end_marker = 0xff
         while end_marker != 0x00:
-        # for i in range(10):
             # read 32 bit into variable
             raw = self.stream.read(32)
             # parse as DirEntry
@@ -388,7 +381,7 @@ class FAT32(FAT):
                 lfn = ''
                 end_marker = d.name[0]
                 # add start_cluster attribute for convenience
-                start_cluster = int.from_bytes(d.firstCluster + \
+                start_cluster = int.from_bytes(d.firstCluster +
                                                d.accessRightsBitmap,
                                                byteorder='little')
                 d.start_cluster = start_cluster

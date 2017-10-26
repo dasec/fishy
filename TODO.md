@@ -14,6 +14,10 @@ To restore hidden data we need to store some additional information about the da
 
 # FAT
 
+## Filesystem Parser
+
+* Make FS\_Info Block available
+
 ## Simple Disk Slack
 
 * add length option to read method to avoid outputting empty bytes

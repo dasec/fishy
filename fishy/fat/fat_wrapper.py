@@ -1,6 +1,9 @@
 """
-This file contains a wrapper for FAT filesystems, who
+This file contains a wrapper for FAT filesystems, which
 detects the FAT filesystem an uses the right class
+
+>>> f = open('testfs.dd', 'rb')
+>>> fs = FAT(f)
 """
 from fat import FAT12, FAT16, FAT32
 

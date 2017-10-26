@@ -1,13 +1,26 @@
 """
+SimpleDiskSlack offers methods to read, write and
+clear the slackspace of a given file in FAT filesystems
+
 example:
 >>> f = open('/dev/sdb1', 'rb+')
 >>> fs = SimpleDiskSlack(f)
+>>> filename = 'path/to/file/on/fs'
 
+to write something from stdin into slack:
+>>> fs.write(sys.stdin.buffer, filename)
+
+to read something from slack to stdout:
+>>> fs.read(sys.stdout.buffer, filename)
+
+to wipe slackspace of a file:
+>>> fs.clear(filename)
 """
 
 
 from fat_wrapper import FAT
 from io import BytesIO, BufferedReader
+
 
 class SimpleDiskSlack:
     def __init__(self, stream):
@@ -62,7 +75,7 @@ class SimpleDiskSlack:
                  And free_slack is the size of the slack space
         """
         cluster_size = self.fs.pre.sector_size * \
-                       self.fs.pre.sectors_per_cluster
+            self.fs.pre.sectors_per_cluster
         occupied_of_last_cluster = entry.fileSize % cluster_size
         free_slack = cluster_size - occupied_of_last_cluster
         return (occupied_of_last_cluster, free_slack)
@@ -78,17 +91,17 @@ class SimpleDiskSlack:
         if entry.start_cluster < 2:
             raise IOError("File '%s' has no slackspace" % filepath)
         # calculate slack space
-        occupied_of_last_cluster, free_slack = self.calculate_slack_space(entry)
+        occupied, free_slack = self.calculate_slack_space(entry)
         if free_slack == 0:
-            raise IOError("No slack space available for file '%s'" \
-                           % filepath)
+            raise IOError("No slack space available for file '%s'"
+                          % filepath)
         # read what to write
         bufferv = instream.read()
         if len(bufferv) > free_slack:
             raise IOError("Not enough slack space available to write input")
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
-        self.stream.seek(last_cluster_start + occupied_of_last_cluster)
+        self.stream.seek(last_cluster_start + occupied)
         self.stream.write(bufferv)
 
     def read(self, outstream, filepath):
@@ -102,11 +115,11 @@ class SimpleDiskSlack:
         if entry.start_cluster < 2:
             raise IOError("File '%s' has no slackspace" % filepath)
         # calculate slack space
-        occupied_of_last_cluster, free_slack = self.calculate_slack_space(entry)
+        occupied, free_slack = self.calculate_slack_space(entry)
         # read slack space
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
-        self.stream.seek(last_cluster_start + occupied_of_last_cluster)
+        self.stream.seek(last_cluster_start + occupied)
 
         bufferv = self.stream.read(free_slack)
         outstream.write(bufferv)
@@ -131,7 +144,7 @@ class SimpleDiskSlack:
 if __name__ == "__main__":
     import sys
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Read and write into slackspace of a file')
     parser.add_argument('-d', '--device', dest='dev', required=True, help='Path to filesystem')
     parser.add_argument('-f', '--file', dest='file', required=True, help='absolute path to file on filesystem')
