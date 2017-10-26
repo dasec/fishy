@@ -329,9 +329,9 @@ class FAT32(FAT):
         """
         byte = cluster_id*4
         # TODO: Use active FAT
-        sl = self.pre.fats[0][byte:byte+2]
+        sl = self.pre.fats[0][byte:byte+4]
         value = int.from_bytes(sl, byteorder='little')
-        return FAT16Entry.parse(value.to_bytes(2, 'little'))
+        return FAT32Entry.parse(value.to_bytes(4, 'little'))
 
     def _root_to_stream(self, stream):
         """
