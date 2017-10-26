@@ -68,9 +68,11 @@ FAT12_16Bootsector = Struct(
 FAT32Bootsector = Struct(
         Embedded(FATCoreBootsector),
         Embedded(FAT32_ExtendedBootsector),
-        # Embedded(FS_information_sector),
-        Padding(this.sector_size - FATCoreBootsector.sizeof() -
-                FAT32_ExtendedBootsector.sizeof()
-                # - FS_information_sector.sizeof()
+        Padding(this.sector_size - FATCoreBootsector.sizeof()
+                - FAT32_ExtendedBootsector.sizeof()
+                ),
+        Embedded(FS_information_sector),
+        Padding(this.sector_size 
+                - FS_information_sector.sizeof()
                 ),
         )

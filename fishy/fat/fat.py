@@ -49,7 +49,7 @@ FAT16PreDataRegion = Struct(
 
 FAT32PreDataRegion = Struct(
         "bootsector" / Embedded(FAT32Bootsector),
-        Padding((this.reserved_sector_count - 1) * this.sector_size),
+        Padding((this.reserved_sector_count - 2) * this.sector_size),
         # FATs
         "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         )
