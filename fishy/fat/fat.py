@@ -325,6 +325,8 @@ class FAT32(FAT):
         # TODO: Use active FAT
         sl = self.pre.fats[0][byte:byte+4]
         value = int.from_bytes(sl, byteorder='little')
+        # TODO: Remove highest 4 Bits as FAT32 uses only 28Bit
+        #       long addresses.
         return FAT32Entry.parse(value.to_bytes(4, 'little'))
 
     def _root_to_stream(self, stream):
