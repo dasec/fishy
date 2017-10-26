@@ -7,6 +7,7 @@
 
 * We should calculate checksums over input data to detect information loss while reading hidden data
 * Maybe [rolling hashes](https://en.wikipedia.org/wiki/Rolling_hash) might be the thing we should use, because with them we don't need to buffer the whole input first, before we can write it to disk.
+* Or we refer to archive formats like zip, which have error detection.
 
 # Metadata
 
