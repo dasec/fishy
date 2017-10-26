@@ -13,6 +13,12 @@ Toolkit for filesystem hiding techniques
 	* Overwrite Bootsector Copy?
 	* Overwrite FAT Copies when they are not FAT0 or FAT1
 
+# Installation
+
+By now there is no ready to use install routine. But to install all required python modules you need, simply run:
+```
+sudo pip install -r requirements.txt
+```
 
 # Development
 
