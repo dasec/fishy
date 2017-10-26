@@ -4,7 +4,7 @@ Toolkit for filesystem based data hiding techniques
 # Techniques we found
 
 * FAT:
-	* Disk Slack
+	* File Slack
 		* Simple: Only writing to slackspace of one file  [✓]
 		* Advanced: Writing to slackspace of multiple files
 	* Partition Slack
@@ -26,12 +26,12 @@ Currently only hiding in slack space of a single file on FAT filesystems is avai
 
 ```bash
 # write into slack space
-$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -w
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -w
 # read from slack space
-$ fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -r
+$ fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -r
 TOP SECRET
 # Wipe slack space
-$ fishy -d testfs-fat12.dd fatsimplediskslack -f myfile.txt -c
+$ fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -c
 ```
 
 # Development

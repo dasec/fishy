@@ -1,10 +1,10 @@
 """
-SimpleDiskSlack offers methods to read, write and
+SimpleFileSlack offers methods to read, write and
 clear the slackspace of a given file in FAT filesystems
 
 example:
 >>> f = open('/dev/sdb1', 'rb+')
->>> fs = SimpleDiskSlack(f)
+>>> fs = SimpleFileSlack(f)
 >>> filename = 'path/to/file/on/fs'
 
 to write something from stdin into slack:
@@ -22,7 +22,7 @@ from .fat_wrapper import FAT
 from io import BytesIO, BufferedReader
 
 
-class SimpleDiskSlack:
+class SimpleFileSlack:
     def __init__(self, stream):
         """
         :param stream: filedescriptor of a FAT filesystem

@@ -25,14 +25,14 @@ To restore hidden data we need to store some additional information about the da
 
 * Filesystem/Technique dependend:
   * FAT
-    * Disk Slack:
+    * File Slack:
       * List of clusters. As (at least on linux) changing a file means deleting and writing to another cluster this would also be more stable than every autodiscovery of possible file slacks would be.
       * List of cluster offsets. Would make this option more stable but is not absolutely required.
     
 
 # FAT
 
-## Simple Disk Slack
+## Simple File Slack
 
 * add length option to read method to avoid outputting empty bytes
 * Maybe store Cluster + Cluster offset in metadata
