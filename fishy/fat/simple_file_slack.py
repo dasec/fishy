@@ -91,7 +91,7 @@ class SimpleFileSlack:
         """
         # get directory entry for file
         entry = self._find_file(filepath)
-        if entry.start_cluster < 2:
+        if entry.start_cluster < 2 or entry.fileSize == 0:
             raise IOError("File '%s' has no slackspace" % filepath)
         # calculate slack space
         occupied, free_slack = self.calculate_slack_space(entry)
