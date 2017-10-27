@@ -26,28 +26,27 @@ def main():
     fatsds.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
     args = parser.parse_args()
 
-    f = open(args.dev, 'rb+')
+    with open(args.dev, 'rb+') as f:
+        # if 'fattools' was chosen
+        if args.which == "fattools":
+            ft = FATtools(FAT(f))
+            if args.fat:
+                ft.list_fat()
+            elif args.info:
+                ft.list_info()
+            elif args.list is not None:
+                ft.list_directory(args.list)
 
-    # if 'fattools' was chosen
-    if args.which == "fattools":
-        ft = FATtools(FAT(f))
-        if args.fat:
-            ft.list_fat()
-        elif args.info:
-            ft.list_info()
-        elif args.list is not None:
-            ft.list_directory(args.list)
-
-    # if 'fatsimplefileslack' was chosen
-    if args.which == "fatsimplefileslack":
-        filename = args.file
-        fs = FATSimpleFileSlack(f)
-        if args.write:
-            fs.write(sys.stdin.buffer, filename)
-        if args.read:
-            fs.read(sys.stdout.buffer, filename)
-        if args.clear:
-            fs.clear(filename)
+        # if 'fatsimplefileslack' was chosen
+        if args.which == "fatsimplefileslack":
+            filename = args.file
+            fs = FATSimpleFileSlack(f)
+            if args.write:
+                fs.write(sys.stdin.buffer, filename)
+            if args.read:
+                fs.read(sys.stdout.buffer, filename)
+            if args.clear:
+                fs.clear(filename)
 
 if __name__ == "__main__":
     main()
