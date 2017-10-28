@@ -77,11 +77,23 @@ class SimpleFileSlack:
                  is the occupied size of the last cluster by the file.
                  And free_slack is the size of the slack space
         """
+        # calculate how many bytes belong to a cluster
         cluster_size = self.fs.pre.sector_size * \
             self.fs.pre.sectors_per_cluster
-        occupied_of_last_cluster = entry.fileSize % cluster_size
-        free_slack = cluster_size - occupied_of_last_cluster
-        return (occupied_of_last_cluster, free_slack)
+        # calculate of many bytes the original file
+        # occupies in this cluster
+        occupied_by_file = entry.fileSize % cluster_size
+        # calculate ram slack (how many free bytes remain for)
+        # this sector. As at least under linux (no other os tested)
+        # padds ram slack with zeros, we should not write into this
+        # space as this might seem suspicious
+        ram_slack = (self.fs.pre.sector_size - \
+                    (occupied_by_file % self.fs.pre.sector_size)) % \
+                    self.fs.pre.sector_size
+        # calculate remaining free slack size in this cluster
+        free_slack = cluster_size - occupied_by_file - ram_slack
+        print(occupied_by_file, ram_slack, free_slack)
+        return (occupied_by_file + ram_slack, free_slack)
 
     def write(self, instream, filepath):
         """
