@@ -92,7 +92,6 @@ class SimpleFileSlack:
                     self.fs.pre.sector_size
         # calculate remaining free slack size in this cluster
         free_slack = cluster_size - occupied_by_file - ram_slack
-        print(occupied_by_file, ram_slack, free_slack)
         return (occupied_by_file + ram_slack, free_slack)
 
     def write(self, instream, filepath):
