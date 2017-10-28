@@ -74,7 +74,39 @@ class FAT:
         :param cluster_id: int, cluster that will be looked up
         :return: int or string
         """
-        return self.pre.fats[0][cluster_id]
+        raise NotImplementedError()
+
+    def write_fat_entry(self, cluster_id, value):
+        """
+        write a given value into FAT tables
+        requires that FAT object holds self._fat_entry attribute with
+        a valid construct.Mapping
+        :param cluster_id: int, cluster_id to write the value into
+        :param value: int or string, value that gets written into FAT
+                      use integer for valid following cluster_ids
+                      use string 'free_cluster', 'bad_cluster' or
+                      'last_cluster' without need to distinguish between
+                      different FAT versions.
+        """
+        # get start position of FAT0
+        fat0_start = self.offset + 512 + (self.pre.sector_size - 512) + \
+            (self.pre.reserved_sector_count - 1) * self.pre.sector_size
+        fat1_start = fat0_start + self.pre.sectors_per_fat * self.pre.sector_size
+        # update first fat on disk
+        self.stream.seek(fat0_start + cluster_id * self._fat_entry.sizeof())
+        self.stream.write(self._fat_entry.build(value))
+        # update second fat on disk if it exists
+        if self.pre.fat_count > 1:
+            self.stream.seek(fat1_start + cluster_id * self._fat_entry.sizeof())
+            self.stream.write(self._fat_entry.build(value))
+        # flush changes to disk
+        self.stream.flush()
+        # re-read fats into memory
+        fat_definition = Array(self.pre.fat_count, 
+                               Bytes(self.pre.sectors_per_fat * 
+                                     self.pre.sector_size))
+        self.stream.seek(fat0_start)
+        self.pre.fats = fat_definition.parse_stream(self.stream)
 
     def follow_cluster(self, start_cluster):
         """
@@ -233,6 +265,7 @@ class FAT12(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    * 8 / 12)
+        self._fat_entry = FAT12Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -264,7 +297,7 @@ class FAT12(FAT):
             # if cluster_number is odd, we need to wipe the first nibble
             hexvalue = sl.hex()
             value = int(hexvalue[2:4] + hexvalue[0], 16)
-        return FAT12Entry.parse(value.to_bytes(2, 'little'))
+        return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -283,6 +316,7 @@ class FAT16(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    / 2)
+        self._fat_entry = FAT16Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -294,7 +328,7 @@ class FAT16(FAT):
         byte = cluster_id*2
         sl = self.pre.fats[0][byte:byte+2]
         value = int.from_bytes(sl, byteorder='little')
-        return FAT16Entry.parse(value.to_bytes(2, 'little'))
+        return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -313,6 +347,7 @@ class FAT32(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    / 4)
+        self._fat_entry = FAT32Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -327,7 +362,7 @@ class FAT32(FAT):
         value = int.from_bytes(sl, byteorder='little')
         # TODO: Remove highest 4 Bits as FAT32 uses only 28Bit
         #       long addresses.
-        return FAT32Entry.parse(value.to_bytes(4, 'little'))
+        return self._fat_entry.parse(value.to_bytes(4, 'little'))
 
     def _root_to_stream(self, stream):
         """

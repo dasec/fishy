@@ -16,7 +16,9 @@ def ClusterAddress12Bit():
         mapping[i] = 'last_cluster'
 
     encmapping = mapping.copy()
-    encmapping.update({v: v for v in mapping.values()})
+    encmapping['free_cluster'] = 0x000
+    encmapping['bad_cluster'] = 0xff7
+    encmapping['last_cluster'] = 0xfff
 
     return Mapping(subcon,
                    encoding=encmapping,
@@ -40,7 +42,9 @@ def ClusterAddress16Bit():
         mapping[i] = 'last_cluster'
 
     encmapping = mapping.copy()
-    encmapping.update({v: v for v in mapping.values()})
+    encmapping['free_cluster'] = 0x0000
+    encmapping['bad_cluster'] = 0xfff7
+    encmapping['last_cluster'] = 0xffff
 
     return Mapping(subcon,
                    encoding=encmapping,
@@ -64,7 +68,9 @@ def ClusterAddress32Bit():
         mapping[i] = 'last_cluster'
 
     encmapping = mapping.copy()
-    encmapping.update({v: v for v in mapping.values()})
+    encmapping['free_cluster'] = 0x0000000
+    encmapping['bad_cluster'] = 0xffffff7
+    encmapping['last_cluster'] = 0xfffffff
 
     return Mapping(subcon,
                    encoding=encmapping,
