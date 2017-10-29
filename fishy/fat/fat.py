@@ -88,6 +88,18 @@ class FAT:
                       'last_cluster' without need to distinguish between
                       different FAT versions.
         """
+        # make sure cluster_id is valid
+        if cluster_id < 0 or cluster_id >= self.entries_per_fat:
+            raise AttributeError("cluster_id out of bounds")
+        # make sure user does not input invalid values as next cluster
+        if type(value) == int:
+            assert value < self._fat_entry.encoding['bad_cluster'], \
+                            "next_cluster value must be < " \
+                            + str(self._fat_entry.encoding['bad_cluster']) \
+                            + ". For last cluster use 'last_cluster'. For " \
+                            + "bad_cluster use 'bad_cluster'"
+            assert value >= 2, "next_cluster value must be >= 2. For " \
+                               + "free_cluster use 'free_cluster'"
         # get start position of FAT0
         fat0_start = self.offset + 512 + (self.pre.sector_size - 512) + \
             (self.pre.reserved_sector_count - 1) * self.pre.sector_size
@@ -303,6 +315,9 @@ class FAT12(FAT):
         return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
     def write_fat_entry(self, cluster_id, value):
+        # make sure cluster_id is valid
+        if cluster_id < 0 or cluster_id >= self.entries_per_fat:
+            raise AttributeError("cluster_id out of bounds")
         # make sure user does not input invalid values as next cluster
         if type(value) == int:
             assert value <= 4086, "next_cluster value must be <= 4086. For " \
