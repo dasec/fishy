@@ -99,6 +99,7 @@ class SimpleFileSlack:
         writes from instream into slackspace of filename
         :param instream: stream to read from
         :param filepath: path to file, which slackspace will be used
+        :raises: IOError
         """
         # get directory entry for file
         entry = self._find_file(filepath)
@@ -128,6 +129,7 @@ class SimpleFileSlack:
         writes from instream into slackspace of filename
         :param instream: stream to write into
         :param filepath: path to file, which slackspace will be used
+        :raises: IOError
         """
         # get directory entry for file
         entry = self._find_file(filepath)

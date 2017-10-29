@@ -87,6 +87,7 @@ class FAT:
                       use string 'free_cluster', 'bad_cluster' or
                       'last_cluster' without need to distinguish between
                       different FAT versions.
+        :raises: AttributeError, AssertionError, FieldError
         """
         # make sure cluster_id is valid
         if cluster_id < 0 or cluster_id >= self.entries_per_fat:
@@ -210,6 +211,7 @@ class FAT:
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse
         :return: tuple of (DirEntry, lfn)
+        :raises: IOError
         """
         try:
             for de, lfn in self._get_dir_entries(cluster_id):

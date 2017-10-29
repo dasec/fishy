@@ -15,6 +15,7 @@ def FAT(stream):
     """
     :param stream: filedescriptor of a FAT filesystem
     :return: FAT filesystem object
+    :raises: UnsupportedFilesystemError
     """
     # save stream offset
     offset = stream.tell()
