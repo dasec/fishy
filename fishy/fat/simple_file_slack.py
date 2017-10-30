@@ -18,7 +18,7 @@ to wipe slackspace of a file:
 """
 
 
-from .fat_wrapper import FAT
+from .fat_filesystem.fat_wrapper import FAT
 from io import BytesIO, BufferedReader
 
 
