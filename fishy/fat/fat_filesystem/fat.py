@@ -28,6 +28,13 @@ from construct import Struct, Array, Padding, Embedded, Bytes, this
 from io import BytesIO, BufferedReader
 
 
+class NoFreeClusterAvailable(Exception):
+    """
+    This exception can be thrown by the get_free_cluster method of a FAT instance.
+    """
+    pass
+
+
 FAT12PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
@@ -123,6 +130,37 @@ class FAT:
                                      self.pre.sector_size))
         self.stream.seek(fat0_start)
         self.pre.fats = fat_definition.parse_stream(self.stream)
+
+    def get_free_cluster(self):
+        """
+        searches for the next free (unallocated cluster) in fat
+        :return: int, the cluster_id of an unallocated cluster
+        """
+        # FAT32 FS_Info sector stores the last allocated cluster
+        # so lets use it as an entry point, otherwise use cluster_id 3
+        # (as 0 and 1 are reserved cluster and it seems uncommon to assign
+        # cluster 2)
+        if hasattr(self.pre, "last_allocated_data_cluster"):
+            start_id = self.pre.last_allocated_data_cluster
+        else:
+            start_id = 3
+
+        current_id = start_id
+        while current_id != start_id -1:
+            if current_id < 2:
+                # skip cluster 0 and 1
+                current_id += 1
+                continue
+            # check if current_id is free. Return if it is
+            if self._get_cluster_value(current_id) == 'free_cluster':
+                return current_id
+            # If current_id is not allocated, increment it and wrap
+            # around the maximum count of entries as with FAT32 we
+            # might start in the middle of FAT and want to examine
+            # previous entries first until we throw an error
+            current_id = (current_id + 1) % (self.entries_per_fat - 1)
+        raise NoFreeClusterAvailable()
+
 
     def follow_cluster(self, start_cluster):
         """
@@ -447,6 +485,9 @@ class FAT32(FAT):
                            if cluster_id == 0, parse rootdir
         :return: tuple of (DirEntry, lfn)
         """
+        # TODO: The english wikipedia entry hints that using 0x00 as
+        #       an end-marker is deprecated. How FAT32 does then determine
+        #       that the end of a directory was reached?
         lfn = ''
         de = DirEntry
         lfne = LfnEntry
