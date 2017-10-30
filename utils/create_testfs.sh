@@ -44,3 +44,8 @@ copy_files testfs-fat16.dd
 dd if=/dev/zero of=testfs-fat32.dd bs=512 count=4000500
 mkfs.vfat testfs-fat32.dd
 copy_files testfs-fat32.dd
+
+# Create a 10MB NTFS image
+dd if=/dev/zero of=testfs-ntfs.dd bs=512 count=20000
+mkfs.ntfs -F testfs-ntfs.dd
+copy_files testfs-ntfs.dd
