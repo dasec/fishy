@@ -3,8 +3,7 @@ Metadata is a simple class that holds and manages metadata.
 
 Its purpose is to unify the dataformat and provide a consistent method for
 reading and writing those metadata. Therefor it provides a simple key-value
-store.  It can handle information for multiple modules. For those it provides
-seperate namespaces, the information is written to.
+store.
 
 example:
 
@@ -51,9 +50,11 @@ class Metadata:
                                   current module. Default main.
         """
         self.metadata = {}
-        self.module = module_identifier
-        self.set("version", 1)
-        self.set("modules", {})
+        self.module = 'main'
+        self.set("version", 2)
+        self.set("data", {})
+        self.set("module", None)
+        self.set_module(module_identifier)
 
     def set_module(self, identifier):
         """
@@ -63,9 +64,15 @@ class Metadata:
                            current module
         """
         # create module context if it does not exist
-        if identifier not in self.metadata["modules"] and \
-                identifier != 'main':
-            self.metadata["modules"][identifier] = {}
+        if identifier != "main":
+            if self.metadata["module"] is None:
+                self.metadata["module"] = identifier
+            elif self.metadata["module"] != identifier:
+                # avoid overwriting data from other modules
+                # if they accidentially use this metadata
+                raise Exception("This metadata was already " \
+                                + "initialized for module '%s'."
+                                % self.metadata["module"])
         # save module identifier
         self.module = identifier
 
@@ -87,7 +94,7 @@ class Metadata:
             self.metadata[key] = value
         else:
             # otherwise store value in module hierarchie
-            self.metadata["modules"][self.module][key] = value
+            self.metadata["data"][key] = value
 
     def get(self, key):
         """
@@ -102,28 +109,28 @@ class Metadata:
                 raise KeyError("Key '%s' not found in metadata" % key)
             return self.metadata[key]
         else:
-            if key not in self.metadata["modules"][self.module]:
+            if key not in self.metadata["data"]:
                 raise KeyError("Key '%s' not found in modules metadata" % key)
-            return self.metadata["modules"][self.module][key]
+            return self.metadata["data"][key]
 
     def read(self, instream):
         """
         reads json formatted content from stream.
 
         This will overwrite all content previously stored as metadata.
-        But the current module won't be changed.
+        The currently selected module will change to 'main'
         :param stream: stream to read from
         """
         self.metadata = json.loads(instream.read())
+        self.module = 'main'
 
     def write(self, outstream):
         """
         writes the current metadata into a stream
         """
         # check if some information are missing
-        if len(self.metadata["modules"]) == 0:
-            raise InformationMissingError("No module information currently \
-                                          stored")
+        if self.metadata["module"] is None:
+            raise InformationMissingError("Module identifier is missing")
         if "version" not in self.metadata:
             raise InformationMissingError("Metadata version is missing")
 
