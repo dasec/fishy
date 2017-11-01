@@ -22,8 +22,15 @@ from .fat_filesystem.fat_wrapper import FAT
 from io import BytesIO, BufferedReader
 
 class FileSlackMetadata:
-    def __init__(self):
-        self.clusters = []
+    def __init__(self, d=None):
+        """
+        :param d: dict, dictionary representation of a FileSlackMetadata
+                  object
+        """
+        if d is None:
+            self.clusters = []
+        else:
+            self.clusters = d["clusters"]
 
     def add_cluster(self, cluster_id, offset, length):
         """

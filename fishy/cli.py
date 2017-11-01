@@ -4,6 +4,7 @@ from .fat.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
 from .fileSlack import FileSlack
+from .metadata import Metadata
 
 
 def main():
@@ -29,8 +30,8 @@ def main():
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
     fileslack.set_defaults(which='fileslack')
-    fileslack.add_argument('-d', '--dest', dest='destination', action='append', required=True, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
-    fileslack.add_argument('-m', '--metadata', dest='read', help='Metadata file to use')
+    fileslack.add_argument('-d', '--dest', dest='destination', action='append', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    fileslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
     fileslack.add_argument('-r', '--read', dest='read', metavar='FILE_ID', help='read file with FILE_ID from slackspace to stdout')
     fileslack.add_argument('-o', '--outdir', dest='outdir', metavar='OUTDIR', help='read files from slackspace to OUTDIR')
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
@@ -67,15 +68,34 @@ def main():
             # m.print()
 
         if args.which == 'fileslack':
-            fs = FileSlack(device)
-            # write from stdin into fileslack
-            if args.write and args.files is None:
-                fs.write(sys.stdin.buffer, args.destination)
-            elif args.write and len(args.files):
-                for f in args.files:
-                    print(f)
-                    with open(f, 'rb') as fstream:
-                        fs.write(fstream, args.destination)
+            if args.write:
+                fs = FileSlack(device, Metadata())
+                if len(args.files) == 0:
+                    # write from stdin into fileslack
+                    fs.write(sys.stdin.buffer, args.destination)
+                else:
+                    # write from files  into fileslack
+                    for f in args.files:
+                        with open(f, 'rb') as fstream:
+                            fs.write(fstream, args.destination, f)
+                with open(args.metadata, 'w+') as metadata_out:
+                    fs.metadata.write(metadata_out)
+            elif args.read:
+                # read file to stdout
+                with open(args.metadata, 'r') as metadata_file:
+                    m = Metadata()
+                    m.read(metadata_file)
+                    fs = FileSlack(device, m)
+                    fs.read(sys.stdout.buffer, args.read)
+            elif args.outdir:
+                # read data into files
+                with open(args.metadata, 'r') as metadata_file:
+                    m = Metadata()
+                    m.read(metadata_file)
+                    fs = FileSlack(device, m)
+                    fs.read_into_files(args.outdir)
+
+
 
         # if 'fatsimplefileslack' was chosen
         if args.which == "fatsimplefileslack":

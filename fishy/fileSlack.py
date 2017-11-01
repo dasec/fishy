@@ -1,6 +1,7 @@
 from .filesystem_detector import get_filesystem_type
 from .fat.file_slack import FileSlack as FATFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
+from os import path
 
 
 class FileSlack:
@@ -26,12 +27,12 @@ class FileSlack:
     to wipe slackspace via providing filepaths
     >>> fs.clear_with_filepaths(filenames)
     """
-    def __init__(self, fs_stream):
+    def __init__(self, fs_stream, metadata):
         """
         :param fs_stream: Stream of filesystem
         :param metadata: Metadata object
         """
-        self.metadata = None
+        self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'FAT':
             self.fs = FATFileSlack(fs_stream)
@@ -51,11 +52,11 @@ class FileSlack:
                          name will be generated
         :raises: IOError
         """
-        # self.metadata = Metadata()
+        filename = path.basename(filename)
         if self.fs_type == 'FAT':
-            # self.metadata.set_module("fat-file-slack")
+            self.metadata.set_module("fat-file-slack")
             slack_metadata = self.fs.write(instream, filepaths)
-            # self.metadata.add_file(filename, slack_metadata)
+            self.metadata.add_file(filename, slack_metadata)
         else:
             raise NotImplementedError()
 
@@ -70,10 +71,23 @@ class FileSlack:
         """
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
-        else:
-            raise NotImplementedError()
-        file_metadata = self.metadata.get_file_metadata(file_id)
-        self.fs.read(outstream, file_metadata)
+            file_metadata = self.metadata.get_file(file_id)['metadata']
+            file_metadata = FATFileSlackMetadata(file_metadata)
+            self.fs.read(outstream, file_metadata)
+
+    def read_into_files(self, outdir):
+        """
+        reads hidden data from slack into files
+        files with the same filename will be overwritten
+        :param outdir: directory where files will be restored
+        """
+        if self.fs_type == 'FAT':
+            self.metadata.set_module("fat-file-slack")
+            for f in self.metadata.get_files():
+                file_id = f['uid']
+                filename = f['filename']
+                with open(outdir + '/' + filename, 'wb+') as outfile:
+                    self.read(outfile, file_id)
 
     def clear_with_metadata(self, metadata):
         """
