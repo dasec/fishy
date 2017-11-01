@@ -2,15 +2,58 @@
 Metadata is a simple class that holds and manages metadata.
 
 Its purpose is to unify the dataformat and provide a consistent method for
-reading and writing those metadata. Therefor it provides a simple key-value
-store.
+reading and writing those metadata.
 
-example:
+example of the resulting data structure that will be written to disk
+(everything represented under the key 'metadata' comes from a
+Sub-Metadata class and can vary, depending on the hiding technique)
 
->>> m = Metadata("MyModule")
->>> m.set("data_length", 42)
->>> m.get("data_length")
-42
+{
+  "module": "fat-file-slack"
+  "version": 2,
+  "files": {
+    "b45a6a1c4e75352a741ba81645e1a06af3c90044103be019681a76463cfb4a7a": {
+      "uid": "b45a6a1c4e75352a741ba81645e1a06af3c90044103be019681a76463cfb4a7a",
+      "filename": "test_file1.txt",
+      "metadata": {
+        "clusters": [
+          [ 10, 512, 6 ]
+        ]
+      }
+    },
+    "dcbd4af36915fe35456f6e25de58fce08b9234e44c56af252562d95c7eb67ef4": {
+      "uid": "dcbd4af36915fe35456f6e25de58fce08b9234e44c56af252562d95c7eb67ef4",
+      "filename": "test_file2.txt",
+      "metadata": {
+        "clusters": [
+          [ 3, 512, 6 ]
+        ]
+      }
+    }
+  },
+}
+
+usage example:
+
+first we create a Sub-Metadata class. It should be defined each hiding
+technique and specifies which data a hiding technique will store. In this
+example we use the FileSlackMetadata class, because it is currently the only
+one that exists.
+
+>>> subm = FileSlackMetadata()
+>>> subm.add_clusters(3, 512, 10)
+
+now we create our metadata object and save the FileSlackMetadata object into it
+>>> m = Metadata("fat-file-slack")
+>>> m.add_file("super-secret-file.txt", subm)
+
+we can get a single file entry out of it (if we now the uid)
+>>> file_id = c8fbb7a2265df73967a3721c7dc7d99afcedce298268411e3e6bf53ceabf2e2b
+>>> m.get_file(file_id)
+
+or we can use the iterator to iterate over all file entries
+>>> for entry in m.get_files():
+        print(entry)
 
 write metadata to a file
 >>> mdf = open("/tmp/metadata.json", "w+")
@@ -72,7 +115,7 @@ class Metadata:
             elif self.metadata["module"] != identifier:
                 # avoid overwriting data from other modules
                 # if they accidentially use this metadata
-                raise Exception("This metadata was already " \
+                raise Exception("This metadata was already "
                                 + "initialized for module '%s'."
                                 % self.metadata["module"])
         # save module identifier
@@ -87,7 +130,8 @@ class Metadata:
 
     def set(self, key, value):
         """
-        stores a key value pair
+        stores a key value pair. this method is only available in
+        'main' context
         :param key: the key which itentifies the content
         :param value: value to store
         """
@@ -99,7 +143,8 @@ class Metadata:
 
     def get(self, key):
         """
-        returns the value for a given key
+        returns the value for a given key. this method is only available
+        in 'main' context
         :param key: the key which itentifies the content
         :return: stored value
         """
@@ -117,7 +162,7 @@ class Metadata:
         generates a unique id, used as file identifier
         :return: string
         """
-        number = random.randint(10000,99999).to_bytes(3, 'big')
+        number = random.randint(10000, 99999).to_bytes(3, 'big')
         timestamp = str(datetime.now().timestamp().hex()).encode('utf-8')
         uid = sha256(number + timestamp)
         return uid.hexdigest()
