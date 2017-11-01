@@ -28,11 +28,17 @@ from construct import Struct, Array, Padding, Embedded, Bytes, this
 from io import BytesIO, BufferedReader
 
 
+class NoFreeClusterAvailable(Exception):
+    """
+    This exception can be thrown by the get_free_cluster method of a FAT instance.
+    """
+    pass
+
+
 FAT12PreDataRegion = Struct(
         "bootsector" / Embedded(FAT12_16Bootsector),
         Padding((this.reserved_sector_count - 1) * this.sector_size),
-        # FATs. Due to 12 bit addresses in FAT12 we will parse the
-        # actual structure later in __init__ method
+        # FATs.
         "fats" / Array(this.fat_count, Bytes(this.sectors_per_fat * this.sector_size)),
         # RootDir Table
         "rootdir" / Bytes(this.rootdir_entry_count * DirEntry.sizeof())
@@ -64,6 +70,7 @@ class FAT:
         """
         self.stream = stream
         self.offset = stream.tell()
+        self.predataregion_definition = predataregion
         self.pre = predataregion.parse_stream(stream)
         self.start_dataregion = stream.tell()
 
@@ -74,7 +81,86 @@ class FAT:
         :param cluster_id: int, cluster that will be looked up
         :return: int or string
         """
-        return self.pre.fats[0][cluster_id]
+        raise NotImplementedError()
+
+    def write_fat_entry(self, cluster_id, value):
+        """
+        write a given value into FAT tables
+        requires that FAT object holds self._fat_entry attribute with
+        a valid construct.Mapping
+        :param cluster_id: int, cluster_id to write the value into
+        :param value: int or string, value that gets written into FAT
+                      use integer for valid following cluster_ids
+                      use string 'free_cluster', 'bad_cluster' or
+                      'last_cluster' without need to distinguish between
+                      different FAT versions.
+        :raises: AttributeError, AssertionError, FieldError
+        """
+        # make sure cluster_id is valid
+        if cluster_id < 0 or cluster_id >= self.entries_per_fat:
+            raise AttributeError("cluster_id out of bounds")
+        # make sure user does not input invalid values as next cluster
+        if type(value) == int:
+            assert value < self._fat_entry.encoding['bad_cluster'], \
+                            "next_cluster value must be < " \
+                            + str(self._fat_entry.encoding['bad_cluster']) \
+                            + ". For last cluster use 'last_cluster'. For " \
+                            + "bad_cluster use 'bad_cluster'"
+            assert value >= 2, "next_cluster value must be >= 2. For " \
+                               + "free_cluster use 'free_cluster'"
+        # get start position of FAT0
+        fat0_start = self.offset + 512 + (self.pre.sector_size - 512) + \
+            (self.pre.reserved_sector_count - 1) * self.pre.sector_size
+        fat1_start = fat0_start + self.pre.sectors_per_fat \
+            * self.pre.sector_size
+        # update first fat on disk
+        self.stream.seek(fat0_start + cluster_id
+                         * self._fat_entry.sizeof())
+        self.stream.write(self._fat_entry.build(value))
+        # update second fat on disk if it exists
+        if self.pre.fat_count > 1:
+            self.stream.seek(fat1_start + cluster_id
+                             * self._fat_entry.sizeof())
+            self.stream.write(self._fat_entry.build(value))
+        # flush changes to disk
+        self.stream.flush()
+        # re-read fats into memory
+        fat_definition = Array(self.pre.fat_count,
+                               Bytes(self.pre.sectors_per_fat *
+                                     self.pre.sector_size))
+        self.stream.seek(fat0_start)
+        self.pre.fats = fat_definition.parse_stream(self.stream)
+
+    def get_free_cluster(self):
+        """
+        searches for the next free (unallocated cluster) in fat
+        :return: int, the cluster_id of an unallocated cluster
+        """
+        # FAT32 FS_Info sector stores the last allocated cluster
+        # so lets use it as an entry point, otherwise use cluster_id 3
+        # (as 0 and 1 are reserved cluster and it seems uncommon to assign
+        # cluster 2)
+        if hasattr(self.pre, "last_allocated_data_cluster"):
+            start_id = self.pre.last_allocated_data_cluster
+        else:
+            start_id = 3
+
+        current_id = start_id
+        while current_id != start_id -1:
+            if current_id < 2:
+                # skip cluster 0 and 1
+                current_id += 1
+                continue
+            # check if current_id is free. Return if it is
+            if self._get_cluster_value(current_id) == 'free_cluster':
+                return current_id
+            # If current_id is not allocated, increment it and wrap
+            # around the maximum count of entries as with FAT32 we
+            # might start in the middle of FAT and want to examine
+            # previous entries first until we throw an error
+            current_id = (current_id + 1) % (self.entries_per_fat - 1)
+        raise NoFreeClusterAvailable()
+
 
     def follow_cluster(self, start_cluster):
         """
@@ -163,6 +249,7 @@ class FAT:
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse
         :return: tuple of (DirEntry, lfn)
+        :raises: IOError
         """
         try:
             for de, lfn in self._get_dir_entries(cluster_id):
@@ -233,6 +320,7 @@ class FAT12(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    * 8 / 12)
+        self._fat_entry = FAT12Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -261,10 +349,59 @@ class FAT12(FAT):
             hexvalue = sl.hex()
             value = int(hexvalue[3] + hexvalue[0:2], 16)
         else:
-            # if cluster_number is odd, we need to wipe the first nibble
+            # if cluster_number is odd, we need to wipe the second nibble
             hexvalue = sl.hex()
             value = int(hexvalue[2:4] + hexvalue[0], 16)
-        return FAT12Entry.parse(value.to_bytes(2, 'little'))
+        return self._fat_entry.parse(value.to_bytes(2, 'little'))
+
+    def write_fat_entry(self, cluster_id, value):
+        # make sure cluster_id is valid
+        if cluster_id < 0 or cluster_id >= self.entries_per_fat:
+            raise AttributeError("cluster_id out of bounds")
+        # make sure user does not input invalid values as next cluster
+        if type(value) == int:
+            assert value <= 4086, "next_cluster value must be <= 4086. For " \
+                                  + "last cluster use 'last_cluster'. For " \
+                                  + "bad_cluster use 'bad_cluster'"
+            assert value >= 2, "next_cluster value must be >= 2. For " \
+                               + "free_cluster use 'free_cluster'"
+        # get start position of FAT0
+        fat0_start = self.offset + 512 + (self.pre.sector_size - 512) + \
+            (self.pre.reserved_sector_count - 1) * self.pre.sector_size
+        fat1_start = fat0_start + self.pre.sectors_per_fat \
+            * self.pre.sector_size
+        # read current entry
+        byte = cluster_id + int(cluster_id/2)
+        self.stream.seek(fat0_start + byte)
+        current_entry = self.stream.read(2).hex()
+        new_entry_hex = self._fat_entry.build(value).hex()
+        # calculate new entry as next entry overlaps with current bytes
+        if cluster_id % 2 == 0:
+            # if cluster_number is even, we need to keep the third nibble
+            new_entry = new_entry_hex[0:2] + current_entry[2] \
+                + new_entry_hex[3]
+        else:
+            # if cluster_number is odd, we need to keep the second nibble
+            new_entry = new_entry_hex[1] + current_entry[1] + \
+                    new_entry_hex[3] + new_entry_hex[0]
+        # convert hex to bytes
+        new_entry = bytes.fromhex(new_entry)
+        print(new_entry)
+        # write new value to first fat on disk
+        self.stream.seek(fat0_start + byte)
+        self.stream.write(new_entry)
+        # write new value to second fat on disk if it exists
+        if self.pre.fat_count > 1:
+            self.stream.seek(fat1_start + byte)
+            self.stream.write(new_entry)
+        # flush changes to disk
+        self.stream.flush()
+        # re-read fats into memory
+        fat_definition = Array(self.pre.fat_count,
+                               Bytes(self.pre.sectors_per_fat *
+                                     self.pre.sector_size))
+        self.stream.seek(fat0_start)
+        self.pre.fats = fat_definition.parse_stream(self.stream)
 
     def _root_to_stream(self, stream):
         """
@@ -283,6 +420,7 @@ class FAT16(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    / 2)
+        self._fat_entry = FAT16Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -294,7 +432,7 @@ class FAT16(FAT):
         byte = cluster_id*2
         sl = self.pre.fats[0][byte:byte+2]
         value = int.from_bytes(sl, byteorder='little')
-        return FAT16Entry.parse(value.to_bytes(2, 'little'))
+        return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -313,6 +451,7 @@ class FAT32(FAT):
         self.entries_per_fat = int(self.pre.sectors_per_fat
                                    * self.pre.sector_size
                                    / 4)
+        self._fat_entry = FAT32Entry
 
     def _get_cluster_value(self, cluster_id):
         """
@@ -327,7 +466,7 @@ class FAT32(FAT):
         value = int.from_bytes(sl, byteorder='little')
         # TODO: Remove highest 4 Bits as FAT32 uses only 28Bit
         #       long addresses.
-        return FAT32Entry.parse(value.to_bytes(4, 'little'))
+        return self._fat_entry.parse(value.to_bytes(4, 'little'))
 
     def _root_to_stream(self, stream):
         """
@@ -346,6 +485,9 @@ class FAT32(FAT):
                            if cluster_id == 0, parse rootdir
         :return: tuple of (DirEntry, lfn)
         """
+        # TODO: The english wikipedia entry hints that using 0x00 as
+        #       an end-marker is deprecated. How FAT32 does then determine
+        #       that the end of a directory was reached?
         lfn = ''
         de = DirEntry
         lfne = LfnEntry

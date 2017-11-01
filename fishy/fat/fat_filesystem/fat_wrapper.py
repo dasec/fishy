@@ -14,6 +14,7 @@ def FAT(stream):
     Detect FAT filesystem type and return an instance of it
     :param stream: filedescriptor of a FAT filesystem
     :return: FAT filesystem object
+    :raises: UnsupportedFilesystemError
     """
     # get fs_type
     fat_type = get_filesystem_type(stream)

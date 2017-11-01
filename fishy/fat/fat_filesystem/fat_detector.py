@@ -1,3 +1,15 @@
+"""
+fat_detector includes is_fat and get_filesystem_type
+function, which provide detection of a fat filesystem.
+
+For the ease of implementation these functions rely on
+the fat_version field of the Bootsector (offset 0x36 for
+FAT12/16 and offset 0x52 for FAT32). Please note that
+this field needs not to be correct, although common tools
+set it the right way.
+"""
+
+
 class UnsupportedFilesystemError(Exception):
     pass
 
