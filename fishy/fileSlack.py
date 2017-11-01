@@ -52,7 +52,8 @@ class FileSlack:
                          name will be generated
         :raises: IOError
         """
-        filename = path.basename(filename)
+        if filename is not None:
+            filename = path.basename(filename)
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
             slack_metadata = self.fs.write(instream, filepaths)
@@ -89,20 +90,16 @@ class FileSlack:
                 with open(outdir + '/' + filename, 'wb+') as outfile:
                     self.read(outfile, file_id)
 
-    def clear_with_metadata(self, metadata):
+    def clear(self):
         """
         clears the slackspace of files. Information of them is stored in
         metadata.
         :param metadata: Metadata, object where metadata is stored in
         :raises: IOError
         """
-        raise NotImplementedError()
-
-    def clear_with_filepaths(self, filepaths):
-        """
-        clears the slackspace of files.
-        :param filepaths: list of strings, filepaths to files, which slackspace
-                          will be cleared
-        :raises: IOError
-        """
-        raise NotImplementedError()
+        if self.fs_type == 'FAT':
+            self.metadata.set_module("fat-file-slack")
+            for f in self.metadata.get_files():
+                file_metadata = f['metadata']
+                file_metadata = FATFileSlackMetadata(file_metadata)
+                self.fs.clear(file_metadata)

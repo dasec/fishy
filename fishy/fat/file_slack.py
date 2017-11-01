@@ -118,11 +118,22 @@ class FileSlack:
                  is the occupied size of the last cluster by the file.
                  And free_slack is the size of the slack space
         """
+        # calculate how many bytes belong to a cluster
         cluster_size = self.fs.pre.sector_size * \
             self.fs.pre.sectors_per_cluster
-        occupied_of_last_cluster = entry.fileSize % cluster_size
-        free_slack = cluster_size - occupied_of_last_cluster
-        return (occupied_of_last_cluster, free_slack)
+        # calculate of many bytes the original file
+        # occupies in this cluster
+        occupied_by_file = entry.fileSize % cluster_size
+        # calculate ram slack (how many free bytes remain for)
+        # this sector. As at least under linux (no other os tested)
+        # padds ram slack with zeros, we should not write into this
+        # space as this might seem suspicious
+        ram_slack = (self.fs.pre.sector_size - \
+                    (occupied_by_file % self.fs.pre.sector_size)) % \
+                    self.fs.pre.sector_size
+        # calculate remaining free slack size in this cluster
+        free_slack = cluster_size - occupied_by_file - ram_slack
+        return (occupied_by_file + ram_slack, free_slack)
 
     def write(self, instream, filepaths):
         """
@@ -190,17 +201,10 @@ class FileSlack:
 
     def clear(self, metadata):
         """
-        clears the slackspace of a given file
-        :param filepath: string, path to file
+        clears the slackspace of a files
+        :param metadata: FileSlackMetadata object
         """
-        raise NotImplementedError()
-        # # calculate slack space size
-        # entry = self._find_file(filepath)
-        # occupied, slack_size = self.calculate_slack_space(entry)
-        # # write zeros into stream
-        # with BytesIO() as mem:
-        #     data = slack_size * b'\x00'
-        #     mem.write(data)
-        #     mem.seek(0)
-        #     with BufferedReader(mem) as reader:
-        #         self.write(reader, filepath)
+        for cluster_id, offset, length in metadata.get_clusters():
+            cluster_start = self.fs.get_cluster_start(cluster_id)
+            self.stream.seek(cluster_start + offset)
+            self.stream.write(length * b'\x00')

@@ -61,12 +61,14 @@ def main():
                 ft.list_info()
             elif args.list is not None:
                 ft.list_directory(args.list)
+
         # if 'metadata' was chosen
         if args.which == 'metadata':
-            pass
+            raise NotImplementedError()
             # m = Metadata(args.metadata)
             # m.print()
 
+        # if 'fileslack' was chosen
         if args.which == 'fileslack':
             if args.write:
                 fs = FileSlack(device, Metadata())
@@ -81,21 +83,27 @@ def main():
                 with open(args.metadata, 'w+') as metadata_out:
                     fs.metadata.write(metadata_out)
             elif args.read:
-                # read file to stdout
+                # read file slack of a single hidden file to stdout
                 with open(args.metadata, 'r') as metadata_file:
                     m = Metadata()
                     m.read(metadata_file)
                     fs = FileSlack(device, m)
                     fs.read(sys.stdout.buffer, args.read)
             elif args.outdir:
-                # read data into files
+                # read fileslack of all hidden files into files
+                # under a given directory
                 with open(args.metadata, 'r') as metadata_file:
                     m = Metadata()
                     m.read(metadata_file)
                     fs = FileSlack(device, m)
                     fs.read_into_files(args.outdir)
-
-
+            elif args.clear:
+                # clear fileslack
+                with open(args.metadata, 'r') as metadata_file:
+                    m = Metadata()
+                    m.read(metadata_file)
+                    fs = FileSlack(device, m)
+                    fs.clear()
 
         # if 'fatsimplefileslack' was chosen
         if args.which == "fatsimplefileslack":
