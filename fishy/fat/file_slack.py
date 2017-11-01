@@ -2,6 +2,7 @@
 SimpleFileSlack offers methods to read, write and
 clear the slackspace of a given file in FAT filesystems
 
+TODO: Update example
 example:
 >>> f = open('/dev/sdb1', 'rb+')
 >>> fs = SimpleFileSlack(f)
@@ -108,6 +109,7 @@ class FileSlack:
         :param directory: entry point, if not given, root
                           directory will be used
         """
+        # TODO implement this file_walk method
         raise NotImplementedError()
 
     def calculate_slack_space(self, entry):
@@ -154,6 +156,7 @@ class FileSlack:
             entry = self._find_file(filepath)
             if entry.attributes.subDirectory:
                 # if current entry is a directory, traverse it
+                # TODO: implement it
                 raise Exception("traversing directories not implemented")
                 self._file_walk(entry)
             occupied, free_slack = self.calculate_slack_space(entry)
