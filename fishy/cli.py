@@ -3,6 +3,7 @@ import argparse
 from .fat.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
+from .fileSlack import FileSlack
 
 
 def main():
@@ -28,14 +29,13 @@ def main():
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
     fileslack.set_defaults(which='fileslack')
-    fileslack.add_argument('-d', '--dest', dest='dest', required=True, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    fileslack.add_argument('-d', '--dest', dest='destination', action='append', required=True, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
     fileslack.add_argument('-m', '--metadata', dest='read', help='Metadata file to use')
     fileslack.add_argument('-r', '--read', dest='read', metavar='FILE_ID', help='read file with FILE_ID from slackspace to stdout')
     fileslack.add_argument('-o', '--outdir', dest='outdir', metavar='OUTDIR', help='read files from slackspace to OUTDIR')
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     fileslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
-    fileslack.add_argument('files', metavar='FILE', nargs='?', type=argparse.FileType('rb'),
-                           default=sys.stdout, help="Files to write into slack space")
+    fileslack.add_argument('files', metavar='FILE', nargs='*', help="Files to write into slack space, if nothing provided, use stdin")
 
     # FAT Simple File Slack
     # Deprecated, will move into general FileSlack module
@@ -50,10 +50,10 @@ def main():
     # Parse cli arguments
     args = parser.parse_args()
 
-    with open(args.dev, 'rb+') as f:
+    with open(args.dev, 'rb+') as device:
         # if 'fattools' was chosen
         if args.which == "fattools":
-            ft = FATtools(FAT(f))
+            ft = FATtools(FAT(device))
             if args.fat:
                 ft.list_fat()
             elif args.info:
@@ -62,13 +62,25 @@ def main():
                 ft.list_directory(args.list)
         # if 'metadata' was chosen
         if args.which == 'metadata':
-            m = Metadata(args.metadata)
-            m.print()
+            pass
+            # m = Metadata(args.metadata)
+            # m.print()
+
+        if args.which == 'fileslack':
+            fs = FileSlack(device)
+            # write from stdin into fileslack
+            if args.write and args.files is None:
+                fs.write(sys.stdin.buffer, args.destination)
+            elif args.write and len(args.files):
+                for f in args.files:
+                    print(f)
+                    with open(f, 'rb') as fstream:
+                        fs.write(fstream, args.destination)
 
         # if 'fatsimplefileslack' was chosen
         if args.which == "fatsimplefileslack":
             filename = args.file
-            fs = FATSimpleFileSlack(f)
+            fs = FATSimpleFileSlack(device)
             if args.write:
                 fs.write(sys.stdin.buffer, filename)
             if args.read:
