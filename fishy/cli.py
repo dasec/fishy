@@ -1,10 +1,10 @@
 import sys
 import argparse
-from .fat.fattools import FATtools
-from .fat.fat_filesystem.fat_wrapper import FAT
-from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
-from .fileSlack import FileSlack
-from .metadata import Metadata
+from fat.fat_filesystem.fattools import FATtools
+from fat.fat_filesystem.fat_wrapper import FAT
+from fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
+from fileSlack import FileSlack
+from metadata import Metadata
 
 
 def main():
@@ -71,7 +71,7 @@ def main():
         # if 'fileslack' was chosen
         if args.which == 'fileslack':
             if args.write:
-                fs = FileSlack(device, Metadata())
+                fs = FileSlack(device, Metadata(), args.dev)
                 if len(args.files) == 0:
                     # write from stdin into fileslack
                     fs.write(sys.stdin.buffer, args.destination)
