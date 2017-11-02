@@ -89,7 +89,8 @@ class NtfsSlack:
         self.fs = pytsk3.FS_Info(self.img, offset = 0)        
         # Get the blocksize
         self.blocksize = self.fs.info.block_size #4096
-        self.sectorsize = 512
+        #get sector size
+        self.sectorsize = self.fs.info.dev_bsize #512
         #get cluster size
         self.cluster_size = self.blocksize / self.sectorsize #8
         
