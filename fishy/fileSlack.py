@@ -1,9 +1,11 @@
+import logging
 from .filesystem_detector import get_filesystem_type
 from .fat.file_slack import FileSlack as FATFileSlack
 from .ntfs.ntfsSlackSpace import NTFSFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from os import path
 
+logger = logging.getLogger("FileSlack")
 
 class FileSlack:
     """
@@ -56,7 +58,7 @@ class FileSlack:
                          name will be generated
         :raises: IOError
         """
-        print("Write")
+        logger.info("Write")
         if filename is not None:
             filename = path.basename(filename)
         if self.fs_type == 'FAT':
@@ -64,7 +66,7 @@ class FileSlack:
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
         elif self.fs_type == 'NTFS':
-            print("ntfs")
+            logger.info("Write into ntfs")
             self.metadata.set_module("ntfs-slack")
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)

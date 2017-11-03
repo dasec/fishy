@@ -1,5 +1,6 @@
 import sys
 import argparse
+import logging
 from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
@@ -12,6 +13,8 @@ def main():
     # TODO: Maybe this option should be required for hiding technique options
     #       but not for metadata.... needs more thoughs than I currently have
     parser.add_argument('-d', '--device', dest='dev', required=False, help='Path to filesystem')
+    # TODO Maybe we should provide a more fine grained option to choose between different log levels
+    parser.add_argument('--debug', dest='debug', action='store_true', help="turn debug output on")
     subparsers = parser.add_subparsers(help='Hiding techniques sub-commands')
 
     # FAT Tools
@@ -50,6 +53,10 @@ def main():
 
     # Parse cli arguments
     args = parser.parse_args()
+
+    if args.debug:
+        # Turn debug output on
+        logging.basicConfig(level=logging.DEBUG)
 
     with open(args.dev, 'rb+') as device:
         # if 'fattools' was chosen
