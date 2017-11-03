@@ -1,7 +1,7 @@
-from filesystem_detector import get_filesystem_type
-from fat.file_slack import FileSlack as FATFileSlack
-from ntfs.ntfsSlackSpace import NTFSFileSlack
-from fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
+from .filesystem_detector import get_filesystem_type
+from .fat.file_slack import FileSlack as FATFileSlack
+from .ntfs.ntfsSlackSpace import NTFSFileSlack
+from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from os import path
 
 
@@ -28,7 +28,7 @@ class FileSlack:
     to wipe slackspace via providing filepaths
     >>> fs.clear_with_filepaths(filenames)
     """
-    def __init__(self, fs_stream, metadata, dev):
+    def __init__(self, fs_stream, metadata, dev=None):
         """
         :param fs_stream: Stream of filesystem
         :param metadata: Metadata object

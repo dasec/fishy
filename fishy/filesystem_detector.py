@@ -1,5 +1,5 @@
-from fat.fat_filesystem import fat_detector
-from ntfs import ntfs_detector
+from .fat.fat_filesystem import fat_detector
+from .ntfs import ntfs_detector
 
 # TODO: This is a duplicate of fat_detector
 #       we should somehow figure out how to
