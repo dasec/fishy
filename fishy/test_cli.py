@@ -1,28 +1,30 @@
-import unittest
+from . import cli
+import io
 import os
 import subprocess
 import sys
-from . import cli
-import sys
-import io
+import unittest
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 utilsdir = os.path.join(this_dir, os.pardir, 'utils')
 
 
-class Capturing(list):
+class CaptureStdout(list):
     def __enter__(self):
         self._stdout = sys.stdout
         self._bytestream = io.BytesIO()
-        sys.stdout = self._stringio = io.BufferedWriter(self._bytestream)
-        sys.stdout.buffer = self._stringio2 = io.BufferedWriter(self._bytestream)
+        sys.stdout = self._iow = io.BufferedWriter(self._bytestream)
+        sys.stdout.buffer = self._iow2 = io.BufferedWriter(self._bytestream)
         return self
+
     def __exit__(self, *args):
-        self._stringio.seek(0)
-        self._stringio2.seek(0)
+        self._iow.seek(0)
+        self._iow2.seek(0)
         self.extend(self._bytestream)
-        del self._stringio    # free up some memory
+        del self._iow    # free up some memory
+        del self._iow2    # free up some memory
+        del self._bytestream
         sys.stdout = self._stdout
 
 
@@ -36,12 +38,10 @@ class TestCliFileSlack(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        pass
         # regenerate test filesystems
         cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
-
 
     def test_write_fileslack(self):
         teststring = "Small test for CLI"
@@ -79,7 +79,7 @@ class TestCliFileSlack(unittest.TestCase):
             args = ["fishy", "-d", img_path, "fileslack", "-r", "0", "-m",
                     metadata_file, testfilepath]
             sys.argv = args
-            with Capturing() as output:
+            with CaptureStdout() as output:
                 cli.main()
             self.assertEqual(output[0].decode('utf-8'), teststring)
 
@@ -103,7 +103,7 @@ class TestCliFileSlack(unittest.TestCase):
             args = ["fishy", "-d", img_path, "fileslack", "-r", "0", "-m",
                     metadata_file, testfilepath]
             sys.argv = args
-            with Capturing() as output:
+            with CaptureStdout() as output:
                 cli.main()
             expected = len(teststring.encode('utf-8')) * b'\x00'
             self.assertEqual(output[0], expected)

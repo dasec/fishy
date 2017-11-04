@@ -1,8 +1,8 @@
-import unittest
 from .file_slack import FileSlack
-import os
 import io
+import os
 import subprocess
+import unittest
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))

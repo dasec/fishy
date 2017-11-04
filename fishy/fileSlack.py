@@ -1,9 +1,9 @@
-import logging
-from .filesystem_detector import get_filesystem_type
 from .fat.file_slack import FileSlack as FATFileSlack
-from .ntfs.ntfsSlackSpace import NTFSFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
+from .filesystem_detector import get_filesystem_type
+from .ntfs.ntfsSlackSpace import NTFSFileSlack
 from os import path
+import logging
 
 logger = logging.getLogger("FileSlack")
 

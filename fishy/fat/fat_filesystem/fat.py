@@ -146,7 +146,7 @@ class FAT:
             start_id = 3
 
         current_id = start_id
-        while current_id != start_id -1:
+        while current_id != start_id - 1:
             if current_id < 2:
                 # skip cluster 0 and 1
                 current_id += 1
@@ -160,7 +160,6 @@ class FAT:
             # previous entries first until we throw an error
             current_id = (current_id + 1) % (self.entries_per_fat - 1)
         raise NoFreeClusterAvailable()
-
 
     def follow_cluster(self, start_cluster):
         """

@@ -1,11 +1,11 @@
-import sys
-import argparse
-import logging
-from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
+from .fat.fat_filesystem.fattools import FATtools
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
 from .fileSlack import FileSlack
 from .metadata import Metadata
+import argparse
+import logging
+import sys
 
 
 def main():

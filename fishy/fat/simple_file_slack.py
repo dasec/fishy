@@ -87,7 +87,7 @@ class SimpleFileSlack:
         # this sector. As at least under linux (no other os tested)
         # padds ram slack with zeros, we should not write into this
         # space as this might seem suspicious
-        ram_slack = (self.fs.pre.sector_size - \
+        ram_slack = (self.fs.pre.sector_size -
                     (occupied_by_file % self.fs.pre.sector_size)) % \
                     self.fs.pre.sector_size
         # calculate remaining free slack size in this cluster
