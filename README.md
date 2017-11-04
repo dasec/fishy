@@ -86,3 +86,4 @@ $ fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -c
 # Development
 
 * with `create_testfs.sh` you can create test filesystem, which already contain files
+* Unittests can be executed by running `python -m unittest`. Please make sure the `create_testfs.sh` script runs as expected.
