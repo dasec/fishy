@@ -20,7 +20,10 @@ to wipe slackspace of a file:
 
 
 from .fat_filesystem.fat_wrapper import FAT
-from io import BytesIO, BufferedReader
+import logging
+
+logger = logging.getLogger("fat-file-slack")
+
 
 class FileSlackMetadata:
     def __init__(self, d=None):
@@ -95,7 +98,7 @@ class FileSlack:
                 raise Exception("File or directory '%s' not found" % fpart)
 
             # if it is a subdirectory, enter it
-            if entry.attributes.subDirectory:
+            if entry.attributes.subDirectory and len(path) > 0:
                 current_directory = []
                 for entry, lfn in self.fs.get_dir_entries(entry.start_cluster):
                     if lfn != "":
@@ -109,8 +112,18 @@ class FileSlack:
         :param directory: entry point, if not given, root
                           directory will be used
         """
-        # TODO implement this file_walk method
-        raise NotImplementedError()
+        result = []
+        if directory is not None:
+            start_dir = directory.start_cluster
+        for entry, lfn in self.fs.get_dir_entries(start_dir):
+            if lfn == "":
+                continue
+            if entry.attributes.subDirectory:
+                result.extend(self._file_walk(entry))
+            else:
+                if entry.start_cluster > 1:
+                    result.append(entry)
+        return result
 
     def calculate_slack_space(self, entry):
         """
@@ -130,9 +143,9 @@ class FileSlack:
         # this sector. As at least under linux (no other os tested)
         # padds ram slack with zeros, we should not write into this
         # space as this might seem suspicious
-        ram_slack = (self.fs.pre.sector_size - \
-                    (occupied_by_file % self.fs.pre.sector_size)) % \
-                    self.fs.pre.sector_size
+        ram_slack = (self.fs.pre.sector_size
+                     - (occupied_by_file % self.fs.pre.sector_size)) \
+                     % self.fs.pre.sector_size
         # calculate remaining free slack size in this cluster
         free_slack = cluster_size - occupied_by_file - ram_slack
         return (occupied_by_file + ram_slack, free_slack)
@@ -145,30 +158,46 @@ class FileSlack:
                           will be used
         :return: FileSlackMetadata
         """
-        file_length = 0
         m = FileSlackMetadata()
+        # Turn filepaths list into a set, to avoid duplicate files that would
+        # lead to overwriting content that was already witten
+        filepaths = list(set(filepaths))
         while instream.peek():
             if len(filepaths) == 0:
                 # dont do anything, if we dont have any files
                 break
             # find directory entry for given filepath
             filepath = filepaths.pop()
-            entry = self._find_file(filepath)
+            # if its a user supplied path, retrieve DirEntry object,
+            # if it comes from a resolved directory (from _file_walk)
+            # just take it as it is.
+            if isinstance(filepath, str):
+                entry = self._find_file(filepath)
+            else:
+                entry = filepath
             if entry.attributes.subDirectory:
-                # if current entry is a directory, traverse it
-                # TODO: implement it
-                raise Exception("traversing directories not implemented")
-                self._file_walk(entry)
+                # if the user supplied path is a directory, we will use all
+                # files from it as possible files where we can exploit file
+                # slack. Attention: This might be a place, where files can
+                # be used twice, when the user specifies:
+                # ['adir/file.txt', 'adir'] we would write twice to
+                # 'adir/file.txt'
+                # TODO: Find a suitable fix for problem described above
+                filepaths.extend(self._file_walk(entry))
+                continue
             occupied, free_slack = self.calculate_slack_space(entry)
             if free_slack == 0 or entry.start_cluster < 2:
                 # if current entry has no slack space, continue with next
                 # entry
                 continue
             written_bytes, cluster_id = self._write_to_slack(instream, entry)
+            logger.info("%d bytes written into cluster %d" %
+                        (written_bytes, cluster_id))
             m.add_cluster(cluster_id, occupied, written_bytes)
 
         if instream.peek():
-            raise IOError("No slack space left, to write data")
+            raise IOError("No slack space left, to write data. But there are"
+                          + " still %d Bytes in stream" % len(instream.peek()))
         return m
 
     def _write_to_slack(self, instream, entry):
@@ -182,6 +211,7 @@ class FileSlack:
         # read what to write. ensure that we only read the amount of data,
         # that fits into slack
         bufferv = instream.read(free_slack)
+        logger.info("%d bytes read from instream" % len(bufferv))
         # find position where we can start writing data
         last_cluster = self.fs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fs.get_cluster_start(last_cluster)
