@@ -1,6 +1,6 @@
 import sys
 import argparse
-from .fat.fattools import FATtools
+from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='fishy',
     version='0.1',
-    packages=['fishy', 'fishy.fat', 'fishy.fat.fat_filesystem'],
+    packages=find_packages(),
     entry_points={
             'console_scripts': [
                 'fishy = fishy.cli:main',
