@@ -51,7 +51,7 @@ class TestFatFileSlack(unittest.TestCase):
                 entry = fs._find_file("onedirectory")
                 result = fs._file_walk(entry)
                 # Assume that we only found 1 file
-                self.assertEqual(len(result), 1)
+                self.assertEqual(len(result), 2)
                 # unpack that file into result
                 result = result[0]
                 # check for file attibutes
@@ -118,7 +118,7 @@ class TestFatFileSlack(unittest.TestCase):
                 with io.BufferedReader(mem) as reader:
                     result = fs.write(reader,
                                       ['onedirectory'])
-                    self.assertEqual(result.clusters, [(9, 512, 28)])
+                    self.assertEqual(result.clusters, [(11, 512, 28)])
 
     def test_read_slack(self):
         for img_path in TestFatFileSlack.image_paths:
