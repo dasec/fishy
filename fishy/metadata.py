@@ -162,10 +162,7 @@ class Metadata:
         generates a unique id, used as file identifier
         :return: string
         """
-        number = random.randint(10000, 99999).to_bytes(3, 'big')
-        timestamp = str(datetime.now().timestamp().hex()).encode('utf-8')
-        uid = sha256(number + timestamp)
-        return uid.hexdigest()
+        return len(self.metadata["files"].keys())
 
     def add_file(self, filename, submetadata):
         """
