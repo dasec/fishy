@@ -20,7 +20,8 @@ class TestFatFileSlack(unittest.TestCase):
     def setUpClass(cls):
         # regenerate test filesystems
         cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir
-        subprocess.call(cmd, shell=True)
+        subprocess.call(cmd, stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE, shell=True)
 
     def test_find_file(self):
         for img_path in TestFatFileSlack.image_paths:
