@@ -10,11 +10,28 @@
 #   that will be copied into the created filesystem images
 
 workingdir="$1"
+useramdisk="$2"
 filestructure="fs-files"
-echo "WorkingDir: $workingdir"
+
 if [ "$workingdir" == "" ]; then
 	workingdir="$(pwd)"
 fi
+
+if [ ! $useramdisk == "" ]; then
+	if [ ! -d "$workingdir/ramdisk" ]; then
+		echo "directory '$workingdir/ramdisk' is missing"
+		exit 1
+	fi
+	fsdest="$workingdir/ramdisk"
+	# only mount new tmpfs, if it is not already mounted
+	if !  df | grep "$fsdest" > /dev/null; then
+		echo mounting ramdisk...
+		sudo mount -t tmpfs -o size=3g tmpfs "$workingdir/ramdisk"
+	fi
+else
+	fsdest="$workingdir"
+fi
+
 
 filestructure="$workingdir/$filestructure"
 
@@ -38,21 +55,21 @@ function copy_files {
 }
 
 # Create a 1MB FAT12 image
-dd if=/dev/zero of="$workingdir/testfs-fat12.dd" bs=512 count=2000
-mkfs.vfat "$workingdir/testfs-fat12.dd"
-copy_files "$workingdir/testfs-fat12.dd"
+dd if=/dev/zero of="$fsdest/testfs-fat12.dd" bs=512 count=2000
+mkfs.vfat -F 12 "$fsdest/testfs-fat12.dd"
+copy_files "$fsdest/testfs-fat12.dd"
 
-# Create a 512MB FAT16 image
-dd if=/dev/zero of="$workingdir/testfs-fat16.dd" bs=512 count=1000000
-mkfs.vfat "$workingdir/testfs-fat16.dd"
-copy_files "$workingdir/testfs-fat16.dd"
+# Create a 26MB FAT16 image
+dd if=/dev/zero of="$fsdest/testfs-fat16.dd" bs=512 count=50000
+mkfs.vfat -F 16 "$fsdest/testfs-fat16.dd"
+copy_files "$fsdest/testfs-fat16.dd"
 
-# Create a 2GB FAT32 image
-dd if=/dev/zero of="$workingdir"/testfs-fat32.dd bs=512 count=4000500
-mkfs.vfat "$workingdir/testfs-fat32.dd"
-copy_files "$workingdir/testfs-fat32.dd"
+# Create a 282MB FAT32 image
+dd if=/dev/zero of="$fsdest/testfs-fat32.dd" bs=512 count=550000
+mkfs.vfat -F 32 "$fsdest/testfs-fat32.dd"
+copy_files "$fsdest/testfs-fat32.dd"
 
 # Create a 10MB NTFS image
-dd if=/dev/zero of="$workingdir/testfs-ntfs.dd" bs=512 count=20000
-mkfs.ntfs -F "$workingdir/testfs-ntfs.dd"
-copy_files "$workingdir/testfs-ntfs.dd"
+dd if=/dev/zero of="$fsdest/testfs-ntfs.dd" bs=512 count=20000
+mkfs.ntfs -F "$fsdest/testfs-ntfs.dd"
+copy_files "$fsdest/testfs-ntfs.dd"
