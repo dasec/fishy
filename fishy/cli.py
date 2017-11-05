@@ -1,11 +1,10 @@
 import sys
 import argparse
 from .fat.fat_filesystem.fattools import FATtools
+from .fat.fat_filesystem.fat_wrapper import FAT
 from .fileSlack import FileSlack
 from .metadata import Metadata
-import argparse
 import logging
-import sys
 
 
 def main():
@@ -39,16 +38,6 @@ def main():
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     fileslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
     fileslack.add_argument('files', metavar='FILE', nargs='*', help="Files to write into slack space, if nothing provided, use stdin")
-
-    # FAT Simple File Slack
-    # Deprecated, will move into general FileSlack module
-    # Currently still here for historical reasons
-    fatsds = subparsers.add_parser('fatsimplefileslack', help='Operate on slack space of a single file')
-    fatsds.set_defaults(which='fatsimplefileslack')
-    fatsds.add_argument('-f', '--file', dest='file', required=True, help='absolute path to file on filesystem')
-    fatsds.add_argument('-r', '--read', dest='read', action='store_true', help='read from slackspace')
-    fatsds.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
-    fatsds.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
 
     # Parse cli arguments
     args = parser.parse_args()
@@ -116,17 +105,6 @@ def main():
                         m.read(metadata_file)
                         fs = FileSlack(device, m)
                         fs.clear()
-
-            # if 'fatsimplefileslack' was chosen
-            if args.which == "fatsimplefileslack":
-                filename = args.file
-                fs = FATSimpleFileSlack(device)
-                if args.write:
-                    fs.write(sys.stdin.buffer, filename)
-                if args.read:
-                    fs.read(sys.stdout.buffer, filename)
-                if args.clear:
-                    fs.clear(filename)
 
 
 if __name__ == "__main__":
