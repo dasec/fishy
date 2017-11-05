@@ -16,7 +16,11 @@ Toolkit for filesystem based data hiding techniques
 # Installation
 
 ```bash
+# Install requirements
 $ sudo pip install -r requirements.txt
+# To run unit tests before installing
+$ sudo python setup.py test
+# Install the program
 $ sudo python setup.py install
 ```
 

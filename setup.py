@@ -2,6 +2,12 @@
 
 from setuptools import setup, find_packages
 
+import unittest
+def tests():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('.', pattern='test_*.py')
+    return test_suite
+
 setup(
     name='fishy',
     version='0.1',
@@ -15,4 +21,5 @@ setup(
         "argparse",
         "construct",
     ],
+    test_suite='setup.tests',
 )
