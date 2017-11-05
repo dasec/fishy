@@ -2,6 +2,7 @@ from .fat.file_slack import FileSlack as FATFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from .filesystem_detector import get_filesystem_type
 from .ntfs.ntfsSlackSpace import NTFSFileSlack
+from .ntfs.ntfsSlack import FileSlackMetadata as NTFSFileSlackMetadata
 from os import path
 import logging
 
@@ -87,6 +88,11 @@ class FileSlack:
             file_metadata = self.metadata.get_file(file_id)['metadata']
             file_metadata = FATFileSlackMetadata(file_metadata)
             self.fs.read(outstream, file_metadata)
+        elif self.fs_type == 'NTFS':
+            self.metadata.set_module("ntfs-slack")
+            slack_metadata = self.metadata.get_file(file_id)['metadata']
+            slack_metadata = NTFSFileSlackMetadata(slack_metadata)
+            self.fs.read(outstream, slack_metadata)
 
     def read_into_files(self, outdir):
         """
@@ -96,6 +102,13 @@ class FileSlack:
         """
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
+            for f in self.metadata.get_files():
+                file_id = f['uid']
+                filename = f['filename']
+                with open(outdir + '/' + filename, 'wb+') as outfile:
+                    self.read(outfile, file_id)
+        elif self.fs_type == 'NTFS':
+            self.metadata.set_module("ntfs-slack")
             for f in self.metadata.get_files():
                 file_id = f['uid']
                 filename = f['filename']
@@ -114,4 +127,10 @@ class FileSlack:
             for f in self.metadata.get_files():
                 file_metadata = f['metadata']
                 file_metadata = FATFileSlackMetadata(file_metadata)
+                self.fs.clear(file_metadata)
+        elif self.fs_type == 'NTFS':
+            self.metadata.set_module("ntfs-slack")
+            for f in self.metadata.get_files():
+                file_metadata = f['metadata']
+                file_metadata = NTFSFileSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)

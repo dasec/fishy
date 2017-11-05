@@ -5,8 +5,15 @@ from pytsk3 import *
 
 
 class FileSlackMetadata:
-    def __init__(self):
-        self.addrs = []
+    def __init__(self, d=None):
+        """
+        :param d: dict, dictionary representation of a FileSlackMetadata
+                  object
+        """
+        if d is None:
+            self.addrs = []
+        else:
+            self.addrs = d["addrs"]
 
     def add_addr(self, addr, length):
         """
@@ -125,8 +132,18 @@ class NtfsSlack:
         return m
         
         
-    def read(self):
-        read_file_from_slack()
+    def read(self, outstream, meta):
+        stream = open(self.stream, 'rb+')
+        for addr, length in meta.get_addr():
+            stream.seek(addr)
+            bufferv = stream.read(length)
+            outstream.write(bufferv)
+            
+    def clear(self, meta):
+        stream = open(self.stream, 'rb+')
+        for addr, length in meta.get_addr():
+            stream.seek(addr)
+            stream.write(length * b'\x00')
         
     def get_slack(self, f):
         meta = f.info.meta  
@@ -213,6 +230,12 @@ class NtfsSlack:
                         print ('RunError!')
                     except IOError:
                         print ("IOError while opening %s" % (f.info.name.name))
+                        
+    def get_file_slack_single_file(self, file):
+            if self.fileSizeLeft>0:
+                slackSize = self.get_slack(file)
+                self.totalSlackSize += slackSize
+                self.fileSizeLeft -= slackSize
     
     
     
@@ -233,31 +256,7 @@ class NtfsSlack:
         inf.flush
         inf.close
        
-    def read_info_file(self):
-        #open meta data gile
-        inf = open("%slist.list"%options.list,"rb")
-        #id of file to extract
-        fId = options.file
-        #decrypt if password is set
-        infFile[0:4] = inf.read()
-        infLines = infFile.splitlines()
-        #create hidden file object
-        hiddenFile = None
-        #iterate over lines, look for file id and get locations of the hidden file
-        for line in infLines:        
-            if options.file is None:
-                print (line)
-            if line == fId:
-                hiddenFile = fileInSlack(fId,0)
-            elif "-" in line and hiddenFile is not None:
-                break
-            elif hiddenFile is not None:
-                vals = line.split(":",1)
-                #fill hidden file object locations
-                hiddenFile.lockList.append(fileLoc(vals[0],vals[1]))
-            
-        inf.close
-        return hiddenFile
+
         
     def write_file_to_slack(self):
         hiddenFiles = []
@@ -327,7 +326,7 @@ class NtfsSlack:
             stream.close
             self.instream.close
             #write meta data
-            self.write_info_file(hiddenFile)
+            #self.write_info_file(hiddenFile)
             #add hidden file object to list of hidden files
             hiddenFiles.append(hiddenFile)
         return hiddenFiles
@@ -347,23 +346,7 @@ class NtfsSlack:
             length = len(self.input)
             return length
             
-    def read_file_from_slack(self):
-        #get hiddenFile object from meta data
-        hiddenFile = read_info_file()
-        if hiddenFile is not None:
-            stream = open(options.image, 'rb+')
-            fileOut = open("%s.txt"%hiddenFile.name,"wb")
-            #go through hidden file locations
-            for l in hiddenFile.lockList:
-                #read hidden data and wirte into fileOut
-                stream.seek(int(l.addr))
-                buff = bytearray(int(l.size))
-                stream.readinto(buff)
-                fileOut.write(buff)
-            stream.flush
-            stream.close
-            fileOut.flush
-            fileOut.close
+
             
     def get_Volume_Slack(self):
         selectedPartition = None
@@ -386,8 +369,13 @@ class NtfsSlack:
          
     def fill_slack_list(self):
         #look file slack
-        directory = self.fs.open_dir(self.filepath)
-        self.get_file_slack(directory)
+        for path in self.filepath:
+            try:
+                directory = self.fs.open_dir(path)
+                self.get_file_slack(directory)
+            except OSError:
+                file = self.fs.open(path)
+                self.get_file_slack_single_file(file)
         #look for volume slack?
 #        if options.slack == "volume":
 #            get_Volume_Slack()

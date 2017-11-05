@@ -88,7 +88,7 @@ def main():
                     with open(args.metadata, 'r') as metadata_file:
                         m = Metadata()
                         m.read(metadata_file)
-                        fs = FileSlack(device, m)
+                        fs = FileSlack(device, m, args.dev)
                         fs.read(sys.stdout.buffer, args.read)
                 elif args.outdir:
                     # read fileslack of all hidden files into files
@@ -96,14 +96,14 @@ def main():
                     with open(args.metadata, 'r') as metadata_file:
                         m = Metadata()
                         m.read(metadata_file)
-                        fs = FileSlack(device, m)
+                        fs = FileSlack(device, m, args.dev)
                         fs.read_into_files(args.outdir)
                 elif args.clear:
                     # clear fileslack
                     with open(args.metadata, 'r') as metadata_file:
                         m = Metadata()
                         m.read(metadata_file)
-                        fs = FileSlack(device, m)
+                        fs = FileSlack(device, m, args.dev)
                         fs.clear()
 
 
