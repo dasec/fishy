@@ -22,7 +22,7 @@ image_paths = [
 def setUpModule():
     # create test filesystems
     cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
-          + " " + imagedir + " " + "fat"
+          + " " + imagedir + " " + "fat" + " true"
     subprocess.call(cmd, stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE, shell=True)
 

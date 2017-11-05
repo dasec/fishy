@@ -1,3 +1,5 @@
+# ignore create_testfs "config" file
+.create_testfs.conf
 # ignore fislystem dumps
 *.dd
 # ignore vim swap files

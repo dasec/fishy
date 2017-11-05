@@ -43,9 +43,10 @@ class TestCliFileSlack(unittest.TestCase):
     def setUpClass(cls):
         # regenerate test filesystems
         cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
-              + " " + imagedir
+              + " " + imagedir + " '' true"
         subprocess.call(cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, shell=True)
+                        # stderr=subprocess.PIPE,
+                        shell=True)
 
     @classmethod
     def tearDownClass(cls):

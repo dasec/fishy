@@ -11,18 +11,35 @@
 #
 # Usage:
 # ./create_testfs.sh [WORKINGDIR] [DESTDIR] [FSTYPE]
-# [WORKINGDIR] - Directory where 'mount-fs' and 'fs-files' directories are
-#                located. Defaults to current directory
-# [DESTDIR]    - Directory where images will be stored. Defaults to
-#                [WORKINGDIR].
-# [FSTYPE]     - For which filesystem type the images will be created.
-#                Valid options: fat, ntfs, ext4. Defaults to fat+ntfs
-#                if this option is used, only one type can be chosen.
+# [WORKINGDIR]  - Directory where 'mount-fs' and 'fs-files' directories are
+#                 located. Defaults to current directory
+# [DESTDIR]     - Directory where images will be stored. Defaults to
+#                 [WORKINGDIR].
+# [FSTYPE]      - For which filesystem type the images will be created.
+#                 Valid options: fat, ntfs, ext4. Defaults to fat+ntfs
+#                 if this option is used, only one type can be chosen.
+# [USECONF] -     try to source .create_testfs.conf
+#
+# if a .create_mount exists in the directory the script is located, this file
+# will be sourced. Thus it is possible to provide a path where prepared disk
+# images can be copied from.
+#
+# To copy testfs images from an existing location instead of creating them,
+# create a file called `.create_testfs.conf` in the directory of this script.
+# there place the following line:
+# copyfrom="/path/from/where/to/copy/the/testfs_images"
 
 workingdir="$1"
 fsdest="$2"
 fstype="$3"
+useconf="$4"
 filestructure="fs-files"
+
+copyfrom=""
+
+if [ -f "$(dirname ${BASH_SOURCE})"/.create_testfs.conf ] && [ ! "$useconf" == "" ]; then
+	source "$(dirname ${BASH_SOURCE})"/.create_testfs.conf
+fi
 
 if [ "$workingdir" == "" ]; then
 	workingdir="$(pwd)"
@@ -60,34 +77,48 @@ function copy_files {
 }
 
 function create_fat {
-	# Create a 1MB FAT12 image
-	dd if=/dev/zero of="$fsdest/testfs-fat12.dd" bs=512 count=2000
-	mkfs.vfat -F 12 "$fsdest/testfs-fat12.dd"
-	copy_files "$fsdest/testfs-fat12.dd"
+	if [ ! "$copyfrom" == "" ]; then
+		cp "$copyfrom/testfs-fat12.dd" "$fsdest"
+		cp "$copyfrom/testfs-fat16.dd" "$fsdest"
+		cp "$copyfrom/testfs-fat32.dd" "$fsdest"
+	else
+		# Create a 1MB FAT12 image
+		dd if=/dev/zero of="$fsdest/testfs-fat12.dd" bs=512 count=2000
+		mkfs.vfat -F 12 "$fsdest/testfs-fat12.dd"
+		copy_files "$fsdest/testfs-fat12.dd"
 
-	# Create a 26MB FAT16 image
-	dd if=/dev/zero of="$fsdest/testfs-fat16.dd" bs=512 count=50000
-	mkfs.vfat -F 16 "$fsdest/testfs-fat16.dd"
-	copy_files "$fsdest/testfs-fat16.dd"
+		# Create a 26MB FAT16 image
+		dd if=/dev/zero of="$fsdest/testfs-fat16.dd" bs=512 count=50000
+		mkfs.vfat -F 16 "$fsdest/testfs-fat16.dd"
+		copy_files "$fsdest/testfs-fat16.dd"
 
-	# Create a 282MB FAT32 image
-	dd if=/dev/zero of="$fsdest/testfs-fat32.dd" bs=512 count=550000
-	mkfs.vfat -F 32 "$fsdest/testfs-fat32.dd"
-	copy_files "$fsdest/testfs-fat32.dd"
+		# Create a 282MB FAT32 image
+		dd if=/dev/zero of="$fsdest/testfs-fat32.dd" bs=512 count=550000
+		mkfs.vfat -F 32 "$fsdest/testfs-fat32.dd"
+		copy_files "$fsdest/testfs-fat32.dd"
+	fi
 }
 
 function create_ntfs {
-	# Create a 10MB NTFS image
-	dd if=/dev/zero of="$fsdest/testfs-ntfs.dd" bs=512 count=20000
-	mkfs.ntfs -F "$fsdest/testfs-ntfs.dd"
-	copy_files "$fsdest/testfs-ntfs.dd"
+	if [ ! "$copyfrom" == "" ]; then
+		cp "$copyfrom/testfs-ntfs.dd" "$fsdest"
+	else
+		# Create a 10MB NTFS image
+		dd if=/dev/zero of="$fsdest/testfs-ntfs.dd" bs=512 count=20000
+		mkfs.ntfs -F "$fsdest/testfs-ntfs.dd"
+		copy_files "$fsdest/testfs-ntfs.dd"
+	fi
 }
 
 function create_ext4 {
-	# Create a 10MB NTFS image
-	dd if=/dev/zero of="$fsdest/testfs-ext4.dd" bs=512 count=20000
-	mkfs.ext4 "$fsdest/testfs-ext4.dd"
-	copy_files "$fsdest/testfs-ext4.dd"
+	if [ ! "$copyfrom" == "" ]; then
+		cp "$copyfrom/testfs-ext4.dd" "$fsdest"
+	else
+		# Create a 10MB NTFS image
+		dd if=/dev/zero of="$fsdest/testfs-ext4.dd" bs=512 count=20000
+		mkfs.ext4 "$fsdest/testfs-ext4.dd"
+		copy_files "$fsdest/testfs-ext4.dd"
+	fi
 }
 
 
