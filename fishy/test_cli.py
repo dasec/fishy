@@ -1,6 +1,7 @@
 from . import cli
 import io
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,7 @@ import unittest
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 utilsdir = os.path.join(this_dir, os.pardir, 'utils')
+imagedir = tempfile.mkdtemp()
 
 
 class CaptureStdout(list):
@@ -32,17 +34,23 @@ class CaptureStdout(list):
 class TestCliFileSlack(unittest.TestCase):
 
     image_paths = [
-                    os.path.join(utilsdir, 'testfs-fat12.dd'),
-                    os.path.join(utilsdir, 'testfs-fat16.dd'),
-                    os.path.join(utilsdir, 'testfs-fat32.dd'),
+                    os.path.join(imagedir, 'testfs-fat12.dd'),
+                    os.path.join(imagedir, 'testfs-fat16.dd'),
+                    os.path.join(imagedir, 'testfs-fat32.dd'),
                   ]
 
     @classmethod
     def setUpClass(cls):
         # regenerate test filesystems
-        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir
+        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
+              + " " + imagedir
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        # remove created filesystem images
+        shutil.rmtree(imagedir)
 
     def test_write_fileslack(self):
         teststring = "Small test for CLI"
@@ -64,6 +72,9 @@ class TestCliFileSlack(unittest.TestCase):
             with open(metadata_file) as metaf:
                 metafcontent = metaf.read()
             self.assertEqual(metafcontent, expected)
+        # remove testfiles
+        os.remove(testfilepath)
+        os.remove(metadata_file)
 
     def test_read_fileslack(self):
         teststring = "Small test for CLI"
@@ -84,6 +95,9 @@ class TestCliFileSlack(unittest.TestCase):
             with CaptureStdout() as output:
                 cli.main()
             self.assertEqual(output[0].decode('utf-8'), teststring)
+        # remove testfiles
+        os.remove(testfilepath)
+        os.remove(metadata_file)
 
     def test_clear_fileslack(self):
         teststring = "Small test for CLI"
@@ -109,3 +123,6 @@ class TestCliFileSlack(unittest.TestCase):
                 cli.main()
             expected = len(teststring.encode('utf-8')) * b'\x00'
             self.assertEqual(output[0], expected)
+        # remove testfiles
+        os.remove(testfilepath)
+        os.remove(metadata_file)

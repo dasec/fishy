@@ -1,6 +1,6 @@
-from .fat.fat_filesystem.fat_wrapper import FAT
+import sys
+import argparse
 from .fat.fat_filesystem.fattools import FATtools
-from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
 from .fileSlack import FileSlack
 from .metadata import Metadata
 import argparse
@@ -25,10 +25,9 @@ def main():
     fatt.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
 
     # Metadata info
-    metadata = subparsers.add_parser('fileslack', help='list information about a metadata file')
+    metadata = subparsers.add_parser('metadata', help='list information about a metadata file')
     metadata.set_defaults(which='metadata')
     metadata.add_argument('-m', '--metadata', dest='metadata', type=argparse.FileType('r'), help="filepath to metadata file")
-    metadata.add_argument('-i', '--info', dest='info', action='store_true', help='Show information about the metadata file')
 
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
@@ -58,70 +57,76 @@ def main():
         # Turn debug output on
         logging.basicConfig(level=logging.DEBUG)
 
-    with open(args.dev, 'rb+') as device:
-        # if 'fattools' was chosen
-        if args.which == "fattools":
-            ft = FATtools(FAT(device))
-            if args.fat:
-                ft.list_fat()
-            elif args.info:
-                ft.list_info()
-            elif args.list is not None:
-                ft.list_directory(args.list)
+    # if 'metadata' was chosen
+    if args.which == 'metadata':
+        m = Metadata()
+        m.read(args.metadata)
+        m.info()
+    else:
+        with open(args.dev, 'rb+') as device:
+            # if 'fattools' was chosen
+            if args.which == "fattools":
+                ft = FATtools(FAT(device))
+                if args.fat:
+                    ft.list_fat()
+                elif args.info:
+                    ft.list_info()
+                elif args.list is not None:
+                    ft.list_directory(args.list)
 
-        # if 'metadata' was chosen
-        if args.which == 'metadata':
-            raise NotImplementedError()
-            # m = Metadata(args.metadata)
-            # m.print()
+            # if 'metadata' was chosen
+            if args.which == 'metadata':
+                raise NotImplementedError()
+                # m = Metadata(args.metadata)
+                # m.print()
 
-        # if 'fileslack' was chosen
-        if args.which == 'fileslack':
-            if args.write:
-                fs = FileSlack(device, Metadata(), args.dev)
-                if len(args.files) == 0:
-                    # write from stdin into fileslack
-                    fs.write(sys.stdin.buffer, args.destination)
-                else:
-                    # write from files  into fileslack
-                    for f in args.files:
-                        with open(f, 'rb') as fstream:
-                            fs.write(fstream, args.destination, f)
-                with open(args.metadata, 'w+') as metadata_out:
-                    fs.metadata.write(metadata_out)
-            elif args.read:
-                # read file slack of a single hidden file to stdout
-                with open(args.metadata, 'r') as metadata_file:
-                    m = Metadata()
-                    m.read(metadata_file)
-                    fs = FileSlack(device, m)
-                    fs.read(sys.stdout.buffer, args.read)
-            elif args.outdir:
-                # read fileslack of all hidden files into files
-                # under a given directory
-                with open(args.metadata, 'r') as metadata_file:
-                    m = Metadata()
-                    m.read(metadata_file)
-                    fs = FileSlack(device, m)
-                    fs.read_into_files(args.outdir)
-            elif args.clear:
-                # clear fileslack
-                with open(args.metadata, 'r') as metadata_file:
-                    m = Metadata()
-                    m.read(metadata_file)
-                    fs = FileSlack(device, m)
-                    fs.clear()
+            # if 'fileslack' was chosen
+            if args.which == 'fileslack':
+                if args.write:
+                    fs = FileSlack(device, Metadata(), args.dev)
+                    if len(args.files) == 0:
+                        # write from stdin into fileslack
+                        fs.write(sys.stdin.buffer, args.destination)
+                    else:
+                        # write from files  into fileslack
+                        for f in args.files:
+                            with open(f, 'rb') as fstream:
+                                fs.write(fstream, args.destination, f)
+                    with open(args.metadata, 'w+') as metadata_out:
+                        fs.metadata.write(metadata_out)
+                elif args.read:
+                    # read file slack of a single hidden file to stdout
+                    with open(args.metadata, 'r') as metadata_file:
+                        m = Metadata()
+                        m.read(metadata_file)
+                        fs = FileSlack(device, m)
+                        fs.read(sys.stdout.buffer, args.read)
+                elif args.outdir:
+                    # read fileslack of all hidden files into files
+                    # under a given directory
+                    with open(args.metadata, 'r') as metadata_file:
+                        m = Metadata()
+                        m.read(metadata_file)
+                        fs = FileSlack(device, m)
+                        fs.read_into_files(args.outdir)
+                elif args.clear:
+                    # clear fileslack
+                    with open(args.metadata, 'r') as metadata_file:
+                        m = Metadata()
+                        m.read(metadata_file)
+                        fs = FileSlack(device, m)
+                        fs.clear()
 
-        # if 'fatsimplefileslack' was chosen
-        if args.which == "fatsimplefileslack":
-            filename = args.file
-            fs = FATSimpleFileSlack(device)
-            if args.write:
-                fs.write(sys.stdin.buffer, filename)
-            if args.read:
-                fs.read(sys.stdout.buffer, filename)
-            if args.clear:
-                fs.clear(filename)
+            # if 'fatsimplefileslack' was chosen
+            if args.which == "fatsimplefileslack":
+                filename = args.file
+                fs = FATSimpleFileSlack(device)
+                if args.write:
+                    fs.write(sys.stdin.buffer, filename)
+                if args.read:
+                    fs.read(sys.stdout.buffer, filename)
+                if args.clear:
+                    fs.clear(filename)
 
 
 if __name__ == "__main__":

@@ -1,27 +1,36 @@
 from .file_slack import FileSlack
 import io
 import os
+import shutil
 import subprocess
+import tempfile
 import unittest
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 utilsdir = os.path.join(this_dir, os.pardir, os.pardir, 'utils')
+imagedir = tempfile.mkdtemp()
 
 
 class TestFatFileSlack(unittest.TestCase):
     image_paths = [
-                    os.path.join(utilsdir, 'testfs-fat12.dd'),
-                    os.path.join(utilsdir, 'testfs-fat16.dd'),
-                    os.path.join(utilsdir, 'testfs-fat32.dd'),
+                    os.path.join(imagedir, 'testfs-fat12.dd'),
+                    os.path.join(imagedir, 'testfs-fat16.dd'),
+                    os.path.join(imagedir, 'testfs-fat32.dd'),
                   ]
 
     @classmethod
     def setUpClass(cls):
-        # regenerate test filesystems
-        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir
+        # create test filesystems
+        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
+              + " " + imagedir
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        # remove created filesystem images
+        shutil.rmtree(imagedir)
 
     def test_find_file(self):
         for img_path in TestFatFileSlack.image_paths:
