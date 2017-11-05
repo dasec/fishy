@@ -57,7 +57,7 @@ class TestCliFileSlack(unittest.TestCase):
         testfilepath = tempfile.NamedTemporaryFile().name
         testfilename = os.path.basename(testfilepath)
         metadata_file = tempfile.NamedTemporaryFile().name
-        expected = '{"version": 2, "files": {"0": {"uid": 0, "filename": ' \
+        expected = '{"version": 2, "files": {"0": {"uid": "0", "filename": ' \
                    + '"' + testfilename + '", "metadata": {"clusters": ' \
                    + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'
         with open(testfilepath, 'w+') as testfile:
