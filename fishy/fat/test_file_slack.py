@@ -90,6 +90,9 @@ class TestFatFileSlack(unittest.TestCase):
                     with io.BufferedReader(mem) as reader:
                         result = fs.write(reader, ['another'])
                         self.assertEqual(result.clusters, [(3, 512, 28)])
+                        with self.assertRaises(IOError):
+                            mem.seek(0)
+                            fs.write(reader, ['no_free_slack.txt'])
 
     def test_write_file_in_subdir(self):
         # only testing fat12 as resulting cluster_id of different fat
@@ -107,7 +110,7 @@ class TestFatFileSlack(unittest.TestCase):
                 with io.BufferedReader(mem) as reader:
                     result = fs.write(reader,
                                       ['onedirectory/afileinadirectory.txt'])
-                    self.assertEqual(result.clusters, [(9, 512, 28)])
+                    self.assertEqual(result.clusters, [(13, 512, 28)])
 
     def test_write_file_autoexpand_subdir(self):
         # only testing fat12 as resulting cluster_id of different fat
@@ -127,7 +130,7 @@ class TestFatFileSlack(unittest.TestCase):
                 with io.BufferedReader(mem) as reader:
                     result = fs.write(reader,
                                       ['onedirectory'])
-                    self.assertEqual(result.clusters, [(11, 512, 28)])
+                    self.assertEqual(result.clusters, [(15, 512, 28)])
 
     def test_read_slack(self):
         for img_path in TestFatFileSlack.image_paths:

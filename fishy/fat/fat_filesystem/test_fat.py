@@ -83,8 +83,8 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fs.pre.reserved_sector_count, 32)
                 self.assertEqual(fs.pre.fat_count, 2)
                 self.assertEqual(fs.pre.sectors_per_fat, 544)
-                self.assertEqual(fs.pre.free_data_cluster_count, 68601)
-                self.assertEqual(fs.pre.last_allocated_data_cluster, 10)
+                self.assertEqual(fs.pre.free_data_cluster_count, 68599)
+                self.assertEqual(fs.pre.last_allocated_data_cluster, 12)
                 self.assertEqual(fs.pre.flags.active_fat, 0)
                 self.assertEqual(fs.pre.flags.mirrored, False)
                 self.assertEqual(fs.pre.fsinfo_sector, 1)
@@ -122,7 +122,7 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fs._get_cluster_value(3), 'last_cluster')
                 self.assertEqual(fs._get_cluster_value(4), 5)
                 self.assertEqual(fs._get_cluster_value(5), 'last_cluster')
-                self.assertEqual(fs._get_cluster_value(6), 'last_cluster')
+                self.assertEqual(fs._get_cluster_value(6), 7)
                 self.assertEqual(fs._get_cluster_value(7), 'last_cluster')
 
     def test_get_free_cluster(self):
@@ -130,17 +130,17 @@ class TestFatImplementation(unittest.TestCase):
             with open(image_paths[0], 'rb') as f:
                 fs = fat.FAT12(f)
                 result = fs.get_free_cluster()
-                self.assertEqual(result, 13)
+                self.assertEqual(result, 17)
         with self.subTest(i="FAT16"):
             with open(image_paths[1], 'rb') as f:
                 fs = fat.FAT16(f)
                 result = fs.get_free_cluster()
-                self.assertEqual(result, 13)
+                self.assertEqual(result, 17)
         with self.subTest(i="FAT32"):
             with open(image_paths[2], 'rb') as f:
                 fs = fat.FAT32(f)
                 result = fs.get_free_cluster()
-                self.assertEqual(result, 11)
+                self.assertEqual(result, 13)
 
     def test_follow_cluster(self):
         with self.subTest(i="FAT12"):
@@ -205,6 +205,7 @@ class TestFatImplementation(unittest.TestCase):
         expected_entries = ['another',
                             'areallylongfilenamethatiwanttoreadcorrectly.txt',
                             'long_file.txt',
+                            'no_free_slack.txt',
                             'onedirectory',
                             'testfile.txt',
                            ]
