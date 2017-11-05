@@ -3,6 +3,7 @@ import io
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 
 
@@ -45,10 +46,11 @@ class TestCliFileSlack(unittest.TestCase):
 
     def test_write_fileslack(self):
         teststring = "Small test for CLI"
-        testfilepath = "/tmp/fishy-testfile.txt"
-        metadata_file = "/tmp/test-metadata.json"
+        testfilepath = tempfile.NamedTemporaryFile().name
+        testfilename = os.path.basename(testfilepath)
+        metadata_file = tempfile.NamedTemporaryFile().name
         expected = '{"version": 2, "files": {"0": {"uid": 0, "filename": ' \
-                   + '"fishy-testfile.txt", "metadata": {"clusters": ' \
+                   + '"' + testfilename + '", "metadata": {"clusters": ' \
                    + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
@@ -65,8 +67,8 @@ class TestCliFileSlack(unittest.TestCase):
 
     def test_read_fileslack(self):
         teststring = "Small test for CLI"
-        testfilepath = "/tmp/fishy-testfile.txt"
-        metadata_file = "/tmp/test-metadata.json"
+        testfilepath = tempfile.NamedTemporaryFile().name
+        metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
         for img_path in TestCliFileSlack.image_paths:
@@ -85,8 +87,8 @@ class TestCliFileSlack(unittest.TestCase):
 
     def test_clear_fileslack(self):
         teststring = "Small test for CLI"
-        testfilepath = "/tmp/fishy-testfile.txt"
-        metadata_file = "/tmp/test-metadata.json"
+        testfilepath = tempfile.NamedTemporaryFile().name
+        metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
         for img_path in TestCliFileSlack.image_paths:
