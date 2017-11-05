@@ -1,8 +1,9 @@
 import sys
 import argparse
-from .fat.fattools import FATtools
+from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import FAT
 from .fat.simple_file_slack import SimpleFileSlack as FATSimpleFileSlack
+from .metadata import Metadata
 
 
 def main():
@@ -20,10 +21,9 @@ def main():
     fatt.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
 
     # Metadata info
-    metadata = subparsers.add_parser('fileslack', help='list information about a metadata file')
+    metadata = subparsers.add_parser('metadata', help='list information about a metadata file')
     metadata.set_defaults(which='metadata')
     metadata.add_argument('-m', '--metadata', dest='metadata', type=argparse.FileType('r'), help="filepath to metadata file")
-    metadata.add_argument('-i', '--info', dest='info', action='store_true', help='Show information about the metadata file')
 
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
@@ -50,31 +50,34 @@ def main():
     # Parse cli arguments
     args = parser.parse_args()
 
-    with open(args.dev, 'rb+') as f:
-        # if 'fattools' was chosen
-        if args.which == "fattools":
-            ft = FATtools(FAT(f))
-            if args.fat:
-                ft.list_fat()
-            elif args.info:
-                ft.list_info()
-            elif args.list is not None:
-                ft.list_directory(args.list)
-        # if 'metadata' was chosen
-        if args.which == 'metadata':
-            m = Metadata(args.metadata)
-            m.print()
+    # if 'metadata' was chosen
+    if args.which == 'metadata':
+        m = Metadata()
+        m.read(args.metadata)
+        m.info()
+    else:
 
-        # if 'fatsimplefileslack' was chosen
-        if args.which == "fatsimplefileslack":
-            filename = args.file
-            fs = FATSimpleFileSlack(f)
-            if args.write:
-                fs.write(sys.stdin.buffer, filename)
-            if args.read:
-                fs.read(sys.stdout.buffer, filename)
-            if args.clear:
-                fs.clear(filename)
+        with open(args.dev, 'rb+') as f:
+            # if 'fattools' was chosen
+            if args.which == "fattools":
+                ft = FATtools(FAT(f))
+                if args.fat:
+                    ft.list_fat()
+                elif args.info:
+                    ft.list_info()
+                elif args.list is not None:
+                    ft.list_directory(args.list)
+
+            # if 'fatsimplefileslack' was chosen
+            if args.which == "fatsimplefileslack":
+                filename = args.file
+                fs = FATSimpleFileSlack(f)
+                if args.write:
+                    fs.write(sys.stdin.buffer, filename)
+                if args.read:
+                    fs.read(sys.stdout.buffer, filename)
+                if args.clear:
+                    fs.clear(filename)
 
 
 if __name__ == "__main__":

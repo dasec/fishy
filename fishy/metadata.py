@@ -12,8 +12,8 @@ Sub-Metadata class and can vary, depending on the hiding technique)
   "module": "fat-file-slack"
   "version": 2,
   "files": {
-    "b45a6a1c4e75352a741ba81645e1a06af3c90044103be019681a76463cfb4a7a": {
-      "uid": "b45a6a1c4e75352a741ba81645e1a06af3c90044103be019681a76463cfb4a7a",
+    "0": {
+      "uid": "0",
       "filename": "test_file1.txt",
       "metadata": {
         "clusters": [
@@ -21,8 +21,8 @@ Sub-Metadata class and can vary, depending on the hiding technique)
         ]
       }
     },
-    "dcbd4af36915fe35456f6e25de58fce08b9234e44c56af252562d95c7eb67ef4": {
-      "uid": "dcbd4af36915fe35456f6e25de58fce08b9234e44c56af252562d95c7eb67ef4",
+    "1": {
+      "uid": "1",
       "filename": "test_file2.txt",
       "metadata": {
         "clusters": [
@@ -74,6 +74,7 @@ from hashlib import sha256
 import random
 from datetime import datetime
 import json
+import pprint
 
 
 class InformationMissingError(Exception):
@@ -221,3 +222,20 @@ class Metadata:
         # write metadata to stream
         outstream.write(json.dumps(self.metadata))
         outstream.flush()
+
+    def info(self):
+        """
+        prints info about stored metadata
+        """
+        pp = pprint.PrettyPrinter(indent=4)
+        # metadata main attributes
+        print("Version:", self.metadata["version"])
+        print("Module Identifier:", self.metadata["module"])
+        print("Stored Files:")
+        for uid in self.metadata["files"].keys():
+            fm = self.metadata["files"][uid]
+            print("  File_ID:", fm["uid"])
+            print("  Filename:", fm["filename"])
+            print("  Accesiated File Metadata:")
+            print("    ", end="")
+            pp.pprint(fm["metadata"])
