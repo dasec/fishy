@@ -26,6 +26,10 @@ from .dir_entry import DirEntry, LfnEntry
 from .fat_entry import FAT12Entry, FAT16Entry, FAT32Entry
 from construct import Struct, Array, Padding, Embedded, Bytes, this
 from io import BytesIO, BufferedReader
+import logging
+
+
+logger = logging.getLogger("FATFilesystem")
 
 
 class NoFreeClusterAvailable(Exception):
@@ -222,7 +226,7 @@ class FAT:
         while length > 0:
             read = self.stream.read(length)
             if not len(read):
-                print("failed to read %s bytes at %s"
+                logger.warning("failed to read %s bytes at %s"
                       % (length, self.stream.tell()))
                 raise EOFError()
             length -= len(read)
@@ -254,7 +258,7 @@ class FAT:
             for de, lfn in self._get_dir_entries(cluster_id):
                 yield (de, lfn)
         except IOError:
-            print("failed to read directory entries at %s" % cluster_id)
+            logger.warning("failed to read directory entries at %s" % cluster_id)
 
     def _get_dir_entries(self, cluster_id):
         """
@@ -385,7 +389,6 @@ class FAT12(FAT):
                     new_entry_hex[3] + new_entry_hex[0]
         # convert hex to bytes
         new_entry = bytes.fromhex(new_entry)
-        print(new_entry)
         # write new value to first fat on disk
         self.stream.seek(fat0_start + byte)
         self.stream.write(new_entry)
