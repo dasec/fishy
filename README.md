@@ -4,9 +4,7 @@ Toolkit for filesystem based data hiding techniques
 # Techniques we found
 
 * FAT:
-	* File Slack
-		* Simple: Only writing to slackspace of one file  [✓]
-		* Advanced: Writing to slackspace of multiple files
+	* File Slack [✓]
 	* Partition Slack
 	* Mark Clusters as 'bad', but write content to them
 	* Allocate More Clusters for a file
@@ -28,7 +26,7 @@ $ sudo python setup.py install
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
 * [`fattools`](#fattools) - Provides some information about a FAT filesystem
-* [`metadata`](#metadata) - Provides some information about information that is stored in a metadata file
+* [`metadata`](#metadata) - Provides some information about data that is stored in a metadata file
 * [`fileslack`](#file-slack) - Exploitation of File Slack
 
 ## FATtools
@@ -93,9 +91,10 @@ Stored Files:
 
 ## File Slack
 
-The `fileslack` subcommand provides functionality to read, write and clean the file slack of files in a filesystems.
+The `fileslack` subcommand provides functionality to read, write and clean the file slack of files in a filesystem.
 
 Available for these Filesystem types:
+
 	* FAT
 
 ```bash
@@ -106,11 +105,30 @@ $ echo "TOP SECRET" | fishy -d testfs-fat12.dd fileslack -d myfile.txt -m metada
 $ fishy -d testfs-fat12.dd fileslack -m metadata.json -r 0
 TOP SECRET
 
-# Wipe slack space
+# wipe slack space
 $ fishy -d testfs-fat12.dd fileslack -m metadata.json -c
 ```
 
 # Development
 
-* with `create_testfs.sh` you can create test filesystem, which already contain files
 * Unittests can be executed by running `python -m unittest`. Please make sure the `create_testfs.sh` script runs as expected.
+
+## Creating test filesystem images
+
+With `create_testfs.sh` you can create prepared filesystem images. These include already files, which get copied from `utils/fs-files/`.
+To create a set of test images, simply run
+```
+$ ./create_testfs.sh
+```
+
+The script has a bunch of options, which will be useful when writing unit tests.
+See comments in the script for further information.
+
+If you would like to use existing test images while running unit tests, create
+a file called `.create_testfs.conf` under `utils`. Here you can define the
+variable `copyfrom` to provide a directory, where your existing test images are
+located. For instance:
+
+```
+copyfrom="/my/image/folder"
+```
