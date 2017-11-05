@@ -160,7 +160,7 @@ class Metadata:
         generates a unique id, used as file identifier
         :return: string
         """
-        return len(self.metadata["files"].keys())
+        return str(len(self.metadata["files"].keys()))
 
     def add_file(self, filename, submetadata):
         """
