@@ -23,7 +23,7 @@ class TestFatFileSlack(unittest.TestCase):
     def setUpClass(cls):
         # create test filesystems
         cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
-              + " " + imagedir
+              + " " + imagedir + " " + "fat"
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
 
