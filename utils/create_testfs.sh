@@ -8,25 +8,26 @@
 # * a directory called 'mount-fs' to mount the created filesystem
 # * a directory called 'fs-files' including the filestructure
 #   that will be copied into the created filesystem images
+#
+# Usage:
+# ./create_testfs.sh [WORKINGDIR] [DESTDIR]
+# [WORKINGDIR] - Directory where 'mount-fs' and 'fs-files' directories are
+#                located. Defaults to current directory
+# [DESTDIR]    - Directory where images will be stored. Defaults to
+#                [WORKINGDIR].
 
 workingdir="$1"
-useramdisk="$2"
+fsdest="$2"
 filestructure="fs-files"
 
 if [ "$workingdir" == "" ]; then
 	workingdir="$(pwd)"
 fi
 
-if [ ! $useramdisk == "" ]; then
-	if [ ! -d "$workingdir/ramdisk" ]; then
-		echo "directory '$workingdir/ramdisk' is missing"
+if [ ! $fsdest == "" ]; then
+	if [ ! -d "$fsdest" ]; then
+		echo "destination directory '$fsdest' is missing"
 		exit 1
-	fi
-	fsdest="$workingdir/ramdisk"
-	# only mount new tmpfs, if it is not already mounted
-	if !  df | grep "$fsdest" > /dev/null; then
-		echo mounting ramdisk...
-		sudo mount -t tmpfs -o size=3g tmpfs "$workingdir/ramdisk"
 	fi
 else
 	fsdest="$workingdir"
