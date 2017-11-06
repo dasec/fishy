@@ -1,5 +1,6 @@
 from . import cli
 import io
+import json
 import os
 import shutil
 import subprocess
@@ -58,9 +59,10 @@ class TestCliFileSlack(unittest.TestCase):
         testfilepath = tempfile.NamedTemporaryFile().name
         testfilename = os.path.basename(testfilepath)
         metadata_file = tempfile.NamedTemporaryFile().name
-        expected = '{"version": 2, "files": {"0": {"uid": "0", "filename": ' \
+        expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
+                   + '{"uid": "0", "filename": ' \
                    + '"' + testfilename + '", "metadata": {"clusters": ' \
-                   + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'
+                   + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'))
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
         for img_path in TestCliFileSlack.image_paths:

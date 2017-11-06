@@ -1,4 +1,5 @@
 from .metadata import Metadata, InformationMissingError
+import json
 import tempfile
 import unittest
 
@@ -36,9 +37,10 @@ class TestMetadataClass(unittest.TestCase):
         m.write(tmpfile)
         tmpfile.seek(0)
         result = tmpfile.read()
-        expected = '{"version": 2, "files": {"0": {"uid": "0", "filename": ' \
+        expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
+                   + '{"uid": "0", "filename": ' \
                    + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
-                   + '"module": "test-module"}'
+                   + '"module": "test-module"}'))
         self.assertEqual(result, expected)
 
     def test_read(self):
