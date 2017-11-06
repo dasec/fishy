@@ -11,15 +11,19 @@ set it the right way.
 
 
 class UnsupportedFilesystemError(Exception):
+    """
+    This error occures, if a filesystem could not be determined.
+    """
     pass
 
 
-def is_fat(stream):
+def is_fat(stream) -> bool:
     """
     checks if a given stream is of type fat or not
     :param stream: stream of filesystem
     :return: bool, True if it is a FAT filesystem
                    False if it is not a FAT filesystem
+    :rtype: bool
     """
     try:
         fs_type = get_filesystem_type(stream)
@@ -32,12 +36,13 @@ def is_fat(stream):
     return False
 
 
-def get_filesystem_type(stream):
+def get_filesystem_type(stream) -> str:
     """
     extracts the FAT filesystem type from a given stream
     :stream: stream of filesystem
     :return: string, 'FAT12', 'FAT16' or 'FAT32'
     :raises: UnsupportedFilesystemError
+    :rtype: str
     """
     # save stream offset
     offset = stream.tell()

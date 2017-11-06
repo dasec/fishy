@@ -5,6 +5,10 @@ FAT filesystems.
 
 
 class FATtools:
+    """
+    FATtools implements some common inspection operations on
+    FAT filesystems.
+    """
     def __init__(self, fat):
         """
         :param fat: FAT filesystem object
@@ -19,10 +23,10 @@ class FATtools:
                            then the root directory is listed
         """
         if cluster_id == 0:
-            it = self.fat.get_root_dir_entries()
+            dir_iterator = self.fat.get_root_dir_entries()
         else:
-            it = self.fat.get_dir_entries(cluster_id)
-        for entry, lfn in it:
+            dir_iterator = self.fat.get_dir_entries(cluster_id)
+        for entry, lfn in dir_iterator:
             if lfn != "":
                 # get correct filetype
                 if entry.attributes.subDirectory:
@@ -48,7 +52,7 @@ class FATtools:
         list all fat entries
         """
         for i in range(self.fat.entries_per_fat):
-            print(i, self.fat._get_cluster_value(i))
+            print(i, self.fat.get_cluster_value(i))
 
     def list_info(self):
         """

@@ -99,7 +99,7 @@ class Metadata:
         self.set("module", None)
         self.set_module(module_identifier)
 
-    def set_module(self, identifier):
+    def set_module(self, identifier: str):
         """
         sets the module identifier. use 'main' to switch back
         to main context.
@@ -119,7 +119,7 @@ class Metadata:
         # save module identifier
         self.module = identifier
 
-    def get_module(self):
+    def get_module(self) -> str:
         """
         get identifier string of the current active module
         :return: string that identifies the current active module
@@ -155,14 +155,14 @@ class Metadata:
         else:
             raise Exception("Only can read data in 'main' context")
 
-    def generate_id(self):
+    def generate_id(self) -> str:
         """
         generates a unique id, used as file identifier
         :return: string
         """
         return str(len(self.metadata["files"].keys()))
 
-    def add_file(self, filename, submetadata):
+    def add_file(self, filename: str, submetadata):
         """
         store metadata defined in submodule for a file
         :param filename: sets the filename of the stored data.
@@ -174,12 +174,12 @@ class Metadata:
         if filename is None:
             filename = uid
         self.metadata["files"][uid] = {
-                                    'uid': uid,
-                                    'filename': filename,
-                                    'metadata': submetadata.__dict__
-                                   }
+            'uid': uid,
+            'filename': filename,
+            'metadata': submetadata.__dict__
+            }
 
-    def get_file(self, file_id):
+    def get_file(self, file_id) -> dict:
         """
         get a file entry by its uid
         :param file_id: unique id of the file
@@ -224,15 +224,15 @@ class Metadata:
         """
         prints info about stored metadata
         """
-        pp = pprint.PrettyPrinter(indent=4)
+        ppp = pprint.PrettyPrinter(indent=4)
         # metadata main attributes
         print("Version:", self.metadata["version"])
         print("Module Identifier:", self.metadata["module"])
         print("Stored Files:")
         for uid in self.metadata["files"].keys():
-            fm = self.metadata["files"][uid]
-            print("  File_ID:", fm["uid"])
-            print("  Filename:", fm["filename"])
+            file_meta = self.metadata["files"][uid]
+            print("  File_ID:", file_meta["uid"])
+            print("  Filename:", file_meta["filename"])
             print("  Accesiated File Metadata:")
             print("    ", end="")
-            pp.pprint(fm["metadata"])
+            ppp.pprint(file_meta["metadata"])

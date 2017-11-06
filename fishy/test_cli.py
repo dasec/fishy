@@ -1,4 +1,3 @@
-from . import cli
 import io
 import json
 import os
@@ -7,11 +6,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from . import cli
 
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-utilsdir = os.path.join(this_dir, os.pardir, 'utils')
-imagedir = tempfile.mkdtemp()
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+UTILSDIR = os.path.join(THIS_DIR, os.pardir, 'utils')
+IMAGEDIR = tempfile.mkdtemp()
 
 
 class CaptureStdout(list):
@@ -35,16 +35,16 @@ class CaptureStdout(list):
 class TestCliFileSlack(unittest.TestCase):
 
     image_paths = [
-                    os.path.join(imagedir, 'testfs-fat12.dd'),
-                    os.path.join(imagedir, 'testfs-fat16.dd'),
-                    os.path.join(imagedir, 'testfs-fat32.dd'),
-                  ]
+        os.path.join(IMAGEDIR, 'testfs-fat12.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat16.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat32.dd'),
+        ]
 
     @classmethod
     def setUpClass(cls):
         # regenerate test filesystems
-        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
-              + " " + imagedir + " '' true"
+        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " " + UTILSDIR \
+              + " " + IMAGEDIR + " '' true"
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         # stderr=subprocess.PIPE,
                         shell=True)
@@ -52,7 +52,7 @@ class TestCliFileSlack(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # remove created filesystem images
-        shutil.rmtree(imagedir)
+        shutil.rmtree(IMAGEDIR)
 
     def test_write_fileslack(self):
         teststring = "Small test for CLI"

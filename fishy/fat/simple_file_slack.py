@@ -18,7 +18,7 @@ to wipe slackspace of a file:
 """
 
 
-from .fat_filesystem.fat_wrapper import FAT
+from .fat_filesystem.fat_wrapper import create_fat
 from io import BytesIO, BufferedReader
 
 
@@ -27,14 +27,14 @@ class SimpleFileSlack:
         """
         :param stream: filedescriptor of a FAT filesystem
         """
-        self.fs = FAT(stream)
+        self.fs = create_fat(stream)
         self.stream = stream
 
     def _find_file(self, filepath):
         """
         returns the directory entry for a given filepath
         :param filepath: string, filepath to the file
-        :return: DirEntry of the requested file
+        :return: DIR_ENTRY of the requested file
         """
         # build up filepath as directory and
         # reverse it so, that we can simple
@@ -71,8 +71,8 @@ class SimpleFileSlack:
 
     def calculate_slack_space(self, entry):
         """
-        calculates the slack space for a given DirEntry
-        :param entry: DirEntry, directory entry of the file
+        calculates the slack space for a given DIR_ENTRY
+        :param entry: DIR_ENTRY, directory entry of the file
         :return: tuple of (occupation, free_slack), whereas occupation
                  is the occupied size of the last cluster by the file.
                  And free_slack is the size of the slack space

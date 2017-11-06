@@ -1,42 +1,42 @@
-from .filesystem_detector import get_filesystem_type, UnsupportedFilesystemError
 import os
 import shutil
 import subprocess
 import tempfile
 import unittest
+from .filesystem_detector import get_filesystem_type, UnsupportedFilesystemError
 
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
-utilsdir = os.path.join(this_dir, os.pardir, 'utils')
-imagedir = tempfile.mkdtemp()
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+UTILSDIR = os.path.join(THIS_DIR, os.pardir, 'utils')
+IMAGEDIR = tempfile.mkdtemp()
 
 
 class TestFileSystemDetector(unittest.TestCase):
 
     fat_image_paths = [
-                    os.path.join(imagedir, 'testfs-fat12.dd'),
-                    os.path.join(imagedir, 'testfs-fat16.dd'),
-                    os.path.join(imagedir, 'testfs-fat32.dd'),
-                      ]
+        os.path.join(IMAGEDIR, 'testfs-fat12.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat16.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat32.dd'),
+        ]
     ntfs_image_paths = [
-                        os.path.join(imagedir, 'testfs-ntfs.dd'),
-                       ]
+        os.path.join(IMAGEDIR, 'testfs-ntfs.dd'),
+        ]
     ext4_image_paths = [
-                        os.path.join(imagedir, 'testfs-ext4.dd'),
-                       ]
+        os.path.join(IMAGEDIR, 'testfs-ext4.dd'),
+        ]
 
     @classmethod
     def setUpClass(cls):
         # regenerate test filesystems
-        cmd = os.path.join(utilsdir, "create_testfs.sh") + " " + utilsdir \
-              + " " + imagedir + " " + "all" + " true"
+        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " " + UTILSDIR \
+              + " " + IMAGEDIR + " " + "all" + " true"
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
 
     @classmethod
     def tearDownClass(cls):
         # remove created filesystem images
-        shutil.rmtree(imagedir)
+        shutil.rmtree(IMAGEDIR)
 
     def test_fat_images(self):
         for img in TestFileSystemDetector.fat_image_paths:

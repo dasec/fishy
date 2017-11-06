@@ -1,10 +1,10 @@
 import sys
 import argparse
-from .fat.fat_filesystem.fattools import FATtools
-from .fat.fat_filesystem.fat_wrapper import FAT
-from .fileSlack import FileSlack
-from .metadata import Metadata
 import logging
+from .fat.fat_filesystem.fattools import FATtools
+from .fat.fat_filesystem.fat_wrapper import create_fat
+from .file_slack import FileSlack
+from .metadata import Metadata
 
 
 def main():
@@ -48,63 +48,57 @@ def main():
 
     # if 'metadata' was chosen
     if args.which == 'metadata':
-        m = Metadata()
-        m.read(args.metadata)
-        m.info()
+        meta = Metadata()
+        meta.read(args.metadata)
+        meta.info()
     else:
         with open(args.dev, 'rb+') as device:
             # if 'fattools' was chosen
             if args.which == "fattools":
-                ft = FATtools(FAT(device))
+                fattool = FATtools(create_fat(device))
                 if args.fat:
-                    ft.list_fat()
+                    fattool.list_fat()
                 elif args.info:
-                    ft.list_info()
+                    fattool.list_info()
                 elif args.list is not None:
-                    ft.list_directory(args.list)
-
-            # if 'metadata' was chosen
-            if args.which == 'metadata':
-                raise NotImplementedError()
-                # m = Metadata(args.metadata)
-                # m.print()
+                    fattool.list_directory(args.list)
 
             # if 'fileslack' was chosen
             if args.which == 'fileslack':
                 if args.write:
-                    fs = FileSlack(device, Metadata(), args.dev)
+                    slacker = FileSlack(device, Metadata(), args.dev)
                     if len(args.files) == 0:
                         # write from stdin into fileslack
-                        fs.write(sys.stdin.buffer, args.destination)
+                        slacker.write(sys.stdin.buffer, args.destination)
                     else:
                         # write from files  into fileslack
                         for f in args.files:
                             with open(f, 'rb') as fstream:
-                                fs.write(fstream, args.destination, f)
+                                slacker.write(fstream, args.destination, f)
                     with open(args.metadata, 'w+') as metadata_out:
-                        fs.metadata.write(metadata_out)
+                        slacker.metadata.write(metadata_out)
                 elif args.read:
                     # read file slack of a single hidden file to stdout
                     with open(args.metadata, 'r') as metadata_file:
-                        m = Metadata()
-                        m.read(metadata_file)
-                        fs = FileSlack(device, m, args.dev)
-                        fs.read(sys.stdout.buffer, args.read)
+                        meta = Metadata()
+                        meta.read(metadata_file)
+                        slacker = FileSlack(device, meta, args.dev)
+                        slacker.read(sys.stdout.buffer, args.read)
                 elif args.outdir:
                     # read fileslack of all hidden files into files
                     # under a given directory
                     with open(args.metadata, 'r') as metadata_file:
-                        m = Metadata()
-                        m.read(metadata_file)
-                        fs = FileSlack(device, m, args.dev)
-                        fs.read_into_files(args.outdir)
+                        meta = Metadata()
+                        meta.read(metadata_file)
+                        slacker = FileSlack(device, meta, args.dev)
+                        slacker.read_into_files(args.outdir)
                 elif args.clear:
                     # clear fileslack
                     with open(args.metadata, 'r') as metadata_file:
-                        m = Metadata()
-                        m.read(metadata_file)
-                        fs = FileSlack(device, m, args.dev)
-                        fs.clear()
+                        meta = Metadata()
+                        meta.read(metadata_file)
+                        slacker = FileSlack(device, meta, args.dev)
+                        slacker.clear()
 
 
 if __name__ == "__main__":

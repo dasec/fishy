@@ -3,18 +3,19 @@ This file contains a wrapper for FAT filesystems, which
 detects the FAT filesystem an uses the right class
 
 >>> f = open('testfs.dd', 'rb')
->>> fs = FAT(f)
+>>> fs = create_fat(f)
 """
 from .fat_detector import get_filesystem_type
-from .fat import FAT12, FAT16, FAT32
+from .fat import FAT, FAT12, FAT16, FAT32
 
 
-def FAT(stream):
+def create_fat(stream) -> FAT:
     """
     Detect FAT filesystem type and return an instance of it
     :param stream: filedescriptor of a FAT filesystem
     :return: FAT filesystem object
     :raises: UnsupportedFilesystemError
+    :rtype: FAT12, FAT16 or FAT32
     """
     # get fs_type
     fat_type = get_filesystem_type(stream)
