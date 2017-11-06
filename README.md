@@ -4,9 +4,7 @@ Toolkit for filesystem based data hiding techniques
 # Techniques we found
 
 * FAT:
-	* File Slack
-		* Simple: Only writing to slackspace of one file  [✓]
-		* Advanced: Writing to slackspace of multiple files
+	* File Slack [✓]
 	* Partition Slack
 	* Mark Clusters as 'bad', but write content to them
 	* Allocate More Clusters for a file
@@ -28,7 +26,8 @@ $ sudo python setup.py install
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
 * [`fattools`](#fattools) - Provides some information about a FAT filesystem
-* [`fatsimplefileslack`](#simple-file-slack-for-fat) - Exploitation of File Slack for a single file
+* [`metadata`](#metadata) - Provides some information about data that is stored in a metadata file
+* [`fileslack`](#file-slack) - Exploitation of File Slack
 
 ## FATtools
 
@@ -36,7 +35,7 @@ To get information about a FAT filesystem you can use the `fattools` subcommand:
 
 ```bash
 # Get some meta information about the FAT filesystem
-$ fishy -d testfs-fat32.dd fattools -i 
+$ fishy -d testfs-fat32.dd fattools -i
 FAT Type:                                  FAT32
 Sector Size:                               512
 Sectors per Cluster:                       8
@@ -51,7 +50,7 @@ Active FAT:                                0
 Sector of Bootsector Copy:                 6
 
 # List entries of the file allocation table
-$ fishy -d utils/testfs-fat12.dd fattools -f 
+$ fishy -d testfs-fat12.dd fattools -f
 0 last_cluster
 1 last_cluster
 2 free_cluster
@@ -63,7 +62,7 @@ $ fishy -d utils/testfs-fat12.dd fattools -f
 [...]
 
 # List files in a directory (use cluster_id from second column to list subdirectories)
-$ fishy -d utils/testfs-fat12.dd fattools -l 0           
+$ fishy -d testfs-fat12.dd fattools -l 0
 f     3        4        another
 f     0        0        areallylongfilenamethatiwanttoreadcorrectly.txt
 f     4        8001     long_file.txt
@@ -71,22 +70,65 @@ d     8        0        onedirectory
 f     10       5        testfile.txt
 ```
 
-## Simple File Slack for FAT
+## Metadata
 
-The `fatsimplefileslack` subcommand provides functionality to read, write and clean the file slack of a single file on FAT filesystems.
+Metadata files will be created while writing information into the filesystem.
+They are required to restore those information or to wipe them from filesystem.
+To display information, that are stored in those metadata files, you can use
+the `metadata` subcommand.
+
+```bash
+# Show metadata information from a metadata file
+$ fishy metadata -m metadata.json
+Version: 2
+Module Identifier: fat-file-slack
+Stored Files:
+  File_ID: 0
+  Filename: 0
+  Accesiated File Metadata:
+    {'clusters': [[3, 512, 11]]}
+```
+
+## File Slack
+
+The `fileslack` subcommand provides functionality to read, write and clean the file slack of files in a filesystem.
+
+Available for these Filesystem types:
+
+	* FAT
 
 ```bash
 # write into slack space
-$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -w
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fileslack -d myfile.txt -m metadata.json -w
 
 # read from slack space
-$ fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -r
+$ fishy -d testfs-fat12.dd fileslack -m metadata.json -r 0
 TOP SECRET
 
-# Wipe slack space
-$ fishy -d testfs-fat12.dd fatsimplefileslack -f myfile.txt -c
+# wipe slack space
+$ fishy -d testfs-fat12.dd fileslack -m metadata.json -c
 ```
 
 # Development
 
-* with `create_testfs.sh` you can create test filesystem, which already contain files
+* Unittests can be executed by running `python -m unittest`. Please make sure the `create_testfs.sh` script runs as expected.
+
+## Creating test filesystem images
+
+With `create_testfs.sh` you can create prepared filesystem images. These include already files, which get copied from `utils/fs-files/`.
+To create a set of test images, simply run
+```
+$ ./create_testfs.sh
+```
+
+The script has a bunch of options, which will be useful when writing unit tests.
+See comments in the script for further information.
+
+If you would like to use existing test images while running unit tests, create
+a file called `.create_testfs.conf` under `utils`. Here you can define the
+variable `copyfrom` to provide a directory, where your existing test images are
+located. For instance:
+
+```
+copyfrom="/my/image/folder"
+```

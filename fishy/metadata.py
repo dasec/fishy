@@ -70,9 +70,6 @@ switch module context
 "MyModule"
 """
 
-from hashlib import sha256
-import random
-from datetime import datetime
 import json
 import pprint
 

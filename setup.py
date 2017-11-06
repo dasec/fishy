@@ -20,6 +20,7 @@ setup(
     install_requires=[
         "argparse",
         "construct",
+        "pytsk3",
     ],
     test_suite='setup.tests',
 )
