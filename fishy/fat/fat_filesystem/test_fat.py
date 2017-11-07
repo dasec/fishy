@@ -239,92 +239,93 @@ class TestFatImplementation(unittest.TestCase):
                         self.assertEqual(lfn, expected_entries[counter])
                         counter += 1
 
-    def test_write_fat_entry(self):
-        with self.subTest(i="FAT12"):
-            with open(IMAGE_PATHS[0], 'rb+') as img_stream:
-                fatfs = fat.FAT12(img_stream)
-                # store current value to restore old state after test
-                actual_value = fatfs.get_cluster_value(4)
-                value_above = fatfs.get_cluster_value(3)
-                value_below = fatfs.get_cluster_value(5)
-                expected = 19
-                # Test writing even cluster number
-                fatfs.write_fat_entry(4, expected)
-                result = fatfs.get_cluster_value(4)
-                self.assertEqual(result, expected)
-                # Test that we didn't damage cluster enties beside our own
-                value_above_now  = fatfs.get_cluster_value(3)
-                value_below_now = fatfs.get_cluster_value(5)
-                self.assertEqual(value_above_now, value_above)
-                self.assertEqual(value_below_now, value_below)
-                # restore old status. hopfully this works
-                fatfs.write_fat_entry(4, actual_value)
-                # Test writing odd cluster number
-                value_above = fatfs.get_cluster_value(2)
-                value_below = fatfs.get_cluster_value(4)
-                fatfs.write_fat_entry(3, expected)
-                result = fatfs.get_cluster_value(3)
-                self.assertEqual(result, expected)
-                # Test that we didn't damage cluster enties beside our own
-                value_above_now  = fatfs.get_cluster_value(2)
-                value_below_now = fatfs.get_cluster_value(4)
-                self.assertEqual(value_above_now, value_above)
-                self.assertEqual(value_below_now, value_below)
-                # restore old status. hopfully this works
-                fatfs.write_fat_entry(3, actual_value)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(-1, 15)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 0)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 4087)
-        with self.subTest(i="FAT16"):
-            with open(IMAGE_PATHS[1], 'rb+') as img_stream:
-                fatfs = fat.FAT16(img_stream)
-                actual_value = fatfs.get_cluster_value(4)
-                value_above = fatfs.get_cluster_value(3)
-                value_below = fatfs.get_cluster_value(5)
-                expected = 19
-                fatfs.write_fat_entry(4, expected)
-                result = fatfs.get_cluster_value(4)
-                self.assertEqual(result, expected)
-                # Test that we didn't damage cluster enties beside our own
-                value_above_now  = fatfs.get_cluster_value(3)
-                value_below_now = fatfs.get_cluster_value(5)
-                self.assertEqual(value_above_now, value_above)
-                self.assertEqual(value_below_now, value_below)
-                fatfs.write_fat_entry(4, actual_value)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(-1, 15)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 0)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 0xfff7)
-        with self.subTest(i="FAT32"):
-            with open(IMAGE_PATHS[2], 'rb+') as img_stream:
-                fatfs = fat.FAT32(img_stream)
-                actual_value = fatfs.get_cluster_value(4)
-                value_above = fatfs.get_cluster_value(3)
-                value_below = fatfs.get_cluster_value(5)
-                expected = 19
-                fatfs.write_fat_entry(4, expected)
-                result = fatfs.get_cluster_value(4)
-                self.assertEqual(result, expected)
-                # Test that we didn't damage cluster enties beside our own
-                value_above_now  = fatfs.get_cluster_value(3)
-                value_below_now = fatfs.get_cluster_value(5)
-                self.assertEqual(value_above_now, value_above)
-                self.assertEqual(value_below_now, value_below)
-                fatfs.write_fat_entry(4, actual_value)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(-1, 15)
-                with self.assertRaises(AttributeError):
-                    fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 0)
-                with self.assertRaises(AssertionError):
-                    fatfs.write_fat_entry(2, 0xffffff7)
+    def test_write_fat_entry_fat12(self):
+        with open(IMAGE_PATHS[0], 'rb+') as img_stream:
+            fatfs = fat.FAT12(img_stream)
+            # store current value to restore old state after test
+            actual_value = fatfs.get_cluster_value(4)
+            value_above = fatfs.get_cluster_value(3)
+            value_below = fatfs.get_cluster_value(5)
+            expected = 19
+            # Test writing even cluster number
+            fatfs.write_fat_entry(4, expected)
+            result = fatfs.get_cluster_value(4)
+            self.assertEqual(result, expected)
+            # Test that we didn't damage cluster enties beside our own
+            value_above_now = fatfs.get_cluster_value(3)
+            value_below_now = fatfs.get_cluster_value(5)
+            self.assertEqual(value_above_now, value_above)
+            self.assertEqual(value_below_now, value_below)
+            # restore old status. hopfully this works
+            fatfs.write_fat_entry(4, actual_value)
+            # Test writing odd cluster number
+            value_above = fatfs.get_cluster_value(2)
+            value_below = fatfs.get_cluster_value(4)
+            fatfs.write_fat_entry(3, expected)
+            result = fatfs.get_cluster_value(3)
+            self.assertEqual(result, expected)
+            # Test that we didn't damage cluster enties beside our own
+            value_above_now = fatfs.get_cluster_value(2)
+            value_below_now = fatfs.get_cluster_value(4)
+            self.assertEqual(value_above_now, value_above)
+            self.assertEqual(value_below_now, value_below)
+            # restore old status. hopfully this works
+            fatfs.write_fat_entry(3, actual_value)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(-1, 15)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 0)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 4087)
+
+    def test_write_fat_entry_fat16(self):
+        with open(IMAGE_PATHS[1], 'rb+') as img_stream:
+            fatfs = fat.FAT16(img_stream)
+            actual_value = fatfs.get_cluster_value(4)
+            value_above = fatfs.get_cluster_value(3)
+            value_below = fatfs.get_cluster_value(5)
+            expected = 19
+            fatfs.write_fat_entry(4, expected)
+            result = fatfs.get_cluster_value(4)
+            self.assertEqual(result, expected)
+            # Test that we didn't damage cluster enties beside our own
+            value_above_now = fatfs.get_cluster_value(3)
+            value_below_now = fatfs.get_cluster_value(5)
+            self.assertEqual(value_above_now, value_above)
+            self.assertEqual(value_below_now, value_below)
+            fatfs.write_fat_entry(4, actual_value)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(-1, 15)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 0)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 0xfff7)
+
+    def test_write_fat_entry_fat32(self):
+        with open(IMAGE_PATHS[2], 'rb+') as img_stream:
+            fatfs = fat.FAT32(img_stream)
+            actual_value = fatfs.get_cluster_value(4)
+            value_above = fatfs.get_cluster_value(3)
+            value_below = fatfs.get_cluster_value(5)
+            expected = 19
+            fatfs.write_fat_entry(4, expected)
+            result = fatfs.get_cluster_value(4)
+            self.assertEqual(result, expected)
+            # Test that we didn't damage cluster enties beside our own
+            value_above_now = fatfs.get_cluster_value(3)
+            value_below_now = fatfs.get_cluster_value(5)
+            self.assertEqual(value_above_now, value_above)
+            self.assertEqual(value_below_now, value_below)
+            fatfs.write_fat_entry(4, actual_value)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(-1, 15)
+            with self.assertRaises(AttributeError):
+                fatfs.write_fat_entry(fatfs.entries_per_fat, 15)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 0)
+            with self.assertRaises(AssertionError):
+                fatfs.write_fat_entry(2, 0xffffff7)
