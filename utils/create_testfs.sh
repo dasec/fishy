@@ -11,8 +11,9 @@
 # * to create multiple images with different content, create multiple
 #   directories that share the prefix 'fs-files'
 #
-# Usage: ./create_testfs.sh [-uh] [-w WORKINGDIR] [-d DEST] [-t FSTYPE]
-#   -w WORKINGDIR          Directory where 'mount-fs' and 
+# Usage: utils/create_testfs.sh [-uh] [-w WORKINGDIR] [-d DEST] [-t FSTYPE] [-s SUFFIX]
+#   -u                     try to source .create_testfs.conf
+#   -w WORKINGDIR          Directory where 'mount-fs' and
 #                          'fs-files' directories are located.
 #                          Defaults to current directory
 #   -d DEST                Directory where images will be stored.
@@ -20,7 +21,8 @@
 #   -t FSTYPE              For which filesystem type the images
 #                          will be created. Valid options: fat,
 #                          ntfs, ext4, all. Defaults to fat+ntfs
-#   -u                     try to source .create_testfs.conf
+#   -s SUFFIX              Filestructure suffix. Defaults to 'all'
+#                          Use '.' to use no suffix
 #
 # if a .create_mount exists in the directory the script is located, this file
 # will be sourced. Thus it is possible to provide a path where prepared disk

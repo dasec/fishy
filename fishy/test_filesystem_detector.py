@@ -14,24 +14,25 @@ IMAGEDIR = tempfile.mkdtemp()
 class TestFileSystemDetector(unittest.TestCase):
 
     fat_image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-fat12.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat16.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat32.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat12-stable1.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat16-stable1.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat32-stable1.dd'),
         ]
     ntfs_image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-ntfs.dd'),
+        os.path.join(IMAGEDIR, 'testfs-ntfs-stable1.dd'),
         ]
     ext4_image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-ext4.dd'),
+        os.path.join(IMAGEDIR, 'testfs-ext4-stable1.dd'),
         ]
 
     @classmethod
     def setUpClass(cls):
         # regenerate test filesystems
-        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " " + UTILSDIR \
-              + " " + IMAGEDIR + " " + "all" + " true"
+        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
+              + " -d " + IMAGEDIR + " -t " + "all" + " -u -s '-stable1'"
         subprocess.call(cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, shell=True)
+                        # stderr=subprocess.PIPE,
+                        shell=True)
 
     @classmethod
     def tearDownClass(cls):

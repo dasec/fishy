@@ -14,16 +14,16 @@ IMAGEDIR = tempfile.mkdtemp()
 
 class TestFatFileSlack(unittest.TestCase):
     image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-fat12.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat16.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat32.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat12-stable1.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat16-stable1.dd'),
+        os.path.join(IMAGEDIR, 'testfs-fat32-stable1.dd'),
         ]
 
     @classmethod
     def setUpClass(cls):
         # create test filesystems
-        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " " + UTILSDIR \
-              + " " + IMAGEDIR + " " + "fat" + " true"
+        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
+              + " -d " + IMAGEDIR + " -t" + "fat" + " -u -s '-stable1'"
         subprocess.call(cmd, stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE, shell=True)
 
