@@ -51,6 +51,9 @@ class TestFatFileSlack(unittest.TestCase):
                 self.assertFalse(result.attributes.hidden)
                 self.assertFalse(result.attributes.readonly)
                 self.assertEqual(result.fileSize, 8001)
+                # Test finding a non existing file
+                with self.assertRaises(Exception):
+                    fatfs._find_file("i-dont-exist")
 
     def test_file_walk(self):
         for img_path in TestFatFileSlack.image_paths:
