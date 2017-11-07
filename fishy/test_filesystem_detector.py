@@ -1,3 +1,4 @@
+# pylint: disable=missing-docstring
 import os
 import shutil
 import subprocess

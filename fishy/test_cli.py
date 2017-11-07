@@ -1,3 +1,4 @@
+# pylint: disable=missing-docstring
 import io
 import json
 import os
@@ -16,10 +17,10 @@ IMAGEDIR = tempfile.mkdtemp()
 
 class CaptureStdout(list):
     def __enter__(self):
-        self._stdout = sys.stdout
-        self._bytestream = io.BytesIO()
-        sys.stdout = self._iow = io.BufferedWriter(self._bytestream)
-        sys.stdout.buffer = self._iow2 = io.BufferedWriter(self._bytestream)
+        self._stdout = sys.stdout  # pylint: disable=attribute-defined-outside-init
+        self._bytestream = io.BytesIO()  # pylint: disable=attribute-defined-outside-init
+        sys.stdout = self._iow = io.BufferedWriter(self._bytestream)  # pylint: disable=attribute-defined-outside-init
+        sys.stdout.buffer = self._iow2 = io.BufferedWriter(self._bytestream)  # pylint: disable=attribute-defined-outside-init
         return self
 
     def __exit__(self, *args):

@@ -92,8 +92,8 @@ def get_32_bit_cluster_address() -> Mapping:
                   )
 
 
-FAT12Entry = get_12_bit_cluster_address()
+FAT12Entry = get_12_bit_cluster_address()  # pylint: disable=invalid-name
 
-FAT16Entry = get_16_bit_cluster_address()
+FAT16Entry = get_16_bit_cluster_address()  # pylint: disable=invalid-name
 
-FAT32Entry = get_32_bit_cluster_address()
+FAT32Entry = get_32_bit_cluster_address()  # pylint: disable=invalid-name

@@ -1,3 +1,4 @@
+# pylint: disable=missing-docstring, protected-access
 import io
 import os
 import shutil
@@ -112,7 +113,7 @@ class TestFatFileSlack(unittest.TestCase):
                                          ['onedirectory/afileinadirectory.txt'])
                     self.assertEqual(result.clusters, [(13, 512, 28)])
 
-    def test_write_file_autoexpand_subdir(self):
+    def test_write_file_autoexpand_subdir(self):  # pylint: disable=invalid-name
         # only testing fat12 as resulting cluster_id of different fat
         # versions differs
         # if user supplies a directory instead of a file path, all files under

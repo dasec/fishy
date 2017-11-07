@@ -233,6 +233,6 @@ class Metadata:
             file_meta = self.metadata["files"][uid]
             print("  File_ID:", file_meta["uid"])
             print("  Filename:", file_meta["filename"])
-            print("  Accesiated File Metadata:")
+            print("  Associated File Metadata:")
             print("    ", end="")
             ppp.pprint(file_meta["metadata"])

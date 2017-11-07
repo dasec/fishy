@@ -89,7 +89,7 @@ class FileSlack:
         current_directory = []
         for entry, lfn in self.fatfs.get_root_dir_entries():
             if lfn != "":
-                current_directory.append( (entry, lfn) )
+                current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
 
         while len(path) > 0:
             fpart = path.pop()
@@ -108,7 +108,7 @@ class FileSlack:
                 current_directory = []
                 for entry, lfn in self.fatfs.get_dir_entries(entry.start_cluster):
                     if lfn != "":
-                        current_directory.append( (entry, lfn) )
+                        current_directory.append( (entry, lfn) ) # pylint: disable=bad-whitespace
         return entry
 
     def _file_walk(self, directory=None):

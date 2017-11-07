@@ -1,10 +1,11 @@
+# pylint: disable=missing-docstring
 import json
 import tempfile
 import unittest
 from .metadata import Metadata, InformationMissingError
 
 
-class StubMetadata:
+class StubMetadata:  # pylint: disable=too-few-public-methods
     def __init__(self):
         self.information = [1, 2, 3]
 

@@ -85,7 +85,7 @@ Module Identifier: fat-file-slack
 Stored Files:
   File_ID: 0
   Filename: 0
-  Accesiated File Metadata:
+  Associated File Metadata:
     {'clusters': [[3, 512, 11]]}
 ```
 
@@ -116,7 +116,7 @@ $ fishy -d testfs-fat12.dd fileslack -m metadata.json -c
 
 ## Creating test filesystem images
 
-With `create_testfs.sh` you can create prepared filesystem images. These include already files, which get copied from `utils/fs-files/`.
+With `create_testfs.sh` you can create prepared filesystem images. These already include files, which get copied from `utils/fs-files/`.
 To create a set of test images, simply run
 ```
 $ ./create_testfs.sh

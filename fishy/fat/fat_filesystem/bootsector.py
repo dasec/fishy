@@ -80,5 +80,5 @@ FAT32_BOOTSECTOR = Struct(
     Embedded(FS_INFORMATION_SECTOR),
     Padding(this.sector_size
             - FS_INFORMATION_SECTOR.sizeof()
-            ),
+           ),
     )
