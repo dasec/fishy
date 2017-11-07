@@ -20,9 +20,9 @@ to wipe slackspace of a file:
 
 import logging
 import typing as typ
+from construct import Struct
 from .fat_filesystem.fat_wrapper import create_fat
 from .fat_filesystem.dir_entry import DIR_ENTRY
-from construct import Struct
 
 logger = logging.getLogger("fat-file-slack")
 
@@ -31,7 +31,7 @@ class FileSlackMetadata:
     """
     holds file slack information, which are generated during write.
     """
-    def __init__(self, d: dict =None):
+    def __init__(self, d: dict = None):
         """
         :param d: dict, dictionary representation of a FileSlackMetadata
                   object

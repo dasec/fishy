@@ -35,7 +35,7 @@ class FileSlack:
     >>> fs.clear_with_filepaths(filenames)
     """
     def __init__(self, fs_stream: typ.BinaryIO, metadata: Metadata,
-                 dev: str =None):
+                 dev: str = None):
         """
         :param fs_stream: Stream of filesystem
         :param metadata: Metadata object
@@ -51,7 +51,7 @@ class FileSlack:
             raise NotImplementedError()
 
     def write(self, instream: typ.BinaryIO, filepaths: typ.List[str],
-              filename: str =None) -> None:
+              filename: str = None) -> None:
         """
         writes data from instream into slackspace of filepaths. Metadata of
         those files will be stored in Metadata object
