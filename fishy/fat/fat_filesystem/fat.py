@@ -219,7 +219,7 @@ class FAT:
             self.cluster_to_stream(cluster_id, stream)
 
     def cluster_to_stream(self, cluster_id: int, stream: typ.BinaryIO,
-                          length: int =None) -> None:
+                          length: int = None) -> None:
         """
         writes a cluster to a given stream
         :param cluster_id: int, cluster_id of the cluster
