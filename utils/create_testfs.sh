@@ -9,16 +9,16 @@
 # * a directory called 'fs-files' including the filestructure
 #   that will be copied into the created filesystem images
 #
-# Usage:
-# ./create_testfs.sh [WORKINGDIR] [DESTDIR] [FSTYPE]
-# [WORKINGDIR]  - Directory where 'mount-fs' and 'fs-files' directories are
-#                 located. Defaults to current directory
-# [DESTDIR]     - Directory where images will be stored. Defaults to
-#                 [WORKINGDIR].
-# [FSTYPE]      - For which filesystem type the images will be created.
-#                 Valid options: fat, ntfs, ext4. Defaults to fat+ntfs
-#                 if this option is used, only one type can be chosen.
-# [USECONF] -     try to source .create_testfs.conf
+# Usage: ./create_testfs.sh [-uh] [-w WORKINGDIR] [-d DEST] [-t FSTYPE]
+#   -w WORKINGDIR          Directory where 'mount-fs' and 
+#                          'fs-files' directories are located.
+#                          Defaults to current directory
+#   -d DEST                Directory where images will be stored.
+#                          Defaults to [WORKINGDIR].
+#   -t FSTYPE              For which filesystem type the images
+#                          will be created. Valid options: fat,
+#                          ntfs, ext4, all. Defaults to fat+ntfs
+#   -u                     try to source .create_testfs.conf
 #
 # if a .create_mount exists in the directory the script is located, this file
 # will be sourced. Thus it is possible to provide a path where prepared disk
@@ -29,22 +29,67 @@
 # there place the following line:
 # copyfrom="/path/from/where/to/copy/the/testfs_images"
 
-workingdir="$1"
-fsdest="$2"
-fstype="$3"
-useconf="$4"
+# workingdir="$1"
+# fsdest="$2"
+# fstype="$3"
+# useconf="$4"
 filestructure="fs-files"
 
-copyfrom=""
 
+# help usage information
+function print_help {
+	echo "Usage: $0 [-uh] [-w WORKINGDIR] [-d DEST] [-t FSTYPE]"
+	echo "  -w WORKINGDIR          Directory where 'mount-fs' and "
+	echo "                         'fs-files' directories are located."
+	echo "                         Defaults to current directory"
+	echo "  -d DEST                Directory where images will be stored."
+	echo "                         Defaults to [WORKINGDIR]."
+	echo "  -t FSTYPE              For which filesystem type the images"
+	echo "                         will be created. Valid options: fat,"
+	echo "                         ntfs, ext4, all. Defaults to fat+ntfs"
+	echo "  -u                     try to source .create_testfs.conf"
+}
+
+
+# parse command line options
+workingdir=  fsdest=  fstype=  useconf=  
+
+while getopts w:d:t:uh opt; do
+  case $opt in
+  h)
+      print_help
+      exit 0
+      ;;
+  w)
+      workingdir=$OPTARG
+      ;;
+  d)
+      fsdest=$OPTARG
+      ;;
+  t)
+      fstype=$OPTARG
+      ;;
+  u)
+      useconf=1
+      ;;
+  esac
+done
+
+shift $((OPTIND - 1))
+
+
+# Source configuration
+copyfrom=""
 if [ -f "$(dirname ${BASH_SOURCE})"/.create_testfs.conf ] && [ ! "$useconf" == "" ]; then
 	source "$(dirname ${BASH_SOURCE})"/.create_testfs.conf
 fi
 
+# If working dir was not specified, use current directory
 if [ "$workingdir" == "" ]; then
 	workingdir="$(pwd)"
 fi
 
+# if DEST was given, test if it exists, otherwise default to $workingdir
 if [ ! $fsdest == "" ]; then
 	if [ ! -d "$fsdest" ]; then
 		echo "destination directory '$fsdest' is missing"
