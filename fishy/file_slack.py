@@ -1,8 +1,10 @@
 import logging
+import typing as typ
 from os import path
 from .fat.file_slack import FileSlack as FATFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from .filesystem_detector import get_filesystem_type
+from .metadata import Metadata
 from .ntfs.ntfsSlackSpace import NTFSFileSlack
 from .ntfs.ntfsSlack import FileSlackMetadata as NTFSFileSlackMetadata
 
@@ -32,7 +34,8 @@ class FileSlack:
     to wipe slackspace via providing filepaths
     >>> fs.clear_with_filepaths(filenames)
     """
-    def __init__(self, fs_stream, metadata, dev=None):
+    def __init__(self, fs_stream: typ.BinaryIO, metadata: Metadata,
+                 dev: str =None):
         """
         :param fs_stream: Stream of filesystem
         :param metadata: Metadata object
@@ -47,7 +50,8 @@ class FileSlack:
         else:
             raise NotImplementedError()
 
-    def write(self, instream, filepaths: list, filename=None):
+    def write(self, instream: typ.BinaryIO, filepaths: typ.List[str],
+              filename: str =None) -> None:
         """
         writes data from instream into slackspace of filepaths. Metadata of
         those files will be stored in Metadata object
@@ -75,7 +79,7 @@ class FileSlack:
         else:
             raise NotImplementedError()
 
-    def read(self, outstream, file_id: str):
+    def read(self, outstream: typ.BinaryIO, file_id: str):
         """
         writes hidden data from slackspace into stream. The examined slack
         space information is taken from metadata.
@@ -98,7 +102,7 @@ class FileSlack:
     def read_into_files(self, outdir: str):
         """
         reads hidden data from slack into files
-        files with the same filename will be overwritten
+        :note: files with the same filename will be overwritten
         :param outdir: directory where files will be restored
         """
         if self.fs_type == 'FAT':

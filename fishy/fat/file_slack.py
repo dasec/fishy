@@ -19,8 +19,10 @@ to wipe slackspace of a file:
 """
 
 import logging
+import typing as typ
 from .fat_filesystem.fat_wrapper import create_fat
 from .fat_filesystem.dir_entry import DIR_ENTRY
+from construct import Struct
 
 logger = logging.getLogger("fat-file-slack")
 
@@ -29,7 +31,7 @@ class FileSlackMetadata:
     """
     holds file slack information, which are generated during write.
     """
-    def __init__(self, d=None):
+    def __init__(self, d: dict =None):
         """
         :param d: dict, dictionary representation of a FileSlackMetadata
                   object
@@ -39,7 +41,7 @@ class FileSlackMetadata:
         else:
             self.clusters = d["clusters"]
 
-    def add_cluster(self, cluster_id: int, offset: int, length: int):
+    def add_cluster(self, cluster_id: int, offset: int, length: int) -> None:
         """
         adds a cluster to the list of clusters
         :param cluster_id: int, id of the cluster
@@ -49,7 +51,8 @@ class FileSlackMetadata:
         """
         self.clusters.append((cluster_id, offset, length))
 
-    def get_clusters(self):
+    def get_clusters(self) \
+            -> typ.Generator[typ.Tuple[int, int, int], None, None]:
         """
         iterator for clusters
         :returns: iterator, that returns cluster_id, offset, length
@@ -62,7 +65,7 @@ class FileSlack:
     """
     Provides methods to manipulate the slack space of files in FAT filesystems.
     """
-    def __init__(self, stream):
+    def __init__(self, stream: typ.BinaryIO):
         """
         :param stream: filedescriptor of a FAT filesystem
         """
@@ -111,12 +114,13 @@ class FileSlack:
                         current_directory.append( (entry, lfn) ) # pylint: disable=bad-whitespace
         return entry
 
-    def _file_walk(self, directory=None):
+    def _file_walk(self, directory=None) -> typ.List[Struct]:
         """
-        iterator, returns file entries of directories, while
+        returns list of file entries of directories, while
         traversing the filesystem recursively.
         :param directory: entry point, if not given, root
                           directory will be used
+        :returns: list of file entries of directories
         """
         result = []
         if directory is not None:
@@ -131,7 +135,7 @@ class FileSlack:
                     result.append(entry)
         return result
 
-    def calculate_slack_space(self, entry: DIR_ENTRY):
+    def calculate_slack_space(self, entry: DIR_ENTRY) -> typ.Tuple[int, int]:
         """
         calculates the slack space for a given DIR_ENTRY
         :param entry: DIR_ENTRY, directory entry of the file
@@ -156,7 +160,8 @@ class FileSlack:
         free_slack = cluster_size - occupied_by_file - ram_slack
         return (occupied_by_file + ram_slack, free_slack)
 
-    def write(self, instream, filepaths) -> FileSlackMetadata:
+    def write(self, instream: typ.BinaryIO, filepaths: typ.List[str]) \
+            -> FileSlackMetadata:
         """
         writes from instream into slackspace of filename
         :param instream: stream to read from
@@ -206,7 +211,8 @@ class FileSlack:
                           + " still %d Bytes in stream" % len(instream.peek()))
         return metadata
 
-    def _write_to_slack(self, instream, entry: DIR_ENTRY):
+    def _write_to_slack(self, instream: typ.BinaryIO, entry: DIR_ENTRY) \
+            -> typ.Tuple[int, int]:
         """
         writes from instream into slackspace of filename
         :param instream: stream to read from
@@ -226,7 +232,8 @@ class FileSlack:
         bytes_written = self.stream.write(bufferv)
         return bytes_written, last_cluster
 
-    def read(self, outstream, metadata: FileSlackMetadata):
+    def read(self, outstream: typ.BinaryIO, metadata: FileSlackMetadata) \
+            -> None:
         """
         writes slackspace of files into outstream
         :param outstream: stream to write into
@@ -238,7 +245,7 @@ class FileSlack:
             bufferv = self.stream.read(length)
             outstream.write(bufferv)
 
-    def clear(self, metadata: FileSlackMetadata):
+    def clear(self, metadata: FileSlackMetadata) -> None:
         """
         clears the slackspace of a files
         :param metadata: FileSlackMetadata object

@@ -1,6 +1,7 @@
 import sys
 import argparse
 import logging
+import typing as typ
 from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import create_fat
 from .file_slack import FileSlack
@@ -17,7 +18,7 @@ def do_metadata(args: argparse.Namespace) -> None:
     meta.info()
 
 
-def do_fattools(args: argparse.Namespace, device) -> None:
+def do_fattools(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
     handles fattools subcommand execution
     :param args: argparse.Namespace
@@ -32,7 +33,7 @@ def do_fattools(args: argparse.Namespace, device) -> None:
         fattool.list_directory(args.list)
 
 
-def do_fileslack(args: argparse.Namespace, device) -> None:
+def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
     hanles fileslack subcommand execution
     :param args: argparse.Namespace

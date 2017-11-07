@@ -5,11 +5,12 @@ detects the FAT filesystem an uses the right class
 >>> f = open('testfs.dd', 'rb')
 >>> fs = create_fat(f)
 """
+import typing as typ
 from .fat_detector import get_filesystem_type
 from .fat import FAT, FAT12, FAT16, FAT32
 
 
-def create_fat(stream) -> FAT:
+def create_fat(stream: typ.BinaryIO) -> FAT:
     """
     Detect FAT filesystem type and return an instance of it
     :param stream: filedescriptor of a FAT filesystem

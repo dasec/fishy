@@ -9,6 +9,8 @@ this field needs not to be correct, although common tools
 set it the right way.
 """
 
+import typing
+
 
 class UnsupportedFilesystemError(Exception):
     """
@@ -17,7 +19,7 @@ class UnsupportedFilesystemError(Exception):
     pass
 
 
-def is_fat(stream) -> bool:
+def is_fat(stream: typing.BinaryIO) -> bool:
     """
     checks if a given stream is of type fat or not
     :param stream: stream of filesystem
@@ -36,7 +38,7 @@ def is_fat(stream) -> bool:
     return False
 
 
-def get_filesystem_type(stream) -> str:
+def get_filesystem_type(stream: typing.BinaryIO) -> str:
     """
     extracts the FAT filesystem type from a given stream
     :stream: stream of filesystem

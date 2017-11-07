@@ -22,6 +22,7 @@ example to print all root directory entries
 """
 
 import logging
+import typing as typ
 from io import BytesIO, BufferedReader
 from construct import Struct, Array, Padding, Embedded, Bytes, this
 from .bootsector import FAT12_16_BOOTSECTOR, FAT32_BOOTSECTOR
@@ -34,7 +35,8 @@ logger = logging.getLogger("FATFilesystem")
 
 class NoFreeClusterAvailable(Exception):
     """
-    This exception can be thrown by the get_free_cluster method of a FAT instance.
+    This exception can be thrown by the get_free_cluster method of a FAT
+    instance.
     """
     pass
 
@@ -69,7 +71,7 @@ class FAT:
     """
     Abstract base class of a FAT filesystem.
     """
-    def __init__(self, stream, predataregion: Struct):
+    def __init__(self, stream: typ.BinaryIO, predataregion: Struct):
         """
         :param stream: filedescriptor of a FAT filesystem
         :param predataregion: Struct that represents the PreDataRegion
@@ -83,7 +85,7 @@ class FAT:
         self._fat_entry = None
         self.entries_per_fat = None
 
-    def get_cluster_value(self, cluster_id):
+    def get_cluster_value(self, cluster_id: int) -> None:
         """
         finds the value that is written into fat
         for given cluster_id
@@ -92,7 +94,8 @@ class FAT:
         """
         raise NotImplementedError()
 
-    def write_fat_entry(self, cluster_id: int, value):
+    def write_fat_entry(self, cluster_id: int,
+                        value: typ.Union[int, str]) -> None:
         """
         write a given value into FAT tables
         requires that FAT object holds self._fat_entry attribute with
@@ -170,7 +173,7 @@ class FAT:
             current_id = (current_id + 1) % (self.entries_per_fat - 1)
         raise NoFreeClusterAvailable()
 
-    def follow_cluster(self, start_cluster: int):
+    def follow_cluster(self, start_cluster: int) -> typ.List[int]:
         """
         collect all cluster, that belong to a file
         :param start_cluster: cluster to start with
@@ -205,7 +208,8 @@ class FAT:
         cluster_start = self.start_dataregion + cluster_offset
         return cluster_start
 
-    def file_to_stream(self, start_cluster_id: int, stream):
+    def file_to_stream(self, start_cluster_id: int,
+                       stream: typ.BinaryIO) -> None:
         """
         writes all clusters of a file into a given stream
         :param start_cluster_id: int, cluster_id of the start cluster
@@ -214,7 +218,8 @@ class FAT:
         for cluster_id in self.follow_cluster(start_cluster_id):
             self.cluster_to_stream(cluster_id, stream)
 
-    def cluster_to_stream(self, cluster_id: int, stream, length=None):
+    def cluster_to_stream(self, cluster_id: int, stream: typ.BinaryIO,
+                          length: int =None) -> None:
         """
         writes a cluster to a given stream
         :param cluster_id: int, cluster_id of the cluster
@@ -237,7 +242,7 @@ class FAT:
             length -= len(read)
             stream.write(read)
 
-    def _root_to_stream(self, stream):
+    def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
         only aplicable to FAT12 and FAT16
@@ -245,14 +250,16 @@ class FAT:
         """
         raise NotImplementedError
 
-    def get_root_dir_entries(self):
+    def get_root_dir_entries(self) \
+            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         """
         iterator for reading the root directory
         """
         for dir_entry, lfn in self._get_dir_entries(0):
             yield (dir_entry, lfn)
 
-    def get_dir_entries(self, cluster_id: int):
+    def get_dir_entries(self, cluster_id: int) \
+            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         """
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse
@@ -265,7 +272,8 @@ class FAT:
         except IOError:
             logger.warning("failed to read directory entries at %s", cluster_id)
 
-    def _get_dir_entries(self, cluster_id: int):
+    def _get_dir_entries(self, cluster_id: int) \
+            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         """
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse,
@@ -331,7 +339,7 @@ class FAT12(FAT):
                                    * 8 / 12)
         self._fat_entry = FAT12Entry
 
-    def get_cluster_value(self, cluster_id: int):
+    def get_cluster_value(self, cluster_id: int) -> typ.Union[int, str]:
         """
         finds the value that is written into fat
         for given cluster_id
@@ -363,7 +371,8 @@ class FAT12(FAT):
             value = int(hexvalue[2:4] + hexvalue[0], 16)
         return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
-    def write_fat_entry(self, cluster_id: int, value):
+    def write_fat_entry(self, cluster_id: int,
+                        value: typ.Union[int, str]) -> None:
         # make sure cluster_id is valid
         if cluster_id < 0 or cluster_id >= self.entries_per_fat:
             raise AttributeError("cluster_id out of bounds")
@@ -411,7 +420,7 @@ class FAT12(FAT):
         self.stream.seek(fat0_start)
         self.pre.fats = fat_definition.parse_stream(self.stream)
 
-    def _root_to_stream(self, stream):
+    def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
         :param stream: stream, where the root directory will be written into
@@ -423,7 +432,7 @@ class FAT16(FAT):
     """
     FAT16 filesystem implementation.
     """
-    def __init__(self, stream):
+    def __init__(self, stream: typ.BinaryIO):
         """
         :param stream: filedescriptor of a FAT16 filesystem
         """
@@ -433,7 +442,7 @@ class FAT16(FAT):
                                    / 2)
         self._fat_entry = FAT16Entry
 
-    def get_cluster_value(self, cluster_id: int):
+    def get_cluster_value(self, cluster_id: int) -> typ.Union[int, str]:
         """
         finds the value that is written into fat
         for given cluster_id
@@ -445,7 +454,7 @@ class FAT16(FAT):
         value = int.from_bytes(byte_slice, byteorder='little')
         return self._fat_entry.parse(value.to_bytes(2, 'little'))
 
-    def _root_to_stream(self, stream):
+    def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
         :param stream: stream, where the root directory will be written into
@@ -457,7 +466,7 @@ class FAT32(FAT):
     """
     FAT32 filesystem implementation.
     """
-    def __init__(self, stream):
+    def __init__(self, stream: typ.BinaryIO):
         """
         :param stream: filedescriptor of a FAT32 filesystem
         """
@@ -467,7 +476,7 @@ class FAT32(FAT):
                                    / 4)
         self._fat_entry = FAT32Entry
 
-    def get_cluster_value(self, cluster_id: int):
+    def get_cluster_value(self, cluster_id: int) -> typ.Union[int, str]:
         """
         finds the value that is written into fat
         for given cluster_id
@@ -482,17 +491,19 @@ class FAT32(FAT):
         #       long addresses.
         return self._fat_entry.parse(value.to_bytes(4, 'little'))
 
-    def _root_to_stream(self, stream):
+    def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
         :param stream: stream, where the root directory will be written into
         """
         raise NotImplementedError
 
-    def get_root_dir_entries(self):
+    def get_root_dir_entries(self) \
+            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         return self.get_dir_entries(self.pre.rootdir_cluster)
 
-    def _get_dir_entries(self, cluster_id: int):
+    def _get_dir_entries(self, cluster_id: int) \
+            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         """
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse,

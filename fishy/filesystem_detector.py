@@ -2,6 +2,7 @@
 Basic filesystem detector for FAT and NTFS
 """
 
+import typing as typ
 from .fat.fat_filesystem import fat_detector
 from .ntfs import ntfs_detector
 
@@ -15,7 +16,7 @@ class UnsupportedFilesystemError(Exception):
     pass
 
 
-def get_filesystem_type(stream) -> str:
+def get_filesystem_type(stream: typ.BinaryIO) -> str:
     """
     extracts the filesystem type from a given stream
     :stream: stream of filesystem
