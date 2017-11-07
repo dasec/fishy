@@ -95,7 +95,8 @@ The `fileslack` subcommand provides functionality to read, write and clean the f
 
 Available for these Filesystem types:
 
-	* FAT
+* FAT
+* NTFS
 
 ```bash
 # write into slack space
@@ -131,4 +132,9 @@ located. For instance:
 
 ```
 copyfrom="/my/image/folder"
+```
+
+To build all images that might be necessary for unittests, run
+```
+$ ./create_testfs.sh -t all
 ```

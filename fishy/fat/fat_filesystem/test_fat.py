@@ -13,17 +13,18 @@ IMAGE_DIR = tempfile.mkdtemp()
 
 
 image_paths = [
-    os.path.join(IMAGE_DIR, 'testfs-fat12.dd'),
-    os.path.join(IMAGE_DIR, 'testfs-fat16.dd'),
-    os.path.join(IMAGE_DIR, 'testfs-fat32.dd'),
+    os.path.join(IMAGE_DIR, 'testfs-fat12-stable1.dd'),
+    os.path.join(IMAGE_DIR, 'testfs-fat16-stable1.dd'),
+    os.path.join(IMAGE_DIR, 'testfs-fat32-stable1.dd'),
     ]
 
 def setUpModule():
     # create test filesystems
-    cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " " + UTILSDIR \
-          + " " + IMAGE_DIR + " " + "fat" + " true"
+    cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
+          + " -d " + IMAGE_DIR + " -t " + "fat" + " -u -s '-stable1'"
     subprocess.call(cmd, stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE, shell=True)
+                    stderr=subprocess.PIPE,
+                    shell=True)
 
 def tearDownModule():
     # remove created filesystem images
