@@ -85,7 +85,7 @@ class FAT:
         self._fat_entry = None
         self.entries_per_fat = None
 
-    def get_cluster_value(self, cluster_id: int) -> None:
+    def get_cluster_value(self, cluster_id: int) -> int:
         """
         finds the value that is written into fat
         for given cluster_id

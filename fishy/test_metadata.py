@@ -9,6 +9,7 @@ class StubMetadata:  # pylint: disable=too-few-public-methods
     def __init__(self):
         self.information = [1, 2, 3]
 
+
 class TestMetadataClass(unittest.TestCase):
     def test_module_identifier(self):
         meta = Metadata()

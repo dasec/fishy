@@ -111,7 +111,7 @@ class FileSlack:
                 current_directory = []
                 for entry, lfn in self.fatfs.get_dir_entries(entry.start_cluster):
                     if lfn != "":
-                        current_directory.append( (entry, lfn) ) # pylint: disable=bad-whitespace
+                        current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
         return entry
 
     def _file_walk(self, directory=None) -> typ.List[Struct]:
@@ -145,7 +145,7 @@ class FileSlack:
         """
         # calculate how many bytes belong to a cluster
         cluster_size = self.fatfs.pre.sector_size * \
-                       self.fatfs.pre.sectors_per_cluster
+            self.fatfs.pre.sectors_per_cluster
         # calculate of many bytes the original file
         # occupies in this cluster
         occupied_by_file = entry.fileSize % cluster_size

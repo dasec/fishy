@@ -11,6 +11,7 @@ from .ntfs.ntfsSlack import FileSlackMetadata as NTFSFileSlackMetadata
 
 logger = logging.getLogger("FileSlack")
 
+
 class FileSlack:
     """
     This class wrapps the filesystem specific file slack implementations

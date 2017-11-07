@@ -19,6 +19,7 @@ IMAGE_PATHS = [
     os.path.join(IMAGE_DIR, 'testfs-fat32-stable1.dd'),
     ]
 
+
 def setUpModule():  # pylint: disable=invalid-name
     # create test filesystems
     cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
@@ -27,9 +28,11 @@ def setUpModule():  # pylint: disable=invalid-name
                     stderr=subprocess.PIPE,
                     shell=True)
 
+
 def tearDownModule():  # pylint: disable=invalid-name
     # remove created filesystem images
     shutil.rmtree(IMAGE_DIR)
+
 
 class TestFatDetector(unittest.TestCase):
 
@@ -54,6 +57,7 @@ class TestFatDetector(unittest.TestCase):
         with open(IMAGE_PATHS[2], 'rb') as img_stream:
             result = fat_detector.is_fat(img_stream)
             self.assertEqual(result, True)
+
 
 class TestFatImplementation(unittest.TestCase):
 
