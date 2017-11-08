@@ -78,48 +78,6 @@ class FileSlack:
         self.fatfs = create_fat(stream)
         self.stream = stream
 
-    def _find_file(self, filepath: str) -> DIR_ENTRY:
-        """
-        returns the directory entry for a given filepath
-        :param filepath: string, filepath to the file
-        :return: DIR_ENTRY of the requested file
-        """
-        # build up filepath as directory and
-        # reverse it so, that we can simple
-        # pop all filepath parts from it
-        path = filepath.split('/')
-        path = list(reversed(path))
-        # read root directory and append all entries
-        # as a tuple of (entry, lfn), that have a non
-        # empty lfn
-        # TODO: This excludes filesystems without long
-        #       filename extension. Should we support
-        #       them?
-        current_directory = []
-        for entry, lfn in self.fatfs.get_root_dir_entries():
-            if lfn != "":
-                current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
-
-        while len(path) > 0:
-            fpart = path.pop()
-
-            # scan current directory for filename
-            filename_found = False
-            for entry, lfn in current_directory:
-                if lfn == fpart:
-                    filename_found = True
-                    break
-            if not filename_found:
-                raise Exception("File or directory '%s' not found" % fpart)
-
-            # if it is a subdirectory, enter it
-            if entry.attributes.subDirectory and len(path) > 0:
-                current_directory = []
-                for entry, lfn in self.fatfs.get_dir_entries(entry.start_cluster):
-                    if lfn != "":
-                        current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
-        return entry
-
     def _file_walk(self, directory=None) -> typ.List[Struct]:
         """
         returns list of file entries of directories, while
@@ -189,7 +147,7 @@ class FileSlack:
             # if it comes from a resolved directory (from _file_walk)
             # just take it as it is.
             if isinstance(filepath, str):
-                entry = self._find_file(filepath)
+                entry = self.fatfs.find_file(filepath)
             else:
                 entry = filepath
             if entry.attributes.subDirectory:

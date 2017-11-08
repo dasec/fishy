@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from .fat_wrapper import create_fat
 from . import fat_12
 from . import fat_16
 from . import fat_32
@@ -332,3 +333,26 @@ class TestFatImplementation(unittest.TestCase):
                 fatfs.write_fat_entry(2, 0)
             with self.assertRaises(AssertionError):
                 fatfs.write_fat_entry(2, 0xffffff7)
+
+    def test_find_file(self):
+        for img_path in IMAGE_PATHS:
+            with open(img_path, 'rb') as img_stream:
+                # create FileSlack object
+                fatfs = create_fat(img_stream)
+                result = fatfs.find_file("long_file.txt")
+                # check for file attibutes
+                self.assertEqual(result.name, b'LONG_F~1')
+                self.assertEqual(result.extension, b'TXT')
+                self.assertFalse(result.attributes.unused)
+                self.assertFalse(result.attributes.device)
+                self.assertTrue(result.attributes.archive)
+                self.assertFalse(result.attributes.subDirectory)
+                self.assertFalse(result.attributes.volumeLabel)
+                self.assertFalse(result.attributes.system)
+                self.assertFalse(result.attributes.hidden)
+                self.assertFalse(result.attributes.readonly)
+                self.assertEqual(result.fileSize, 8001)
+                # Test finding a non existing file
+                with self.assertRaises(Exception):
+                    fatfs.find_file("i-dont-exist")
+

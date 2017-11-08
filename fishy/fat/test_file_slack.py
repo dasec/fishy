@@ -33,35 +33,13 @@ class TestFatFileSlack(unittest.TestCase):
         # remove created filesystem images
         shutil.rmtree(IMAGEDIR)
 
-    def test_find_file(self):
-        for img_path in TestFatFileSlack.image_paths:
-            with open(img_path, 'rb') as img_stream:
-                # create FileSlack object
-                fatfs = FileSlack(img_stream)
-                result = fatfs._find_file("long_file.txt")
-                # check for file attibutes
-                self.assertEqual(result.name, b'LONG_F~1')
-                self.assertEqual(result.extension, b'TXT')
-                self.assertFalse(result.attributes.unused)
-                self.assertFalse(result.attributes.device)
-                self.assertTrue(result.attributes.archive)
-                self.assertFalse(result.attributes.subDirectory)
-                self.assertFalse(result.attributes.volumeLabel)
-                self.assertFalse(result.attributes.system)
-                self.assertFalse(result.attributes.hidden)
-                self.assertFalse(result.attributes.readonly)
-                self.assertEqual(result.fileSize, 8001)
-                # Test finding a non existing file
-                with self.assertRaises(Exception):
-                    fatfs._find_file("i-dont-exist")
-
     def test_file_walk(self):
         for img_path in TestFatFileSlack.image_paths:
             with open(img_path, 'rb') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
                 # turn 'onedirectory' into DIR_ENTRY
-                entry = fatfs._find_file("onedirectory")
+                entry = fatfs.fatfs.find_file("onedirectory")
                 result = fatfs._file_walk(entry)
                 # Assume that we only found 1 file
                 self.assertEqual(len(result), 2)
