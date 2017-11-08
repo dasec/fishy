@@ -116,8 +116,8 @@ class FileSlack:
             self.metadata.set_module("ntfs-slack")
             file_entry = self.metadata.get_file("0")
             filename = file_entry['filename']
-            with open(outdir + '/' + filename, 'wb+') as outfile:
-                self.read(outfile, file_id)
+            with open(outfilepath, 'wb+') as outfile:
+                self.read(outfile)
         else:
             raise NotImplementedError()
 
