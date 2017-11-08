@@ -1,3 +1,6 @@
+"""
+FileSlack os a wrapper for filesystem specific file slack implementations
+"""
 import logging
 import typing as typ
 from os import path
@@ -8,9 +11,7 @@ from .metadata import Metadata
 from .ntfs.ntfsSlackSpace import NTFSFileSlack
 from .ntfs.ntfsSlack import FileSlackMetadata as NTFSFileSlackMetadata
 
-
-logger = logging.getLogger("FileSlack")
-
+LOGGER = logging.getLogger("FileSlack")
 
 class FileSlack:
     """
@@ -42,7 +43,7 @@ class FileSlack:
         self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'FAT':
-            self.fs = FATFileSlack(fs_stream)
+            self.fs = FATFileSlack(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
             self.fs = NTFSFileSlack(dev)
         else:
@@ -62,7 +63,7 @@ class FileSlack:
                          name will be generated
         :raises: IOError
         """
-        logger.info("Write")
+        LOGGER.info("Write")
         if filename is not None:
             filename = path.basename(filename)
         if self.fs_type == 'FAT':
@@ -70,7 +71,7 @@ class FileSlack:
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
         elif self.fs_type == 'NTFS':
-            logger.info("Write into ntfs")
+            LOGGER.info("Write into ntfs")
             self.metadata.set_module("ntfs-slack")
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
@@ -108,14 +109,10 @@ class FileSlack:
         """
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
-            file_entry = self.metadata.get_file("0")
-            filename = file_entry['filename']
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         elif self.fs_type == 'NTFS':
             self.metadata.set_module("ntfs-slack")
-            file_entry = self.metadata.get_file("0")
-            filename = file_entry['filename']
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         else:

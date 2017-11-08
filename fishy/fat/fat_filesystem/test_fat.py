@@ -355,4 +355,3 @@ class TestFatImplementation(unittest.TestCase):
                 # Test finding a non existing file
                 with self.assertRaises(Exception):
                     fatfs.find_file("i-dont-exist")
-

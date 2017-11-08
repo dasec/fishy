@@ -1,3 +1,6 @@
+"""
+Implementation of fishy's command line interface.
+"""
 import sys
 import argparse
 import logging

@@ -1,7 +1,28 @@
+"""
+Implementation of a FAT32 filesystem reader
+
+example usage:
+>>> with open('testfs.dd', 'rb') as filesystem:
+>>>     fs = FAT32(filesystem)
+
+example to print all entries in root directory:
+>>>     for i, v in fs.get_root_dir_entries():
+>>>         if v != "":
+>>>             print(v)
+
+example to print all fat entries
+>>>     for i in range(fs.entries_per_fat):
+>>>         print(i,fs.get_cluster_value(i))
+
+example to print all root directory entries
+>>>     for i,v in fs.get_root_dir_entries():
+>>>         if v != "":
+>>>             print(v, i.start_cluster)
+
+"""
 import typing as typ
 from construct import Struct, Array, Padding, Embedded, Bytes, this
 from .bootsector import FAT32_BOOTSECTOR
-from .dir_entry import DIR_ENTRY, LFN_ENTRY
 from .fat import FAT
 from .fat_entry import FAT32Entry
 
@@ -53,54 +74,3 @@ class FAT32(FAT):
     def get_root_dir_entries(self) \
             -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         return self.get_dir_entries(self.pre.rootdir_cluster)
-
-    def _get_dir_entries(self, cluster_id: int) \
-            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
-        """
-        iterator for reading a cluster as directory and parse its content
-        :param cluster_id: int, cluster to parse,
-                           if cluster_id == 0, parse rootdir
-        :return: tuple of (DIR_ENTRY, lfn)
-        """
-        # TODO: The english wikipedia entry hints that using 0x00 as
-        #       an end-marker is deprecated. How FAT32 does then determine
-        #       that the end of a directory was reached?
-        lfn = ''
-        start_cluster_id = self.get_cluster_start(cluster_id)
-        self.stream.seek(start_cluster_id)
-        end_marker = 0xff
-        while end_marker != 0x00:
-            # read 32 bit into variable
-            raw = self.stream.read(32)
-            # parse as DIR_ENTRY
-            dir_entry = DIR_ENTRY.parse(raw)
-            attr = dir_entry.attributes
-            # If LFN attributes are set, parse it as LFN_ENTRY instead
-            if attr.volumeLabel and attr.system and attr.hidden and attr.readonly:
-                # if lfn attributes set, convert it to lfnEntry
-                # and save it for later use
-                dir_entry = LFN_ENTRY.parse(raw)
-                lfnpart = dir_entry.name1 + dir_entry.name2 + dir_entry.name3
-
-                # remove non-chars after padding
-                retlfn = b''
-                for i in range(int(len(lfnpart) / 2)):
-                    i *= 2
-                    next_bytes = lfnpart[i:i+2]
-                    if next_bytes != b'\x00\x00':
-                        retlfn += next_bytes
-                    else:
-                        break
-                # append our lfn part to the global lfn, that will
-                # later used as the filename
-                lfn = retlfn.decode('utf-16') + lfn
-            else:
-                retlfn = lfn
-                lfn = ''
-                end_marker = dir_entry.name[0]
-                # add start_cluster attribute for convenience
-                start_cluster = int.from_bytes(dir_entry.firstCluster +
-                                               dir_entry.accessRightsBitmap,
-                                               byteorder='little')
-                dir_entry.start_cluster = start_cluster
-                yield (dir_entry, retlfn)

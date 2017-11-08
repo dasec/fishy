@@ -1,5 +1,6 @@
 # ignore ide setting foo
 .idea
+.ropeproject
 # ignore create_testfs "config" file
 .create_testfs.conf
 # ignore fislystem dumps

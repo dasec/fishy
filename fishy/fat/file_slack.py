@@ -30,7 +30,7 @@ from construct import Struct
 from .fat_filesystem.fat_wrapper import create_fat
 from .fat_filesystem.dir_entry import DIR_ENTRY
 
-logger = logging.getLogger("fat-file-slack")
+LOGGER = logging.getLogger("fat-file-slack")
 
 
 class FileSlackMetadata:
@@ -138,7 +138,7 @@ class FileSlack:
         # lead to overwriting content that was already witten
         filepaths = list(set(filepaths))
         while instream.peek():
-            if len(filepaths) == 0:
+            if not filepaths:
                 # dont do anything, if we dont have any files
                 break
             # find directory entry for given filepath
@@ -166,7 +166,7 @@ class FileSlack:
                 # entry
                 continue
             written_bytes, cluster_id = self._write_to_slack(instream, entry)
-            logger.info("%d bytes written into cluster %d",
+            LOGGER.info("%d bytes written into cluster %d",
                         written_bytes, cluster_id)
             metadata.add_cluster(cluster_id, occupied, written_bytes)
 
@@ -187,7 +187,7 @@ class FileSlack:
         # read what to write. ensure that we only read the amount of data,
         # that fits into slack
         bufferv = instream.read(free_slack)
-        logger.info("%d bytes read from instream", len(bufferv))
+        LOGGER.info("%d bytes read from instream", len(bufferv))
         # find position where we can start writing data
         last_cluster = self.fatfs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fatfs.get_cluster_start(last_cluster)

@@ -24,7 +24,6 @@ def get_filesystem_type(stream: typ.BinaryIO) -> str:
     :return: string, 'FAT'
     :raises: UnsupportedFilesystemError
     """
-    # TODO: Implement ext4 detector
     if fat_detector.is_fat(stream):
         return "FAT"
     elif ntfs_detector.is_ntfs(stream):

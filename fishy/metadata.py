@@ -147,8 +147,6 @@ class Metadata:
         :param key: the key which itentifies the content
         :return: stored value
         """
-        # TODO: figure out if we shall throw an exception
-        #       or simply return None if key wasn't found
         if self.module == "main":
             if key not in self.metadata:
                 raise KeyError("Key '%s' not found in metadata" % key)

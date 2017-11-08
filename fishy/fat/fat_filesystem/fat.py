@@ -1,34 +1,16 @@
 """
 Abstract base class for FAT12, FAT16 and FAT32 reader
-
-examples:
->>> with open('testfs.dd', 'rb') as filesystem:
->>>     fs = FAT12(filesystem)
-
-example to print all entries in root directory:
->>>     for i, v in fs.get_root_dir_entries():
->>>         if v != "":
->>>             print(v)
-
-example to print all fat entries
->>>     for i in range(fs.entries_per_fat):
->>>         print(i,fs.get_cluster_value(i))
-
-example to print all root directory entries
->>>     for i,v in fs.get_root_dir_entries():
->>>         if v != "":
->>>             print(v, i.start_cluster)
-
 """
 
 import logging
 import typing as typ
+from abc import ABCMeta, abstractmethod
 from io import BytesIO, BufferedReader
 from construct import Struct, Array, Bytes
 from .dir_entry import DIR_ENTRY, LFN_ENTRY
 
 
-logger = logging.getLogger("FATFilesystem")
+LOGGER = logging.getLogger("FATFilesystem")
 
 
 class NoFreeClusterAvailable(Exception):
@@ -41,8 +23,9 @@ class NoFreeClusterAvailable(Exception):
 
 class FAT:
     """
-    Abstract base class of a FAT filesystem.
+    Abstract base class of all FAT filesystem types.
     """
+    __metaclass__ = ABCMeta
     def __init__(self, stream: typ.BinaryIO, predataregion: Struct):
         """
         :param stream: filedescriptor of a FAT filesystem
@@ -57,6 +40,7 @@ class FAT:
         self._fat_entry = None
         self.entries_per_fat = None
 
+    @abstractmethod
     def get_cluster_value(self, cluster_id: int) -> int:
         """
         finds the value that is written into fat
@@ -207,13 +191,14 @@ class FAT:
         self.stream.seek(start)
         while length > 0:
             read = self.stream.read(length)
-            if len(read) == 0:
-                logger.warning("failed to read %s bytes at %s",
+            if not read:
+                LOGGER.warning("failed to read %s bytes at %s",
                                length, self.stream.tell())
                 raise EOFError()
             length -= len(read)
             stream.write(read)
 
+    @abstractmethod
     def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
@@ -242,12 +227,12 @@ class FAT:
             for dir_entry, lfn in self._get_dir_entries(cluster_id):
                 yield (dir_entry, lfn)
         except IOError:
-            logger.warning("failed to read directory entries at %s", cluster_id)
+            LOGGER.warning("failed to read directory entries at %s", cluster_id)
 
     def _get_dir_entries(self, cluster_id: int) \
             -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         """
-        iterator for reading a cluster as directory and parse its content
+        generator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse,
                            if cluster_id == 0, parse rootdir
         :return: tuple of (DIR_ENTRY, lfn)
@@ -318,7 +303,7 @@ class FAT:
             if lfn != "":
                 current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
 
-        while len(path) > 0:
+        while path:
             fpart = path.pop()
 
             # scan current directory for filename
@@ -331,7 +316,7 @@ class FAT:
                 raise Exception("File or directory '%s' not found" % fpart)
 
             # if it is a subdirectory, enter it
-            if entry.attributes.subDirectory and len(path) > 0:
+            if entry.attributes.subDirectory and path:
                 current_directory = []
                 for entry, lfn in self.get_dir_entries(entry.start_cluster):
                     if lfn != "":

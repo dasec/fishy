@@ -1,3 +1,25 @@
+"""
+Implementation of a FAT16 filesystem reader
+
+example usage:
+>>> with open('testfs.dd', 'rb') as filesystem:
+>>>     fs = FAT16(filesystem)
+
+example to print all entries in root directory:
+>>>     for i, v in fs.get_root_dir_entries():
+>>>         if v != "":
+>>>             print(v)
+
+example to print all fat entries
+>>>     for i in range(fs.entries_per_fat):
+>>>         print(i,fs.get_cluster_value(i))
+
+example to print all root directory entries
+>>>     for i,v in fs.get_root_dir_entries():
+>>>         if v != "":
+>>>             print(v, i.start_cluster)
+
+"""
 import typing as typ
 from construct import Struct, Array, Padding, Embedded, Bytes, this
 from .bootsector import FAT12_16_BOOTSECTOR
