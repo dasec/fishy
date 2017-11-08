@@ -1,3 +1,5 @@
+# ignore images in doc for now
+doc/*png
 # ignore ide setting foo
 .idea
 .ropeproject

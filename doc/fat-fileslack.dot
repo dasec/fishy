@@ -1,0 +1,15 @@
+digraph {
+	node[shape=hexagon]
+	begin, end
+	node[shape=diamond]
+	"free slack space found"
+	"data left to write"
+	node[shape=box]
+	"begin" -> "get filepaths" -> "traverse FAT directories" -> "calculate free slack space" -> "free slack space found"
+	"free slack space found" -> "find last custer of the file"[label="[yes]"] 
+	"find last custer of the file" -> "write into slack space"
+	"free slack space found" -> "traverse FAT directories"[label="[no]"]
+	"write into slack space" -> "save cluster_id, cluster offset and written length" -> "data left to write"
+	"data left to write" -> "traverse FAT directories"[label="[yes]"]
+	"data left to write" -> "end"[label="[no]"]
+}
