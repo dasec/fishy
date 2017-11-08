@@ -72,6 +72,7 @@ switch module context
 
 import json
 import pprint
+import typing as typ
 
 
 class InformationMissingError(Exception):
@@ -87,7 +88,7 @@ class Metadata:
     holds metadata and gives modules a unified interface to
     store their information.
     """
-    def __init__(self, module_identifier="main"):
+    def __init__(self, module_identifier: str = "main"):
         """
         :param module_identifier: string that uniquely identifies the
                                   current module. Default main.
@@ -99,7 +100,7 @@ class Metadata:
         self.set("module", None)
         self.set_module(module_identifier)
 
-    def set_module(self, identifier: str):
+    def set_module(self, identifier: str) -> None:
         """
         sets the module identifier. use 'main' to switch back
         to main context.
@@ -162,7 +163,7 @@ class Metadata:
         """
         return str(len(self.metadata["files"].keys()))
 
-    def add_file(self, filename: str, submetadata):
+    def add_file(self, filename: str, submetadata) -> None:
         """
         store metadata defined in submodule for a file
         :param filename: sets the filename of the stored data.
@@ -179,15 +180,17 @@ class Metadata:
             'metadata': submetadata.__dict__
             }
 
-    def get_file(self, file_id) -> dict:
+    def get_file(self, file_id: int) -> typ.Dict:
         """
         get a file entry by its uid
         :param file_id: unique id of the file
         :return: dict of {uid, filename, submetadata}
         """
+        if file_id not in self.metadata["files"]:
+            raise KeyError("No file with id '%s' available")
         return self.metadata["files"][file_id]
 
-    def get_files(self):
+    def get_files(self) -> typ.Dict:
         """
         iterator for all files in this metadata class
         :return: dict of {uid, filename, submetadata}
@@ -195,7 +198,7 @@ class Metadata:
         for key in self.metadata["files"].keys():
             yield self.metadata["files"][key]
 
-    def read(self, instream):
+    def read(self, instream: typ.BinaryIO) -> None:
         """
         reads json formatted content from stream.
 
@@ -206,7 +209,7 @@ class Metadata:
         self.metadata = json.loads(instream.read())
         self.module = 'main'
 
-    def write(self, outstream):
+    def write(self, outstream: typ.BinaryIO) -> None:
         """
         writes the current metadata into a stream
         """
@@ -220,7 +223,7 @@ class Metadata:
         outstream.write(json.dumps(self.metadata))
         outstream.flush()
 
-    def info(self):
+    def info(self) -> None:
         """
         prints info about stored metadata
         """

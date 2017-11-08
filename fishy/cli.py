@@ -41,14 +41,13 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
     if args.write:
         slacker = FileSlack(device, Metadata(), args.dev)
-        if len(args.files) == 0:
+        if not args.file:
             # write from stdin into fileslack
             slacker.write(sys.stdin.buffer, args.destination)
         else:
             # write from files into fileslack
-            for filename in args.files:
-                with open(filename, 'rb') as fstream:
-                    slacker.write(fstream, args.destination, filename)
+            with open(args.file, 'rb') as fstream:
+                slacker.write(fstream, args.destination, args.file)
         with open(args.metadata, 'w+') as metadata_out:
             slacker.metadata.write(metadata_out)
     elif args.read:
@@ -57,15 +56,14 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta = Metadata()
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
-            slacker.read(sys.stdout.buffer, args.read)
-    elif args.outdir:
-        # read fileslack of all hidden files into files
-        # under a given directory
+            slacker.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden data in fileslack into outfile
         with open(args.metadata, 'r') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
-            slacker.read_into_files(args.outdir)
+            slacker.read_into_file(args.outfile)
     elif args.clear:
         # clear fileslack
         with open(args.metadata, 'r') as metadata_file:
@@ -102,11 +100,11 @@ def main():
     fileslack.set_defaults(which='fileslack')
     fileslack.add_argument('-d', '--dest', dest='destination', action='append', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
     fileslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
-    fileslack.add_argument('-r', '--read', dest='read', metavar='FILE_ID', help='read file with FILE_ID from slackspace to stdout')
-    fileslack.add_argument('-o', '--outdir', dest='outdir', metavar='OUTDIR', help='read files from slackspace to OUTDIR')
+    fileslack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from slackspace to stdout')
+    fileslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     fileslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
-    fileslack.add_argument('files', metavar='FILE', nargs='*', help="Files to write into slack space, if nothing provided, use stdin")
+    fileslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
 
     # Parse cli arguments
     args = parser.parse_args()

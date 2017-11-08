@@ -42,7 +42,11 @@ class TestMetadataClass(unittest.TestCase):
         with self.assertRaises(Exception):
             meta.set("random", "foo")
 
-
+    def test_get_nonexisting_file(self):
+        # Test access to a file providing a file_id, that does not exist
+        meta = Metadata()
+        with self.assertRaises(KeyError):
+            meta.get_file("42")
 
     def test_add_file(self):
         # Adding a file with filename

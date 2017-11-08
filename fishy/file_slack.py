@@ -31,9 +31,6 @@ class FileSlack:
 
     to wipe slackspace via metadata file:
     >>> fs.clear_with_metadata(m)
-
-    to wipe slackspace via providing filepaths
-    >>> fs.clear_with_filepaths(filenames)
     """
     def __init__(self, fs_stream: typ.BinaryIO, metadata: Metadata,
                  dev: str = None):
@@ -80,46 +77,49 @@ class FileSlack:
         else:
             raise NotImplementedError()
 
-    def read(self, outstream: typ.BinaryIO, file_id: str):
+    def read(self, outstream: typ.BinaryIO):
         """
         writes hidden data from slackspace into stream. The examined slack
         space information is taken from metadata.
 
         :param outstream: stream to write hidden data into
-        :param file_id: id of the file, that will be written into stream.
         :raises: IOError
         """
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
-            file_metadata = self.metadata.get_file(file_id)['metadata']
+            file_metadata = self.metadata.get_file("0")['metadata']
             file_metadata = FATFileSlackMetadata(file_metadata)
             self.fs.read(outstream, file_metadata)
         elif self.fs_type == 'NTFS':
             self.metadata.set_module("ntfs-slack")
-            slack_metadata = self.metadata.get_file(file_id)['metadata']
+            slack_metadata = self.metadata.get_file("0")['metadata']
             slack_metadata = NTFSFileSlackMetadata(slack_metadata)
             self.fs.read(outstream, slack_metadata)
+        else:
+            raise NotImplementedError()
 
-    def read_into_files(self, outdir: str):
+    def read_into_file(self, outfilepath: str):
         """
         reads hidden data from slack into files
-        :note: files with the same filename will be overwritten
-        :param outdir: directory where files will be restored
+        :note: If provided filepath already exists, this file will be
+               overwritten without a warning.
+        :param outfilepath: filepath to file, where hidden data will be
+                            restored into
         """
         if self.fs_type == 'FAT':
             self.metadata.set_module("fat-file-slack")
-            for file_entry in self.metadata.get_files():
-                file_id = file_entry['uid']
-                filename = file_entry['filename']
-                with open(outdir + '/' + filename, 'wb+') as outfile:
-                    self.read(outfile, file_id)
+            file_entry = self.metadata.get_file("0")
+            filename = file_entry['filename']
+            with open(outfilepath, 'wb+') as outfile:
+                self.read(outfile)
         elif self.fs_type == 'NTFS':
             self.metadata.set_module("ntfs-slack")
-            for file_entry in self.metadata.get_files():
-                file_id = file_entry['uid']
-                filename = file_entry['filename']
-                with open(outdir + '/' + filename, 'wb+') as outfile:
-                    self.read(outfile, file_id)
+            file_entry = self.metadata.get_file("0")
+            filename = file_entry['filename']
+            with open(outdir + '/' + filename, 'wb+') as outfile:
+                self.read(outfile, file_id)
+        else:
+            raise NotImplementedError()
 
     def clear(self):
         """
@@ -140,3 +140,5 @@ class FileSlack:
                 file_metadata = file_entry['metadata']
                 file_metadata = NTFSFileSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)
+        else:
+            raise NotImplementedError()

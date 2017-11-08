@@ -32,7 +32,6 @@ class CaptureStdout(list):
         del self._bytestream
         sys.stdout = self._stdout
 
-
 class TestCliFileSlack(unittest.TestCase):
 
     image_paths = [
@@ -55,7 +54,7 @@ class TestCliFileSlack(unittest.TestCase):
         # remove created filesystem images
         shutil.rmtree(IMAGEDIR)
 
-    def test_write_fileslack(self):
+    def test_write_fileslack_from_file(self):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         testfilename = os.path.basename(testfilepath)
@@ -80,7 +79,32 @@ class TestCliFileSlack(unittest.TestCase):
         os.remove(testfilepath)
         os.remove(metadata_file)
 
-    def test_read_fileslack(self):
+    def test_write_fileslack_from_stdin(self):
+        teststring = "Small test for CLI"
+        metadata_file = tempfile.NamedTemporaryFile().name
+        expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
+                   + '{"uid": "0", "filename": ' \
+                   + '"0", "metadata": {"clusters": ' \
+                   + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'))
+        for img_path in TestCliFileSlack.image_paths:
+            # write metadata
+            args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
+                    "another", "-m", metadata_file]
+            sys.argv = args
+            with io.BufferedRandom(io.BytesIO()) as patch_buffer:
+                sys.stdin = patch_buffer
+                sys.stdin.buffer = patch_buffer
+                sys.stdin.write(teststring.encode('utf-8'))
+                patch_buffer.seek(0)
+                cli.main()
+            # compare outputted metadata
+            with open(metadata_file) as metaf:
+                metafcontent = metaf.read()
+            self.assertEqual(metafcontent, expected)
+        # remove testfiles
+        os.remove(metadata_file)
+
+    def test_read_fileslack_stdout(self):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
@@ -93,15 +117,42 @@ class TestCliFileSlack(unittest.TestCase):
             sys.argv = args
             cli.main()
             # read written content
-            args = ["fishy", "-d", img_path, "fileslack", "-r", "0", "-m",
+            args = ["fishy", "-d", img_path, "fileslack", "-r", "-m",
                     metadata_file, testfilepath]
             sys.argv = args
+            # compare stdout output with string we gave as input
             with CaptureStdout() as output:
                 cli.main()
             self.assertEqual(output[0].decode('utf-8'), teststring)
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
+
+    def test_read_fileslack_outfile(self):
+        teststring = "Small test for CLI"
+        testfilepath = tempfile.NamedTemporaryFile().name
+        outfilepath = tempfile.NamedTemporaryFile().name
+        metadata_file = tempfile.NamedTemporaryFile().name
+        with open(testfilepath, 'w+') as testfile:
+            testfile.write(teststring)
+        for img_path in TestCliFileSlack.image_paths:
+            # write someting we want to read
+            args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
+                    "another", "-m", metadata_file, testfilepath]
+            sys.argv = args
+            cli.main()
+            # read written content into file
+            args = ["fishy", "-d", img_path, "fileslack", "-o", outfilepath,
+                    "-m", metadata_file]
+            sys.argv = args
+            cli.main()
+            with open(outfilepath, 'r') as outfile:
+                result = outfile.read()
+                self.assertEqual(result, teststring)
+        # remove testfiles
+        os.remove(testfilepath)
+        os.remove(metadata_file)
+        os.remove(outfilepath)
 
     def test_clear_fileslack(self):
         teststring = "Small test for CLI"
@@ -120,7 +171,7 @@ class TestCliFileSlack(unittest.TestCase):
                     metadata_file]
             sys.argv = args
             cli.main()
-            args = ["fishy", "-d", img_path, "fileslack", "-r", "0", "-m",
+            args = ["fishy", "-d", img_path, "fileslack", "-r", "-m",
                     metadata_file, testfilepath]
             sys.argv = args
             with CaptureStdout() as output:
