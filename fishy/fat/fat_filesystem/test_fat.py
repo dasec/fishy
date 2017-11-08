@@ -5,8 +5,11 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from . import fat
+from . import fat_12
+from . import fat_16
+from . import fat_32
 from . import fat_detector
+
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 UTILSDIR = os.path.join(THIS_DIR, os.pardir, os.pardir, os.pardir, 'utils')
@@ -64,7 +67,7 @@ class TestFatImplementation(unittest.TestCase):
     def test_parse_predata_region(self):
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 self.assertEqual(fatfs.pre.sector_size, 512)
                 self.assertEqual(fatfs.pre.sectors_per_cluster, 4)
                 self.assertEqual(fatfs.pre.reserved_sector_count, 1)
@@ -73,7 +76,7 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fatfs.pre.sectors_per_fat, 2)
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 self.assertEqual(fatfs.pre.sector_size, 512)
                 self.assertEqual(fatfs.pre.sectors_per_cluster, 4)
                 self.assertEqual(fatfs.pre.reserved_sector_count, 4)
@@ -82,7 +85,7 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fatfs.pre.sectors_per_fat, 52)
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT32(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 self.assertEqual(fatfs.pre.sector_size, 512)
                 self.assertEqual(fatfs.pre.sectors_per_cluster, 8)
                 self.assertEqual(fatfs.pre.reserved_sector_count, 32)
@@ -98,7 +101,7 @@ class TestFatImplementation(unittest.TestCase):
     def test_get_cluster_value(self):
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 self.assertEqual(fatfs.get_cluster_value(0), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(1), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(2), 'free_cluster')
@@ -109,7 +112,7 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fatfs.get_cluster_value(7), 'last_cluster')
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 self.assertEqual(fatfs.get_cluster_value(0), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(1), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(2), 'free_cluster')
@@ -120,7 +123,7 @@ class TestFatImplementation(unittest.TestCase):
                 self.assertEqual(fatfs.get_cluster_value(7), 'last_cluster')
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT32(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 self.assertEqual(fatfs.get_cluster_value(0), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(1), 'last_cluster')
                 self.assertEqual(fatfs.get_cluster_value(2), 'last_cluster')
@@ -133,38 +136,38 @@ class TestFatImplementation(unittest.TestCase):
     def test_get_free_cluster(self):
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 result = fatfs.get_free_cluster()
                 self.assertEqual(result, 17)
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 result = fatfs.get_free_cluster()
                 self.assertEqual(result, 17)
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT32(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 result = fatfs.get_free_cluster()
                 self.assertEqual(result, 13)
 
     def test_follow_cluster(self):
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 result = fatfs.follow_cluster(4)
                 self.assertEqual(result, [4, 5, 6, 7])
                 with self.assertRaises(Exception):
                     result = fatfs.follow_cluster(50)
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 result = fatfs.follow_cluster(4)
                 self.assertEqual(result, [4, 5, 6, 7])
                 with self.assertRaises(Exception):
                     result = fatfs.follow_cluster(50)
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT32(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 result = fatfs.follow_cluster(4)
                 self.assertEqual(result, [4, 5])
                 with self.assertRaises(Exception):
@@ -173,7 +176,7 @@ class TestFatImplementation(unittest.TestCase):
     def test_cluster_to_stream(self):
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 with io.BytesIO() as mem:
                     # here we take the last cluster of 'long_file.txt'
                     # as it contains chars and empty space
@@ -184,7 +187,7 @@ class TestFatImplementation(unittest.TestCase):
                     self.assertEqual(result, expected)
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 with io.BytesIO() as mem:
                     # here we take the last cluster of 'long_file.txt'
                     # as it contains chars and empty space
@@ -195,7 +198,7 @@ class TestFatImplementation(unittest.TestCase):
                     self.assertEqual(result, expected)
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT32(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 result = fatfs.get_free_cluster()
                 with io.BytesIO() as mem:
                     # here we take the last cluster of 'long_file.txt'
@@ -216,7 +219,7 @@ class TestFatImplementation(unittest.TestCase):
                            ]
         with self.subTest(i="FAT12"):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
-                fatfs = fat.FAT12(img_stream)
+                fatfs = fat_12.FAT12(img_stream)
                 counter = 0
                 for entry, lfn in fatfs.get_root_dir_entries():  # pylint: disable=unused-variable
                     if lfn != "":
@@ -224,7 +227,7 @@ class TestFatImplementation(unittest.TestCase):
                         counter += 1
         with self.subTest(i="FAT16"):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 counter = 0
                 for entry, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
@@ -232,7 +235,7 @@ class TestFatImplementation(unittest.TestCase):
                         counter += 1
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat.FAT16(img_stream)
+                fatfs = fat_16.FAT16(img_stream)
                 counter = 0
                 for entry, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
@@ -241,7 +244,7 @@ class TestFatImplementation(unittest.TestCase):
 
     def test_write_fat_entry_fat12(self):
         with open(IMAGE_PATHS[0], 'rb+') as img_stream:
-            fatfs = fat.FAT12(img_stream)
+            fatfs = fat_12.FAT12(img_stream)
             # store current value to restore old state after test
             actual_value = fatfs.get_cluster_value(4)
             value_above = fatfs.get_cluster_value(3)
@@ -282,7 +285,7 @@ class TestFatImplementation(unittest.TestCase):
 
     def test_write_fat_entry_fat16(self):
         with open(IMAGE_PATHS[1], 'rb+') as img_stream:
-            fatfs = fat.FAT16(img_stream)
+            fatfs = fat_16.FAT16(img_stream)
             actual_value = fatfs.get_cluster_value(4)
             value_above = fatfs.get_cluster_value(3)
             value_below = fatfs.get_cluster_value(5)
@@ -307,7 +310,7 @@ class TestFatImplementation(unittest.TestCase):
 
     def test_write_fat_entry_fat32(self):
         with open(IMAGE_PATHS[2], 'rb+') as img_stream:
-            fatfs = fat.FAT32(img_stream)
+            fatfs = fat_32.FAT32(img_stream)
             actual_value = fatfs.get_cluster_value(4)
             value_above = fatfs.get_cluster_value(3)
             value_below = fatfs.get_cluster_value(5)

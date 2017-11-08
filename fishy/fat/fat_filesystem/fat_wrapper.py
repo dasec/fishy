@@ -7,7 +7,10 @@ detects the FAT filesystem an uses the right class
 """
 import typing as typ
 from .fat_detector import get_filesystem_type
-from .fat import FAT, FAT12, FAT16, FAT32
+from .fat import FAT
+from .fat_12 import FAT12
+from .fat_16 import FAT16
+from .fat_32 import FAT32
 
 
 def create_fat(stream: typ.BinaryIO) -> FAT:
