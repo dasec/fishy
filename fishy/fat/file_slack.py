@@ -1,21 +1,27 @@
 """
-SimpleFileSlack offers methods to read, write and
+FileSlack offers methods to read, write and
 clear the slackspace of a given file in FAT filesystems
 
-TODO: Update example
-example:
+Implementation is mainly realized as described by [1], but
+extended in terms of respecting RAM slack padding of Windows
+and Linux FAT implementations [2].
+
+[1]: Shu-fen-2009
+[2]: Berghel2008
+
+usage example:
 >>> f = open('/dev/sdb1', 'rb+')
->>> fs = SimpleFileSlack(f)
->>> filename = fatfs
+>>> fs = FileSlack(f)
+>>> filenames = [ 'afile.txt' ]
 
 to write something from stdin into slack:
->>> fs.write(sys.stdin.buffer, filename)
+>>> metadata = fs.write(sys.stdin.buffer, filenames)
 
 to read something from slack to stdout:
->>> fs.read(sys.stdout.buffer, filename)
+>>> fs.read(sys.stdout.buffer, metadata)
 
 to wipe slackspace of a file:
->>> fs.clear(filename)
+>>> fs.clear(metadata)
 """
 
 import logging
