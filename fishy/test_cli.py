@@ -92,11 +92,15 @@ class TestCliFileSlack(unittest.TestCase):
                     "another", "-m", metadata_file]
             sys.argv = args
             with io.BufferedRandom(io.BytesIO()) as patch_buffer:
+                # save real stdin before monkey pathing it
+                real_stdin = sys.stdin
                 sys.stdin = patch_buffer
                 sys.stdin.buffer = patch_buffer
                 sys.stdin.write(teststring.encode('utf-8'))
                 patch_buffer.seek(0)
                 cli.main()
+                # restore real stdin
+                sys.stdin = real_stdin
             # compare outputted metadata
             with open(metadata_file) as metaf:
                 metafcontent = metaf.read()
