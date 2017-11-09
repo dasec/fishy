@@ -236,7 +236,7 @@ class TestFatImplementation(unittest.TestCase):
                         counter += 1
         with self.subTest(i="FAT32"):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
-                fatfs = fat_16.FAT16(img_stream)
+                fatfs = fat_32.FAT32(img_stream)
                 counter = 0
                 for _, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
