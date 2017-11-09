@@ -222,7 +222,7 @@ class TestFatImplementation(unittest.TestCase):
             with open(IMAGE_PATHS[0], 'rb') as img_stream:
                 fatfs = fat_12.FAT12(img_stream)
                 counter = 0
-                for entry, lfn in fatfs.get_root_dir_entries():  # pylint: disable=unused-variable
+                for _, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
                         self.assertEqual(lfn, expected_entries[counter])
                         counter += 1
@@ -230,7 +230,7 @@ class TestFatImplementation(unittest.TestCase):
             with open(IMAGE_PATHS[1], 'rb') as img_stream:
                 fatfs = fat_16.FAT16(img_stream)
                 counter = 0
-                for entry, lfn in fatfs.get_root_dir_entries():
+                for _, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
                         self.assertEqual(lfn, expected_entries[counter])
                         counter += 1
@@ -238,7 +238,7 @@ class TestFatImplementation(unittest.TestCase):
             with open(IMAGE_PATHS[2], 'rb') as img_stream:
                 fatfs = fat_16.FAT16(img_stream)
                 counter = 0
-                for entry, lfn in fatfs.get_root_dir_entries():
+                for _, lfn in fatfs.get_root_dir_entries():
                     if lfn != "":
                         self.assertEqual(lfn, expected_entries[counter])
                         counter += 1
