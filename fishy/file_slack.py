@@ -43,9 +43,11 @@ class FileSlack:
         self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'FAT':
+            self.metadata.set_module("fat-file-slack")
             self.fs = FATFileSlack(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
             self.fs = NTFSFileSlack(dev)
+            self.metadata.set_module("ntfs-slack")
         else:
             raise NotImplementedError()
 
@@ -67,12 +69,10 @@ class FileSlack:
         if filename is not None:
             filename = path.basename(filename)
         if self.fs_type == 'FAT':
-            self.metadata.set_module("fat-file-slack")
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
         elif self.fs_type == 'NTFS':
             LOGGER.info("Write into ntfs")
-            self.metadata.set_module("ntfs-slack")
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
         else:
@@ -86,15 +86,12 @@ class FileSlack:
         :param outstream: stream to write hidden data into
         :raises: IOError
         """
+        file_metadata = self.metadata.get_file("0")['metadata']
         if self.fs_type == 'FAT':
-            self.metadata.set_module("fat-file-slack")
-            file_metadata = self.metadata.get_file("0")['metadata']
-            file_metadata = FATFileSlackMetadata(file_metadata)
-            self.fs.read(outstream, file_metadata)
+            slack_metadata = FATFileSlackMetadata(file_metadata)
+            self.fs.read(outstream, slack_metadata)
         elif self.fs_type == 'NTFS':
-            self.metadata.set_module("ntfs-slack")
-            slack_metadata = self.metadata.get_file("0")['metadata']
-            slack_metadata = NTFSFileSlackMetadata(slack_metadata)
+            slack_metadata = NTFSFileSlackMetadata(file_metadata)
             self.fs.read(outstream, slack_metadata)
         else:
             raise NotImplementedError()
@@ -107,12 +104,7 @@ class FileSlack:
         :param outfilepath: filepath to file, where hidden data will be
                             restored into
         """
-        if self.fs_type == 'FAT':
-            self.metadata.set_module("fat-file-slack")
-            with open(outfilepath, 'wb+') as outfile:
-                self.read(outfile)
-        elif self.fs_type == 'NTFS':
-            self.metadata.set_module("ntfs-slack")
+        if self.fs_type == 'FAT' or self.fs_type == 'NTFS':
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         else:
@@ -126,16 +118,29 @@ class FileSlack:
         :raises: IOError
         """
         if self.fs_type == 'FAT':
-            self.metadata.set_module("fat-file-slack")
             for file_entry in self.metadata.get_files():
                 file_metadata = file_entry['metadata']
                 file_metadata = FATFileSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)
         elif self.fs_type == 'NTFS':
-            self.metadata.set_module("ntfs-slack")
             for file_entry in self.metadata.get_files():
                 file_metadata = file_entry['metadata']
                 file_metadata = NTFSFileSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)
+        else:
+            raise NotImplementedError()
+
+    def info(self, filepaths: typ.List[str]) -> None:
+        """
+        prints info about available file slack of files
+        """
+        if self.fs_type == 'FAT':
+            for filepath in filepaths:
+                dir_entry = self.fs.fatfs.find_file(filepath)
+                occp, rams, files = self.fs.calculate_slack_space(dir_entry)
+                print("File:", filepath)
+                print("  Occupied in last cluster:", occp)
+                print("  Ram Slack:", rams)
+                print("  File Slack:", files)
         else:
             raise NotImplementedError()

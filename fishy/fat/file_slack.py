@@ -122,7 +122,7 @@ class FileSlack:
                      % self.fatfs.pre.sector_size
         # calculate remaining free slack size in this cluster
         free_slack = cluster_size - occupied_by_file - ram_slack
-        return (occupied_by_file + ram_slack, free_slack)
+        return (occupied_by_file, ram_slack, free_slack)
 
     def write(self, instream: typ.BinaryIO, filepaths: typ.List[str]) \
             -> FileSlackMetadata:
@@ -160,7 +160,7 @@ class FileSlack:
                 # TODO: Find a suitable fix for problem described above
                 filepaths.extend(self._file_walk(entry))
                 continue
-            occupied, free_slack = self.calculate_slack_space(entry)
+            occupied, ram_slack, free_slack = self.calculate_slack_space(entry)
             if free_slack == 0 or entry.start_cluster < 2:
                 # if current entry has no slack space, continue with next
                 # entry
@@ -168,7 +168,8 @@ class FileSlack:
             written_bytes, cluster_id = self._write_to_slack(instream, entry)
             LOGGER.info("%d bytes written into cluster %d",
                         written_bytes, cluster_id)
-            metadata.add_cluster(cluster_id, occupied, written_bytes)
+            metadata.add_cluster(cluster_id, occupied + ram_slack,
+                                 written_bytes)
 
         if instream.peek():
             raise IOError("No slack space left, to write data. But there are"
@@ -183,7 +184,7 @@ class FileSlack:
         :param entry: DirectoryEntry, of the file which slackspace will be used
         :return: tuple of (number of bytes written, cluster_id written to)
         """
-        occupied, free_slack = self.calculate_slack_space(entry)
+        occupied, ram_slack, free_slack = self.calculate_slack_space(entry)
         # read what to write. ensure that we only read the amount of data,
         # that fits into slack
         bufferv = instream.read(free_slack)
@@ -191,7 +192,7 @@ class FileSlack:
         # find position where we can start writing data
         last_cluster = self.fatfs.follow_cluster(entry.start_cluster).pop()
         last_cluster_start = self.fatfs.get_cluster_start(last_cluster)
-        self.stream.seek(last_cluster_start + occupied)
+        self.stream.seek(last_cluster_start + occupied + ram_slack)
         # write bytes into stream
         bytes_written = self.stream.write(bufferv)
         return bytes_written, last_cluster

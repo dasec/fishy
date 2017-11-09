@@ -42,6 +42,9 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param args: argparse.Namespace
     :param device: stream of the filesystem
     """
+    if args.info:
+        slacker = FileSlack(device, Metadata(), args.dev)
+        slacker.info(args.destination)
     if args.write:
         slacker = FileSlack(device, Metadata(), args.dev)
         if not args.file:
@@ -107,6 +110,7 @@ def main():
     fileslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     fileslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
+    fileslack.add_argument('-i', '--info', dest='info', action='store_true', help='print file slack information of given files')
     fileslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
 
     # Parse cli arguments
