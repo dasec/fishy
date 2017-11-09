@@ -40,7 +40,9 @@ class TestFatFileSlack(unittest.TestCase):
                 fatfs = FileSlack(img_stream)
                 # turn 'onedirectory' into DIR_ENTRY
                 entry = fatfs.fatfs.find_file("onedirectory")
-                result = fatfs._file_walk(entry)
+                result = []
+                for file_entry in fatfs._file_walk(entry):
+                    result.append(file_entry)
                 # Assume that we only found 1 file
                 self.assertEqual(len(result), 2)
                 # unpack that file into result
@@ -57,6 +59,16 @@ class TestFatFileSlack(unittest.TestCase):
                 self.assertFalse(result.attributes.hidden)
                 self.assertFalse(result.attributes.readonly)
                 self.assertEqual(result.fileSize, 11)
+
+    def test_file_walk_nondir(self):
+        for img_path in TestFatFileSlack.image_paths:
+            with open(img_path, 'rb') as img_stream:
+                # create FileSlack object
+                fatfs = FileSlack(img_stream)
+                entry = fatfs.fatfs.find_file("another")
+                next_file = fatfs._file_walk(entry)
+                with self.assertRaises(AssertionError):
+                    next(next_file)
 
     def test_write_file(self):
         for img_path in TestFatFileSlack.image_paths:
@@ -105,14 +117,15 @@ class TestFatFileSlack(unittest.TestCase):
             fatfs = FileSlack(img_stream)
             # setup raw stream and write testmessage
             with io.BytesIO() as mem:
-                teststring = "This is a simple write test."
+                teststring = "This is a simple write test."*100
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = fatfs.write(reader,
                                          ['onedirectory'])
-                    self.assertEqual(result.clusters, [(15, 512, 28)])
+                    self.assertEqual(result.clusters, [(13, 512, 1536),
+                                                       (15, 512, 1264)])
 
     def test_read_slack(self):
         for img_path in TestFatFileSlack.image_paths:

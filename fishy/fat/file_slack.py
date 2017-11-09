@@ -78,26 +78,31 @@ class FileSlack:
         self.fatfs = create_fat(stream)
         self.stream = stream
 
-    def _file_walk(self, directory=None) -> typ.List[Struct]:
+    def _file_walk(self, directory: Struct) -> \
+            typ.Generator[Struct, None, None]:
         """
-        returns list of file entries of directories, while
-        traversing the filesystem recursively.
-        :param directory: entry point, if not given, root
-                          directory will be used
-        :returns: list of file entries of directories
+        get file entries of directories recusively
+        :param directory: entry point; needs to be a directory
+        :returns: generator that traverses file entries of directories
+                  recursively
         """
-        result = []
+        assert directory.attributes.subDirectory, \
+            "supplied entry is not a directory"
         if directory is not None:
             start_dir = directory.start_cluster
         for entry, lfn in self.fatfs.get_dir_entries(start_dir):
             if lfn == "":
+                # skip entries if they dont have a long filename
+                # this excludes all dot entries, but also all other entries
+                # that were written without a lfn
                 continue
             if entry.attributes.subDirectory:
-                result.extend(self._file_walk(entry))
+                # recurse into subdirectory
+                yield from self._file_walk(entry)
             else:
+                # exclude all file entries that dont allocate any cluster
                 if entry.start_cluster > 1:
-                    result.append(entry)
-        return result
+                    yield entry
 
     def calculate_slack_space(self, entry: DIR_ENTRY) -> typ.Tuple[int, int]:
         """
@@ -124,6 +129,32 @@ class FileSlack:
         free_slack = cluster_size - occupied_by_file - ram_slack
         return (occupied_by_file, ram_slack, free_slack)
 
+    def _get_writable_file(self, filepaths: typ.List[str]) \
+            -> typ.Generator[Struct, None, None]:
+        """
+        get the next writable file out of a filepaths list, while also
+        traversing into subdirectories, if some appear in that list
+        :param filepaths: list of strings, that link to files or directories
+                          on the fat filesystem
+        """
+        # Turn filepaths list into a set, to avoid duplicate files that would
+        # lead to overwriting content that was already witten
+        filepaths = list(set(filepaths))
+        for filepath in filepaths:
+            entry = self.fatfs.find_file(filepath)
+            if entry.attributes.subDirectory:
+                # if the user supplied path is a directory, we will use all
+                # files from it as possible files where we can exploit file
+                # slack. Attention: This might be a place, where files can
+                # be used twice, when the user specifies:
+                # ['adir/file.txt', 'adir'] we would write twice to
+                # 'adir/file.txt'
+                # TODO: Find a suitable fix for problem described above
+                yield from self._file_walk(entry)
+            else:
+                yield entry
+        yield None
+
     def write(self, instream: typ.BinaryIO, filepaths: typ.List[str]) \
             -> FileSlackMetadata:
         """
@@ -134,36 +165,15 @@ class FileSlack:
         :return: FileSlackMetadata
         """
         metadata = FileSlackMetadata()
-        # Turn filepaths list into a set, to avoid duplicate files that would
-        # lead to overwriting content that was already witten
-        filepaths = list(set(filepaths))
+        next_file = self._get_writable_file(filepaths)
         while instream.peek():
-            if not filepaths:
-                # dont do anything, if we dont have any files
+            entry = next(next_file)
+            if entry is None:
+                # dont do anything, if we dont have files anymore
                 break
-            # find directory entry for given filepath
-            filepath = filepaths.pop()
-            # if its a user supplied path, retrieve DIR_ENTRY object,
-            # if it comes from a resolved directory (from _file_walk)
-            # just take it as it is.
-            if isinstance(filepath, str):
-                entry = self.fatfs.find_file(filepath)
-            else:
-                entry = filepath
-            if entry.attributes.subDirectory:
-                # if the user supplied path is a directory, we will use all
-                # files from it as possible files where we can exploit file
-                # slack. Attention: This might be a place, where files can
-                # be used twice, when the user specifies:
-                # ['adir/file.txt', 'adir'] we would write twice to
-                # 'adir/file.txt'
-                # TODO: Find a suitable fix for problem described above
-                filepaths.extend(self._file_walk(entry))
-                continue
             occupied, ram_slack, free_slack = self.calculate_slack_space(entry)
             if free_slack == 0 or entry.start_cluster < 2:
-                # if current entry has no slack space, continue with next
-                # entry
+                # if current entry has no slack space, continue with next entry
                 continue
             written_bytes, cluster_id = self._write_to_slack(instream, entry)
             LOGGER.info("%d bytes written into cluster %d",
