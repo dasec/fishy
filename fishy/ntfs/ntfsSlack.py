@@ -151,24 +151,33 @@ class NtfsSlack:
             return 0
         
         #get last block of file to check for slack
-        ok = None
+        resident = True
+        metaBlock = f.info.meta.addr    
+        mftEntrySize = 1024
+        mftOffset = 16
+        mtfOffsetToData = 360
+        # File size
+        size = f.info.meta.size
+        metaAddr = (metaBlock+mftOffset)*mftEntrySize
         for attr in f:
             for run in attr:
                 l_offset = run.offset
                 last_block_offset = run.len-1
                 last_blocks_start = run.addr
-                ok = run
-        if not ok:
-            return 0
+                resident = False
+        #File data resident in mft $Data entry
+        if resident:
+            offsetToSlack = mtfOffsetToData + size
+            metaSlackStart = metaAddr + offsetToSlack
+            metaFreeSlack = mftEntrySize - offsetToSlack
+            self.slackList.append(slackSpace(metaFreeSlack,metaSlackStart))
+            return metaFreeSlack
                 
         #last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
     
         # Last block of the file 
         l_block = (l_offset+last_block_offset) * self.blocksize
-    
-        # File size
-        size = f.info.meta.size
         
         # Actual file data in the last block
         l_d_size = size % self.blocksize
