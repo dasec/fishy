@@ -8,6 +8,7 @@ import typing as typ
 from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import create_fat
 from .file_slack import FileSlack
+from .cluster_allocation import ClusterAllocation
 from .metadata import Metadata
 
 
@@ -79,6 +80,46 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker.clear()
 
 
+def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    hanles addcluster subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        allocator = ClusterAllocation(device, Metadata(), args.dev)
+        if not args.file:
+            # write from stdin into additional clusters
+            allocator.write(sys.stdin.buffer, args.destination)
+        else:
+            # write from files into additional clusters
+            with open(args.file, 'rb') as fstream:
+                allocator.write(fstream, args.destination, args.file)
+        with open(args.metadata, 'w+') as metadata_out:
+            allocator.metadata.write(metadata_out)
+    elif args.read:
+        # read file slack of a single hidden file to stdout
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            allocator = ClusterAllocation(device, meta, args.dev)
+            allocator.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden data from additional clusters into outfile
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            allocator = ClusterAllocation(device, meta, args.dev)
+            allocator.read_into_file(args.outfile)
+    elif args.clear:
+        # clear additional clusters
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            allocator = ClusterAllocation(device, meta, args.dev)
+            allocator.clear()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Toolkit for filesystem based data hiding techniques.')
     # TODO: Maybe this option should be required for hiding technique
@@ -113,6 +154,16 @@ def main():
     fileslack.add_argument('-i', '--info', dest='info', action='store_true', help='print file slack information of given files')
     fileslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
 
+    # Additional Cluster Allocation
+    addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
+    addcluster.set_defaults(which='addcluster')
+    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    addcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    addcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
+    addcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
+    addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
+    addcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
+    addcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
     # Parse cli arguments
     args = parser.parse_args()
 
@@ -132,6 +183,10 @@ def main():
             # if 'fileslack' was chosen
             if args.which == 'fileslack':
                 do_fileslack(args, device)
+
+            # if 'addcluster' was chosen
+            if args.which == 'addcluster':
+                do_addcluster(args, device)
 
 
 if __name__ == "__main__":
