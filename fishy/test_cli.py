@@ -15,7 +15,7 @@ UTILSDIR = os.path.join(THIS_DIR, os.pardir, 'utils')
 IMAGEDIR = tempfile.mkdtemp()
 
 
-def teadDown():
+def tearDownModule():  # pylint: disable=invalid-name
     # remove created filesystem images
     shutil.rmtree(IMAGEDIR)
 
@@ -216,7 +216,6 @@ class TestCliClusterAllocation(unittest.TestCase):
     def test_write_from_file(self):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
-        testfilename = os.path.basename(testfilepath)
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)

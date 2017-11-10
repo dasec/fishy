@@ -124,7 +124,7 @@ class TestFATClusterAllocator(unittest.TestCase):
                     result.seek(0)
                     # compare cluster content
                     self.assertEqual(result.read(),
-                                        teststring.encode('utf-8'))
+                                     teststring.encode('utf-8'))
 
     def test_clean(self):
         for img_path in TestFATClusterAllocator.image_paths:
