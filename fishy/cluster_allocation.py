@@ -13,7 +13,8 @@ LOGGER = logging.getLogger("ClusterAllocation")
 
 class ClusterAllocation:
     """
-    This class wrapps the filesystem specific file slack implementations
+    This class wrapps the filesystem specific file cluster allocation
+    implementations
 
     usage examples:
 

@@ -103,6 +103,29 @@ class TestFATClusterAllocator(unittest.TestCase):
                         result = mem.read()
                         self.assertEqual(result.decode('utf-8'), teststring)
 
+    def test_read_multi_cluster(self):
+        for img_path in TestFATClusterAllocator.image_paths:
+            with self.subTest(i=img_path):
+                with open(img_path, 'rb+') as img_stream:
+                    # create Allocator object
+                    fatfs = ClusterAllocator(img_stream)
+                    teststring = "This is a simple write test."*80
+                    # write content that we want to read
+                    with io.BytesIO() as mem:
+                        mem.write(teststring.encode('utf-8'))
+                        mem.seek(0)
+                        with io.BufferedReader(mem) as reader:
+                            write_res = fatfs.write(reader, 'another')
+                    # save used clusters
+                    used_clusters = fatfs.fatfs.follow_cluster(write_res.start_cluster)
+                    # read clusters
+                    result = io.BytesIO()
+                    fatfs.read(result, write_res)
+                    result.seek(0)
+                    # compare cluster content
+                    self.assertEqual(result.read(),
+                                        teststring.encode('utf-8'))
+
     def test_clean(self):
         for img_path in TestFATClusterAllocator.image_paths:
             with self.subTest(i=img_path):
