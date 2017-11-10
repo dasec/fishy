@@ -120,6 +120,8 @@ class ClusterAllocator:
             # allocate this cluster in FAT
             self.fatfs.write_fat_entry(last_cluster, next_cluster)
             cluster_count += 1
+            # terminate cluster chain, to be able to get new clusters
+            self.fatfs.write_fat_entry(next_cluster, 'last_cluster')
             # record this cluster as the start_cluster of hidden data
             if metadata.get_start_cluster() is None:
                 metadata.set_start_cluster(next_cluster)
