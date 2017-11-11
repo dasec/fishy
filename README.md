@@ -7,7 +7,7 @@ Toolkit for filesystem based data hiding techniques
 	* File Slack [✓]
 	* Partition Slack
 	* Mark Clusters as 'bad', but write content to them
-	* Allocate More Clusters for a file
+	* Allocate More Clusters for a file [✓]
 	* Overwrite Bootsector Copy?
 	* Overwrite FAT Copies when they are not FAT0 or FAT1
 
@@ -28,6 +28,7 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`fattools`](#fattools) - Provides some information about a FAT filesystem
 * [`metadata`](#metadata) - Provides some information about data that is stored in a metadata file
 * [`fileslack`](#file-slack) - Exploitation of File Slack
+* [`addcluster`](#additional-cluster-allocation) - Allocate additional clusters for a file
 
 ## FATtools
 
@@ -93,7 +94,7 @@ Stored Files:
 
 The `fileslack` subcommand provides functionality to read, write and clean the file slack of files in a filesystem.
 
-Available for these Filesystem types:
+Available for these filesystem types:
 
 * FAT
 * NTFS
@@ -103,11 +104,38 @@ Available for these Filesystem types:
 $ echo "TOP SECRET" | fishy -d testfs-fat12.dd fileslack -d myfile.txt -m metadata.json -w
 
 # read from slack space
-$ fishy -d testfs-fat12.dd fileslack -m metadata.json -r 0
+$ fishy -d testfs-fat12.dd fileslack -m metadata.json -r
 TOP SECRET
 
 # wipe slack space
 $ fishy -d testfs-fat12.dd fileslack -m metadata.json -c
+
+# show info about slack space of a file
+$ fishy -d testfs-fat12.dd fileslack -m metadata.json -d myfile.txt -i
+File: myfile.txt
+  Occupied in last cluster: 4
+  Ram Slack: 508
+  File Slack: 1536
+```
+
+## Additional Cluster Allocation
+
+The `addcluster` subcommand provides methods to read, write and clean additional clusters for a file where data can be hidden.
+
+Available for these filesystem types:
+
+* FAT
+
+```bash
+# Allocate additional clusters for a file and hide data in it
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd addcluster -d myfile.txt -m metadata.json -w
+
+# read hidden data from additionally allocated clusters
+$ fishy -d testfs-fat12.dd addcluster -m metadata.json -r
+TOP SECRET
+
+# clean up additionally allocated clusters
+$ fishy -d testfs-fat12.dd addcluster -m metadata.json -c
 ```
 
 # Development
