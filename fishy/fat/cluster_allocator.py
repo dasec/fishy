@@ -6,9 +6,10 @@ filesystems.
 import logging
 import typing as typ
 from io import BytesIO, BufferedReader
-from .fat_filesystem.fat_wrapper import create_fat
-from .fat_filesystem.fat_detector import get_filesystem_type
 from .fat_filesystem.fat import NoFreeClusterAvailable
+from .fat_filesystem.fat_32 import FAT32
+from .fat_filesystem.fat_detector import get_filesystem_type
+from .fat_filesystem.fat_wrapper import create_fat
 
 
 LOGGER = logging.getLogger("FATClusterAllocator")
@@ -137,9 +138,11 @@ class ClusterAllocator:
         LOGGER.info("Finishing cluster chain on cluster %d", last_cluster)
         self.fatfs.write_fat_entry(last_cluster, 'last_cluster')
         # clean up fs_info sector, if we write to FAT32
-        # TODO: Update FS_Info Sector for fat32
-        if self.fat_type == 'FAT32':
-            pass
+        if isinstance(self.fatfs, FAT32):
+            self.fatfs.write_last_allocated(last_cluster)
+            old_free_clusters = self.fatfs.pre.free_data_cluster_count
+            new_free_clusters = old_free_clusters - cluster_count
+            self.fatfs.write_last_allocated(new_free_clusters)
         return metadata
 
     def _write_to_cluster(self, instream: typ.BinaryIO, cluster_id) \
@@ -214,4 +217,7 @@ class ClusterAllocator:
             self._write_to_cluster(reader, cluster_id)
             # unlink cluster
             self.fatfs.write_fat_entry(cluster_id, 'free_cluster')
-        # TODO: Update FS_Info Sector for fat32
+        if isinstance(self.fatfs, FAT32):
+            old_free_clusters = self.fatfs.pre.free_data_cluster_count
+            new_free_clusters = old_free_clusters + len(clusters)
+            self.fatfs.write_free_clusters(new_free_clusters)

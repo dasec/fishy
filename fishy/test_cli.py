@@ -210,8 +210,7 @@ class TestCliClusterAllocation(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        # remove created filesystem images
-        shutil.rmtree(IMAGEDIR)
+        pass
 
     def test_write_from_file(self):
         teststring = "Small test for CLI"
