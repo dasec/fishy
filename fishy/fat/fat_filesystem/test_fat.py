@@ -399,4 +399,3 @@ class TestFatImplementation(unittest.TestCase):
             self.assertEqual(fatfs.pre.last_allocated_data_cluster, new_value)
             # restore old last_allocated_cluster count
             fatfs.write_last_allocated(orig_alloc_cluster)
-

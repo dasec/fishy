@@ -13,7 +13,7 @@ from .dir_entry import DIR_ENTRY, LFN_ENTRY
 LOGGER = logging.getLogger("FATFilesystem")
 
 
-class NoFreeClusterAvailable(Exception):
+class NoFreeClusterAvailableError(Exception):
     """
     This exception can be thrown by the get_free_cluster method of a FAT
     instance.
@@ -132,7 +132,7 @@ class FAT:
             # might start in the middle of FAT and want to examine
             # previous entries first until we throw an error
             current_id = (current_id + 1) % (self.entries_per_fat - 1)
-        raise NoFreeClusterAvailable()
+        raise NoFreeClusterAvailableError()
 
     def follow_cluster(self, start_cluster: int) -> typ.List[int]:
         """

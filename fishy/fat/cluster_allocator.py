@@ -6,7 +6,7 @@ filesystems.
 import logging
 import typing as typ
 from io import BytesIO, BufferedReader
-from .fat_filesystem.fat import NoFreeClusterAvailable
+from .fat_filesystem.fat import NoFreeClusterAvailableError
 from .fat_filesystem.fat_32 import FAT32
 from .fat_filesystem.fat_detector import get_filesystem_type
 from .fat_filesystem.fat_wrapper import create_fat
@@ -116,8 +116,8 @@ class ClusterAllocator:
                 next_cluster = self.fatfs.get_free_cluster()
                 LOGGER.info("Got cluster %d as next cluster to write into",
                             next_cluster)
-            except NoFreeClusterAvailable:
-                raise NoFreeClusterAvailable
+            except NoFreeClusterAvailableError:
+                raise NoFreeClusterAvailableError()
             # allocate this cluster in FAT
             self.fatfs.write_fat_entry(last_cluster, next_cluster)
             cluster_count += 1
