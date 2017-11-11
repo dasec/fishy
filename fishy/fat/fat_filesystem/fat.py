@@ -110,6 +110,11 @@ class FAT:
         # cluster 2)
         if hasattr(self.pre, "last_allocated_data_cluster"):
             start_id = self.pre.last_allocated_data_cluster
+            # check if last_allocated_data_cluster is a valid cluster number
+            # otherwise use default value
+            if start_id > self._fat_entry.encoding['bad_cluster'] \
+                    or start_id < 2:
+                start_id = 3
         else:
             start_id = 3
 

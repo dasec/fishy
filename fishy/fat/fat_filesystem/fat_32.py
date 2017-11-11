@@ -22,7 +22,8 @@ example to print all root directory entries
 """
 import typing as typ
 from construct import Struct, Array, Padding, Embedded, Bytes, this
-from .bootsector import FAT32_BOOTSECTOR
+from .bootsector import FAT32_BOOTSECTOR, FAT_CORE_BOOTSECTOR, \
+    FAT32_EXTENDED_BOOTSECTOR
 from .fat import FAT
 from .fat_entry import FAT32Entry
 
@@ -74,3 +75,41 @@ class FAT32(FAT):
     def get_root_dir_entries(self) \
             -> typ.Generator[typ.Tuple[Struct, str], None, None]:
         return self.get_dir_entries(self.pre.rootdir_cluster)
+
+    def write_free_clusters(self, new_value: int) -> None:
+        """
+        Write a new value to free_cluster_count field of FAT32 FS INFO sector
+        :param new_value: int, new value for free_cluster_count
+        """
+        # calculate start address of FS_INFO sector
+        bootsector_size = FAT_CORE_BOOTSECTOR.sizeof() \
+                          + FAT32_EXTENDED_BOOTSECTOR.sizeof()
+        bootsector_padd = self.pre.sector_size - bootsector_size
+        fs_info_start = bootsector_size + bootsector_padd
+        free_cluster_offset = 488
+        # write new value to disk
+        self.stream.seek(self.offset + fs_info_start + free_cluster_offset)
+        self.stream.write(int(new_value).to_bytes(4, 'little'))
+        # re-read pre_data_region
+        self.stream.seek(self.offset)
+        self.pre = FAT32_PRE_DATA_REGION.parse_stream(self.stream)
+
+    def write_last_allocated(self, new_value: int) -> None:
+        """
+        Write a new value to 'last_allocated_data_cluster' field of FAT32
+        FS INFO sector
+        :param new_value: int, new value for free_cluster_count
+        """
+        # calculate start address of FS_INFO sector
+        bootsector_size = FAT_CORE_BOOTSECTOR.sizeof() \
+                          + FAT32_EXTENDED_BOOTSECTOR.sizeof()
+        bootsector_padd = self.pre.sector_size - bootsector_size
+        fs_info_start = bootsector_size + bootsector_padd
+        free_cluster_offset = 492
+        # write new value to disk
+        self.stream.seek(self.offset + fs_info_start + free_cluster_offset)
+        self.stream.write(int(new_value).to_bytes(4, 'little'))
+        # re-read pre_data_region
+        self.stream.seek(self.offset)
+        self.pre = FAT32_PRE_DATA_REGION.parse_stream(self.stream)
+

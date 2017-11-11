@@ -337,7 +337,7 @@ class TestFatImplementation(unittest.TestCase):
     def test_find_file(self):
         for img_path in IMAGE_PATHS:
             with open(img_path, 'rb') as img_stream:
-                # create FileSlack object
+                # create FAT object
                 fatfs = create_fat(img_stream)
                 result = fatfs.find_file("long_file.txt")
                 # check for file attibutes
@@ -355,3 +355,48 @@ class TestFatImplementation(unittest.TestCase):
                 # Test finding a non existing file
                 with self.assertRaises(Exception):
                     fatfs.find_file("i-dont-exist")
+
+    def test_write_free_cluster(self):
+        """
+        test if writing free cluster count into FAT32 FS INFO sector works
+        correctly
+        """
+        img_path = IMAGE_PATHS[2]
+        with open(img_path, 'rb+') as img_stream:
+            # create FAT32 object
+            fatfs = create_fat(img_stream)
+            orig_free_clusters = fatfs.pre.free_data_cluster_count
+            # write new free cluster count
+            new_value = 1337
+            fatfs.write_free_clusters(new_value)
+            # test if new free cluster count was wriiten to disk
+            img_stream.seek(0)
+            fatfs2 = create_fat(img_stream)
+            self.assertEqual(fatfs2.pre.free_data_cluster_count, new_value)
+            # test if new free cluster count was correctly reread
+            self.assertEqual(fatfs.pre.free_data_cluster_count, new_value)
+            # restore old free cluster count
+            fatfs.write_free_clusters(orig_free_clusters)
+
+    def test_write_last_allocated(self):
+        """
+        test if writing last_allocated_cluster into FAT32 FS INFO sector works
+        correctly
+        """
+        img_path = IMAGE_PATHS[2]
+        with open(img_path, 'rb+') as img_stream:
+            # create FAT32 object
+            fatfs = create_fat(img_stream)
+            orig_alloc_cluster = fatfs.pre.last_allocated_data_cluster
+            # write new last_allocated_cluster
+            new_value = 1337
+            fatfs.write_last_allocated(new_value)
+            # test if new last_allocated_cluster value was wriiten to disk
+            img_stream.seek(0)
+            fatfs2 = create_fat(img_stream)
+            self.assertEqual(fatfs2.pre.last_allocated_data_cluster, new_value)
+            # test if new last_allocated_cluster value was correctly reread
+            self.assertEqual(fatfs.pre.last_allocated_data_cluster, new_value)
+            # restore old last_allocated_cluster count
+            fatfs.write_last_allocated(orig_alloc_cluster)
+
