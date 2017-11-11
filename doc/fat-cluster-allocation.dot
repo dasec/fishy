@@ -1,0 +1,12 @@
+digraph {
+	node[shape=hexagon]
+	begin, end
+	node[shape=diamond]
+	"data left to write"
+	"FAT32?"
+	node[shape=box]
+	"begin" -> "get filepath" -> "traverse FAT directories" -> "get last cluster_id of file" -> "find free data cluster and extend cluster chain" -> "write into allocated cluster" -> "data left to write"
+	"data left to write" -> "find free data cluster and extend cluster chain"[label="[yes]"]
+	"data left to write" -> "FAT32?" -> "end"[label="[no]"]
+	"FAT32?" -> "Update FS INFO sector" -> "end"
+}
