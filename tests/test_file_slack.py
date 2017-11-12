@@ -5,36 +5,13 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from .file_slack import FileSlack
+import pytest
+from fishy.fat.file_slack import FileSlack
 
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-UTILSDIR = os.path.join(THIS_DIR, os.pardir, os.pardir, 'utils')
-IMAGEDIR = tempfile.mkdtemp()
-
-
-class TestFatFileSlack(unittest.TestCase):
-    image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-fat12-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat16-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat32-stable1.dd'),
-        ]
-
-    @classmethod
-    def setUpClass(cls):
-        # create test filesystems
-        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
-              + " -d " + IMAGEDIR + " -t" + "fat" + " -u -s '-stable1'"
-        subprocess.call(cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE, shell=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        # remove created filesystem images
-        shutil.rmtree(IMAGEDIR)
-
-    def test_file_walk(self):
-        for img_path in TestFatFileSlack.image_paths:
+class TestFileWalk:
+    def test_file_walk(self, testfs_fat_stable1):
+        for img_path in testfs_fat_stable1:
             with open(img_path, 'rb') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
@@ -44,34 +21,35 @@ class TestFatFileSlack(unittest.TestCase):
                 for file_entry in fatfs._file_walk(entry):
                     result.append(file_entry)
                 # Assume that we only found 1 file
-                self.assertEqual(len(result), 2)
+                assert len(result) == 2
                 # unpack that file into result
                 result = result[0]
                 # check for file attibutes
-                self.assertEqual(result.name, b'AFILEI~1')
-                self.assertEqual(result.extension, b'TXT')
-                self.assertFalse(result.attributes.unused)
-                self.assertFalse(result.attributes.device)
-                self.assertTrue(result.attributes.archive)
-                self.assertFalse(result.attributes.subDirectory)
-                self.assertFalse(result.attributes.volumeLabel)
-                self.assertFalse(result.attributes.system)
-                self.assertFalse(result.attributes.hidden)
-                self.assertFalse(result.attributes.readonly)
-                self.assertEqual(result.fileSize, 11)
+                assert result.name == b'AFILEI~1'
+                assert result.extension == b'TXT'
+                assert not result.attributes.unused
+                assert not result.attributes.device
+                assert result.attributes.archive
+                assert not result.attributes.subDirectory
+                assert not result.attributes.volumeLabel
+                assert not result.attributes.system
+                assert not result.attributes.hidden
+                assert not result.attributes.readonly
+                assert result.fileSize == 11
 
-    def test_file_walk_nondir(self):
-        for img_path in TestFatFileSlack.image_paths:
+    def test_file_walk_nondir(self, testfs_fat_stable1):
+        for img_path in testfs_fat_stable1:
             with open(img_path, 'rb') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
                 entry = fatfs.fatfs.find_file("another")
                 next_file = fatfs._file_walk(entry)
-                with self.assertRaises(AssertionError):
+                with pytest.raises(AssertionError):
                     next(next_file)
 
-    def test_write_file(self):
-        for img_path in TestFatFileSlack.image_paths:
+class TestWrite:
+    def test_write_file(self, testfs_fat_stable1):
+        for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
@@ -83,15 +61,15 @@ class TestFatFileSlack(unittest.TestCase):
                     # write testmessage to disk
                     with io.BufferedReader(mem) as reader:
                         result = fatfs.write(reader, ['another'])
-                        self.assertEqual(result.clusters, [(3, 512, 28)])
-                        with self.assertRaises(IOError):
+                        assert result.clusters, [(3, 512 == 28)]
+                        with pytest.raises(IOError):
                             mem.seek(0)
                             fatfs.write(reader, ['no_free_slack.txt'])
 
-    def test_write_file_in_subdir(self):
+    def test_write_file_in_subdir(self, testfs_fat_stable1):
         # only testing fat12 as resulting cluster_id of different fat
         # versions differs
-        img_path = TestFatFileSlack.image_paths[0]
+        img_path = testfs_fat_stable1[0]
         with open(img_path, 'rb+') as img_stream:
             # create FileSlack object
             fatfs = FileSlack(img_stream)
@@ -104,14 +82,14 @@ class TestFatFileSlack(unittest.TestCase):
                 with io.BufferedReader(mem) as reader:
                     result = fatfs.write(reader,
                                          ['onedirectory/afileinadirectory.txt'])
-                    self.assertEqual(result.clusters, [(13, 512, 28)])
+                    assert result.clusters, [(13, 512 == 28)]
 
-    def test_write_file_autoexpand_subdir(self):  # pylint: disable=invalid-name
+    def test_write_file_autoexpand_subdir(self, testfs_fat_stable1):  # pylint: disable=invalid-name
         # only testing fat12 as resulting cluster_id of different fat
         # versions differs
         # if user supplies a directory instead of a file path, all files under
         # this directory will recusively added
-        img_path = TestFatFileSlack.image_paths[0]
+        img_path = testfs_fat_stable1[0]
         with open(img_path, 'rb+') as img_stream:
             # create FileSlack object
             fatfs = FileSlack(img_stream)
@@ -124,11 +102,12 @@ class TestFatFileSlack(unittest.TestCase):
                 with io.BufferedReader(mem) as reader:
                     result = fatfs.write(reader,
                                          ['onedirectory'])
-                    self.assertEqual(result.clusters, [(13, 512, 1536),
-                                                       (15, 512, 1264)])
+                    assert result.clusters == [(13, 512, 1536),
+                                               (15, 512, 1264)]
 
-    def test_read_slack(self):
-        for img_path in TestFatFileSlack.image_paths:
+class TestRead:
+    def test_read_slack(self, testfs_fat_stable1):
+        for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
@@ -145,10 +124,11 @@ class TestFatFileSlack(unittest.TestCase):
                     fatfs.read(mem, write_res)
                     mem.seek(0)
                     result = mem.read()
-                    self.assertEqual(result.decode('utf-8'), teststring)
+                    assert result.decode('utf-8') == teststring
 
-    def test_clear_slack(self):
-        for img_path in TestFatFileSlack.image_paths:
+class TestClear:
+    def test_clear_slack(self, testfs_fat_stable1):
+        for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
@@ -167,7 +147,7 @@ class TestFatFileSlack(unittest.TestCase):
                     mem.seek(0)
                     result = mem.read()
                     expected = len(teststring.encode('utf-8')) * b'\x00'
-                    self.assertEqual(result, expected)
+                    assert result == expected
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 import json
 import tempfile
 import unittest
-from .metadata import Metadata, InformationMissingError
+from fishy.metadata import Metadata, InformationMissingError
 
 
 class StubMetadata:  # pylint: disable=too-few-public-methods

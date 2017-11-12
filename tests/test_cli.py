@@ -2,22 +2,10 @@
 import io
 import json
 import os
-import shutil
-import subprocess
 import sys
 import tempfile
-import unittest
-from . import cli
-
-
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-UTILSDIR = os.path.join(THIS_DIR, os.pardir, 'utils')
-IMAGEDIR = tempfile.mkdtemp()
-
-
-def tearDownModule():  # pylint: disable=invalid-name
-    # remove created filesystem images
-    shutil.rmtree(IMAGEDIR)
+import pytest
+from fishy import cli
 
 
 class CaptureStdout(list):
@@ -37,28 +25,10 @@ class CaptureStdout(list):
         del self._bytestream
         sys.stdout = self._stdout
 
-class TestCliFileSlack(unittest.TestCase):
 
-    image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-fat12-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat16-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat32-stable1.dd'),
-        ]
+class TestCliFileSlack(object):
 
-    @classmethod
-    def setUpClass(cls):
-        # regenerate test filesystems
-        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
-              + " -d " + IMAGEDIR + " -u -s '-stable1'"
-        subprocess.call(cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        shell=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def test_write_fileslack_from_file(self):
+    def test_write_fileslack_from_file(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         testfilename = os.path.basename(testfilepath)
@@ -67,9 +37,10 @@ class TestCliFileSlack(unittest.TestCase):
                    + '{"uid": "0", "filename": ' \
                    + '"' + testfilename + '", "metadata": {"clusters": ' \
                    + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'))
+        # create test file which we will hide
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliFileSlack.image_paths:
+        for img_path in testfs_fat_stable1:
             # write metadata
             args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -78,19 +49,19 @@ class TestCliFileSlack(unittest.TestCase):
             # compare outputted metadata
             with open(metadata_file) as metaf:
                 metafcontent = metaf.read()
-            self.assertEqual(metafcontent, expected)
+            assert metafcontent == expected
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
 
-    def test_write_fileslack_from_stdin(self):
+    def test_write_fileslack_from_stdin(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         metadata_file = tempfile.NamedTemporaryFile().name
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
                    + '{"uid": "0", "filename": ' \
                    + '"0", "metadata": {"clusters": ' \
                    + '[[3, 512, 18]]}}}, "module": "fat-file-slack"}'))
-        for img_path in TestCliFileSlack.image_paths:
+        for img_path in testfs_fat_stable1:
             # write metadata
             args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
                     "another", "-m", metadata_file]
@@ -108,17 +79,17 @@ class TestCliFileSlack(unittest.TestCase):
             # compare outputted metadata
             with open(metadata_file) as metaf:
                 metafcontent = metaf.read()
-            self.assertEqual(metafcontent, expected)
+            assert metafcontent == expected
         # remove testfiles
         os.remove(metadata_file)
 
-    def test_read_fileslack_stdout(self):
+    def test_read_fileslack_stdout(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliFileSlack.image_paths:
+        for img_path in testfs_fat_stable1:
             # write someting we want to read
             args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -131,19 +102,19 @@ class TestCliFileSlack(unittest.TestCase):
             # compare stdout output with string we gave as input
             with CaptureStdout() as output:
                 cli.main()
-            self.assertEqual(output[0].decode('utf-8'), teststring)
+            assert output[0].decode('utf-8') == teststring
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
 
-    def test_read_fileslack_outfile(self):
+    def test_read_fileslack_outfile(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         outfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliFileSlack.image_paths:
+        for img_path in testfs_fat_stable1:
             # write someting we want to read
             args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -156,19 +127,19 @@ class TestCliFileSlack(unittest.TestCase):
             cli.main()
             with open(outfilepath, 'r') as outfile:
                 result = outfile.read()
-                self.assertEqual(result, teststring)
+                assert result == teststring
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
         os.remove(outfilepath)
 
-    def test_clear_fileslack(self):
+    def test_clear_fileslack(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliFileSlack.image_paths:
+        for img_path in testfs_fat_stable1:
             # write something we want to clear
             args = ["fishy", "-d", img_path, "fileslack", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -185,40 +156,21 @@ class TestCliFileSlack(unittest.TestCase):
             with CaptureStdout() as output:
                 cli.main()
             expected = len(teststring.encode('utf-8')) * b'\x00'
-            self.assertEqual(output[0], expected)
+            assert output[0] == expected
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
 
 
-class TestCliClusterAllocation(unittest.TestCase):
+class TestCliClusterAllocation(object):
 
-    image_paths = [
-        os.path.join(IMAGEDIR, 'testfs-fat12-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat16-stable1.dd'),
-        os.path.join(IMAGEDIR, 'testfs-fat32-stable1.dd'),
-        ]
-
-    @classmethod
-    def setUpClass(cls):
-        # regenerate test filesystems
-        cmd = os.path.join(UTILSDIR, "create_testfs.sh") + " -w " + UTILSDIR \
-              + " -d " + IMAGEDIR + " -u -s '-stable1'"
-        subprocess.call(cmd, stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        shell=True)
-
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def test_write_from_file(self):
+    def test_write_from_file(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliClusterAllocation.image_paths:
+        for img_path in testfs_fat_stable1:
             # write metadata
             args = ["fishy", "-d", img_path, "addcluster", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -228,15 +180,15 @@ class TestCliClusterAllocation(unittest.TestCase):
             with open(metadata_file) as metaf:
                 metafcontent = json.loads(metaf.read())
             filecount = len(metafcontent['files'])
-            self.assertEqual(filecount, 1)
+            assert filecount == 1
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
 
-    def test_write_from_stdin(self):
+    def test_write_from_stdin(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         metadata_file = tempfile.NamedTemporaryFile().name
-        for img_path in TestCliClusterAllocation.image_paths:
+        for img_path in testfs_fat_stable1:
             # write metadata
             args = ["fishy", "-d", img_path, "addcluster", "-w", "-d",
                     "another", "-m", metadata_file]
@@ -255,17 +207,17 @@ class TestCliClusterAllocation(unittest.TestCase):
             with open(metadata_file) as metaf:
                 metafcontent = json.loads(metaf.read())
             filecount = len(metafcontent['files'])
-            self.assertEqual(filecount, 1)
+            assert filecount == 1
         # remove testfiles
         os.remove(metadata_file)
 
-    def test_read_stdout(self):
+    def test_read_stdout(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliClusterAllocation.image_paths:
+        for img_path in testfs_fat_stable1:
             # write someting we want to read
             args = ["fishy", "-d", img_path, "addcluster", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -278,19 +230,19 @@ class TestCliClusterAllocation(unittest.TestCase):
             # compare stdout output with string we gave as input
             with CaptureStdout() as output:
                 cli.main()
-            self.assertEqual(output[0].decode('utf-8'), teststring)
+            assert output[0].decode('utf-8') == teststring
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
 
-    def test_read_outfile(self):
+    def test_read_outfile(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         outfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliClusterAllocation.image_paths:
+        for img_path in testfs_fat_stable1:
             # write someting we want to read
             args = ["fishy", "-d", img_path, "addcluster", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -303,19 +255,19 @@ class TestCliClusterAllocation(unittest.TestCase):
             cli.main()
             with open(outfilepath, 'r') as outfile:
                 result = outfile.read()
-                self.assertEqual(result, teststring)
+                assert result == teststring
         # remove testfiles
         os.remove(testfilepath)
         os.remove(metadata_file)
         os.remove(outfilepath)
 
-    def test_clear(self):
+    def test_clear(self, testfs_fat_stable1):
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
-        for img_path in TestCliClusterAllocation.image_paths:
+        for img_path in testfs_fat_stable1:
             # write something we want to clear
             args = ["fishy", "-d", img_path, "addcluster", "-w", "-d",
                     "another", "-m", metadata_file, testfilepath]
@@ -329,7 +281,7 @@ class TestCliClusterAllocation(unittest.TestCase):
             args = ["fishy", "-d", img_path, "addcluster", "-r", "-m",
                     metadata_file, testfilepath]
             sys.argv = args
-            with self.assertRaises(Exception):
+            with pytest.raises(Exception):
                 cli.main()
         # remove testfiles
         os.remove(testfilepath)

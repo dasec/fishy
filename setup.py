@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 
 from setuptools import setup, find_packages
-import unittest
 
-
-def tests():
-    test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover('.', pattern='test_*.py')
-    return test_suite
 
 setup(
     name='fishy',
@@ -23,5 +17,6 @@ setup(
         "construct",
         "pytsk3",
     ],
-    test_suite='setup.tests',
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
 )
