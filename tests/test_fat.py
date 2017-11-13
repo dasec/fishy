@@ -180,28 +180,25 @@ class TestGetRootDirEntries(object):
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
             counter = 0
-            for _, lfn in fatfs.get_root_dir_entries():
-                if lfn != "":
-                    assert lfn == self.expected_entries[counter]
-                    counter += 1
+            for entry in fatfs.get_root_dir_entries():
+                assert entry.get_name() == self.expected_entries[counter]
+                counter += 1
 
     def test_get_root_dir_entries_fat16(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[1], 'rb') as img_stream:
             fatfs = fat_16.FAT16(img_stream)
             counter = 0
-            for _, lfn in fatfs.get_root_dir_entries():
-                if lfn != "":
-                    assert lfn == self.expected_entries[counter]
-                    counter += 1
+            for entry in fatfs.get_root_dir_entries():
+                assert entry.get_name() == self.expected_entries[counter]
+                counter += 1
 
     def test_get_root_dir_entries_fat32(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[2], 'rb') as img_stream:
             fatfs = fat_32.FAT32(img_stream)
             counter = 0
-            for _, lfn in fatfs.get_root_dir_entries():
-                if lfn != "":
-                    assert lfn == self.expected_entries[counter]
-                    counter += 1
+            for entry in fatfs.get_root_dir_entries():
+                assert entry.get_name() == self.expected_entries[counter]
+                counter += 1
 
 
 class TestWriteFatEntry_FAT12(object):
@@ -325,17 +322,17 @@ class TestFindFile(object):
                 fatfs = create_fat(img_stream)
                 result = fatfs.find_file("long_file.txt")
                 # check for file attibutes
-                assert result.name == b'LONG_F~1'
-                assert result.extension == b'TXT'
-                assert not result.attributes.unused
-                assert not result.attributes.device
-                assert result.attributes.archive
-                assert not result.attributes.subDirectory
-                assert not result.attributes.volumeLabel
-                assert not result.attributes.system
-                assert not result.attributes.hidden
-                assert not result.attributes.readonly
-                assert result.fileSize == 8001
+                assert result.parsed.name == b'LONG_F~1'
+                assert result.parsed.extension == b'TXT'
+                assert not result.parsed.attributes.unused
+                assert not result.parsed.attributes.device
+                assert result.parsed.attributes.archive
+                assert not result.parsed.attributes.subDirectory
+                assert not result.parsed.attributes.volumeLabel
+                assert not result.parsed.attributes.system
+                assert not result.parsed.attributes.hidden
+                assert not result.parsed.attributes.readonly
+                assert result.parsed.fileSize == 8001
 
     def test_find_non_existing(self, testfs_fat_stable1):
         # Test finding a non existing file

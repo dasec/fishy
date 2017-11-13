@@ -7,7 +7,7 @@ import typing as typ
 from abc import ABCMeta, abstractmethod
 from io import BytesIO, BufferedReader
 from construct import Struct, Array, Bytes
-from .dir_entry import DIR_ENTRY, LFN_ENTRY
+from .dir_entry import DirEntry, LFNEntries
 
 
 LOGGER = logging.getLogger("FATFilesystem")
@@ -21,7 +21,7 @@ class NoFreeClusterAvailableError(Exception):
     pass
 
 
-class FAT:
+class FAT:  # pylint: disable=too-many-instance-attributes
     """
     Abstract base class of all FAT filesystem types.
     """
@@ -39,6 +39,7 @@ class FAT:
         self.start_dataregion = stream.tell()
         self._fat_entry = None
         self.entries_per_fat = None
+        self.fat_type = None
 
     @abstractmethod
     def get_cluster_value(self, cluster_id: int) -> int:
@@ -213,36 +214,35 @@ class FAT:
         raise NotImplementedError
 
     def get_root_dir_entries(self) \
-            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
+            -> typ.Generator[DirEntry, None, None]:
         """
         iterator for reading the root directory
         """
-        for dir_entry, lfn in self._get_dir_entries(0):
-            yield (dir_entry, lfn)
+        yield from self._get_dir_entries(0)
 
     def get_dir_entries(self, cluster_id: int) \
-            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
+            -> typ.Generator[DirEntry, None, None]:
         """
         iterator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse
-        :return: tuple of (DIR_ENTRY, lfn)
+        :return: generator for DirEntry
         :raises: IOError
         """
         try:
-            for dir_entry, lfn in self._get_dir_entries(cluster_id):
-                yield (dir_entry, lfn)
+            yield from self._get_dir_entries(cluster_id)
         except IOError:
-            LOGGER.warning("failed to read directory entries at %s", cluster_id)
+            LOGGER.warning("failed to read directory entries at %s",
+                           cluster_id)
 
     def _get_dir_entries(self, cluster_id: int) \
-            -> typ.Generator[typ.Tuple[Struct, str], None, None]:
+            -> DirEntry:
         """
         generator for reading a cluster as directory and parse its content
         :param cluster_id: int, cluster to parse,
                            if cluster_id == 0, parse rootdir
-        :return: tuple of (DIR_ENTRY, lfn)
+        :return: DirEntry
         """
-        lfn = ''
+        lfn_entries = LFNEntries()
         with BytesIO() as mem:
             # create an IO stream, to write the directory in it
             if cluster_id == 0:
@@ -256,74 +256,55 @@ class FAT:
                 while reader.peek(1):
                     # read 32 bit into variable
                     raw = reader.read(32)
-                    # parse as DIR_ENTRY
-                    dir_entry = DIR_ENTRY.parse(raw)
-                    attr = dir_entry.attributes
-                    # If LFN attributes are set, parse it as LFN_ENTRY instead
-                    if attr.volumeLabel and attr.system and attr.hidden and attr.readonly:
-                        # if lfn attributes set, convert it to lfnEntry
-                        # and save it for later use
-                        dir_entry = LFN_ENTRY.parse(raw)
-                        lfnpart = dir_entry.name1 + dir_entry.name2 + dir_entry.name3
-
-                        # remove non-chars after padding
-                        retlfn = b''
-                        for i in range(int(len(lfnpart) / 2)):
-                            i *= 2
-                            next_bytes = lfnpart[i:i+2]
-                            if next_bytes != b'\x00\x00':
-                                retlfn += next_bytes
-                            else:
-                                break
-                        # append our lfn part to the global lfn, that will
-                        # later used as the filename
-                        lfn = retlfn.decode('utf-16') + lfn
+                    # stop if we read less than 32 byte
+                    if len(raw) < 32:
+                        raise StopIteration()
+                    # parse as DirEntry
+                    dir_entry = DirEntry(raw, self.fat_type)
+                    # If dir entry is completely empty, skip it
+                    if dir_entry.is_empty():
+                        continue
+                    # If it is a lfn entry, store it for later assignment to
+                    # its physical entry
+                    if dir_entry.is_lfn():
+                        lfn_entries.append(dir_entry)
                     else:
-                        retlfn = lfn
-                        lfn = ''
-                        # add start_cluster attribute for convenience
-                        dir_entry.start_cluster = int.from_bytes(dir_entry.firstCluster,
-                                                                 byteorder='little')
-                        yield (dir_entry, retlfn)
+                        dir_entry.lfn_name = lfn_entries.get_name()
+                        lfn_entries.clear()
+                        yield dir_entry
 
-    def find_file(self, filepath: str) -> DIR_ENTRY:
+    def find_file(self, filepath: str) -> DirEntry:
         """
         returns the directory entry for a given filepath
         :param filepath: string, filepath to the file
-        :return: DIR_ENTRY of the requested file
+        :return: DirEntry of the requested file
         """
         # build up filepath as directory and
         # reverse it so, that we can simple
         # pop all filepath parts from it
         path = filepath.split('/')
         path = list(reversed(path))
-        # read root directory and append all entries
-        # as a tuple of (entry, lfn), that have a non
-        # empty lfn
-        # TODO: This excludes filesystems without long
-        #       filename extension. Should we support
-        #       them?
+        # read root directory and append all file entries
         current_directory = []
-        for entry, lfn in self.get_root_dir_entries():
-            if lfn != "":
-                current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
+        for entry in self.get_root_dir_entries():
+            current_directory.append(entry)  # pylint: disable=bad-whitespace
 
         while path:
             fpart = path.pop()
 
             # scan current directory for filename
             filename_found = False
-            for entry, lfn in current_directory:
-                if lfn == fpart:
+            for entry in current_directory:
+                if entry.get_name() == fpart:
                     filename_found = True
                     break
             if not filename_found:
                 raise Exception("File or directory '%s' not found" % fpart)
 
-            # if it is a subdirectory, enter it
-            if entry.attributes.subDirectory and path:
+            # if it is a subdirectory and not the last name, enter it
+            if entry.is_dir() and path:
                 current_directory = []
-                for entry, lfn in self.get_dir_entries(entry.start_cluster):
-                    if lfn != "":
-                        current_directory.append( (entry, lfn) )  # pylint: disable=bad-whitespace
+                for entry in self.get_dir_entries(entry.get_start_cluster()):
+                    if entry.is_file():
+                        current_directory.append(entry)  # pylint: disable=bad-whitespace
         return entry

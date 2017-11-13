@@ -12,6 +12,7 @@ from fishy.fat.file_slack import FileSlack
 class TestFileWalk:
     def test_file_walk(self, testfs_fat_stable1):
         for img_path in testfs_fat_stable1:
+            print("IMAGE:", img_path)
             with open(img_path, 'rb') as img_stream:
                 # create FileSlack object
                 fatfs = FileSlack(img_stream)
@@ -25,17 +26,17 @@ class TestFileWalk:
                 # unpack that file into result
                 result = result[0]
                 # check for file attibutes
-                assert result.name == b'AFILEI~1'
-                assert result.extension == b'TXT'
-                assert not result.attributes.unused
-                assert not result.attributes.device
-                assert result.attributes.archive
-                assert not result.attributes.subDirectory
-                assert not result.attributes.volumeLabel
-                assert not result.attributes.system
-                assert not result.attributes.hidden
-                assert not result.attributes.readonly
-                assert result.fileSize == 11
+                assert result.parsed.name == b'AFILEI~1'
+                assert result.parsed.extension == b'TXT'
+                assert not result.parsed.attributes.unused
+                assert not result.parsed.attributes.device
+                assert result.parsed.attributes.archive
+                assert not result.parsed.attributes.subDirectory
+                assert not result.parsed.attributes.volumeLabel
+                assert not result.parsed.attributes.system
+                assert not result.parsed.attributes.hidden
+                assert not result.parsed.attributes.readonly
+                assert result.parsed.fileSize == 11
 
     def test_file_walk_nondir(self, testfs_fat_stable1):
         for img_path in testfs_fat_stable1:

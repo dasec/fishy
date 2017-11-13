@@ -99,11 +99,12 @@ class ClusterAllocator:
         metadata = AllocatorMetadata()
         # get last cluster of the file we want to use
         file_entry = self.fatfs.find_file(filepath)
-        assert not file_entry.attributes.subDirectory, \
+        assert not file_entry.is_dir(), \
             "Can't allocate additional clusters for a directory"
-        assert not file_entry.start_cluster < 2, \
+        assert not file_entry.get_start_cluster() < 2, \
             "File has no clusters allocated"
-        last_cluster = self.fatfs.follow_cluster(file_entry.start_cluster).pop()
+        start_cluster = file_entry.get_start_cluster()
+        last_cluster = self.fatfs.follow_cluster(start_cluster).pop()
         metadata.set_original_last_cluster(last_cluster)
         LOGGER.info("last cluster of file '%s' is cluster_id %d", filepath,
                     last_cluster)

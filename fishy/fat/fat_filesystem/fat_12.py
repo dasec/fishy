@@ -23,7 +23,7 @@ example to print all root directory entries
 import typing as typ
 from construct import Struct, Array, Padding, Embedded, Bytes, this
 from .bootsector import FAT12_16_BOOTSECTOR
-from .dir_entry import DIR_ENTRY
+from .dir_entry import DIR_ENTRY_DEFINITION as DIR_ENTRY
 from .fat import FAT
 from .fat_entry import FAT12Entry
 
@@ -51,6 +51,7 @@ class FAT12(FAT):
                                    * self.pre.sector_size
                                    * 8 / 12)
         self._fat_entry = FAT12Entry
+        self.fat_type = 'FAT12'
 
     def get_cluster_value(self, cluster_id: int) -> typ.Union[int, str]:
         """

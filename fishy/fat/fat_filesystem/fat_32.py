@@ -49,6 +49,7 @@ class FAT32(FAT):
                                    * self.pre.sector_size
                                    / 4)
         self._fat_entry = FAT32Entry
+        self.fat_type = 'FAT32'
 
     def get_cluster_value(self, cluster_id: int) -> typ.Union[int, str]:
         """
@@ -112,4 +113,3 @@ class FAT32(FAT):
         # re-read pre_data_region
         self.stream.seek(self.offset)
         self.pre = FAT32_PRE_DATA_REGION.parse_stream(self.stream)
-

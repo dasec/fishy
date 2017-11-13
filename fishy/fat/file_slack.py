@@ -26,9 +26,8 @@ to wipe slackspace of a file:
 
 import logging
 import typing as typ
-from construct import Struct
 from .fat_filesystem.fat_wrapper import create_fat
-from .fat_filesystem.dir_entry import DIR_ENTRY
+from .fat_filesystem.dir_entry import DirEntry
 
 LOGGER = logging.getLogger("fat-file-slack")
 
@@ -78,36 +77,33 @@ class FileSlack:
         self.fatfs = create_fat(stream)
         self.stream = stream
 
-    def _file_walk(self, directory: Struct) -> \
-            typ.Generator[Struct, None, None]:
+    def _file_walk(self, directory: DirEntry) -> \
+            typ.Generator[DirEntry, None, None]:
         """
         get file entries of directories recusively
         :param directory: entry point; needs to be a directory
         :returns: generator that traverses file entries of directories
                   recursively
         """
-        assert directory.attributes.subDirectory, \
-            "supplied entry is not a directory"
+        assert directory.is_dir(), "supplied entry is not a directory"
         if directory is not None:
-            start_dir = directory.start_cluster
-        for entry, lfn in self.fatfs.get_dir_entries(start_dir):
-            if lfn == "":
-                # skip entries if they dont have a long filename
-                # this excludes all dot entries, but also all other entries
-                # that were written without a lfn
+            start_dir = directory.get_start_cluster()
+        for entry in self.fatfs.get_dir_entries(start_dir):
+            if entry.is_dot_entry():
+                # skip dot entries
                 continue
-            if entry.attributes.subDirectory:
+            if entry.is_dir():
                 # recurse into subdirectory
                 yield from self._file_walk(entry)
             else:
                 # exclude all file entries that dont allocate any cluster
-                if entry.start_cluster > 1:
+                if entry.get_start_cluster() > 1:
                     yield entry
 
-    def calculate_slack_space(self, entry: DIR_ENTRY) -> typ.Tuple[int, int]:
+    def calculate_slack_space(self, entry: DirEntry) -> typ.Tuple[int, int]:
         """
-        calculates the slack space for a given DIR_ENTRY
-        :param entry: DIR_ENTRY, directory entry of the file
+        calculates the slack space for a given DirEntry
+        :param entry: DirEntry, directory entry of the file
         :return: tuple of (occupation, free_slack), whereas occupation
                  is the occupied size of the last cluster by the file.
                  And free_slack is the size of the slack space
@@ -117,7 +113,7 @@ class FileSlack:
             self.fatfs.pre.sectors_per_cluster
         # calculate of many bytes the original file
         # occupies in this cluster
-        occupied_by_file = entry.fileSize % cluster_size
+        occupied_by_file = entry.get_filesize() % cluster_size
         # calculate ram slack (how many free bytes remain for)
         # this sector. As at least under linux (no other os tested)
         # padds ram slack with zeros, we should not write into this
@@ -130,7 +126,7 @@ class FileSlack:
         return (occupied_by_file, ram_slack, free_slack)
 
     def _get_writable_file(self, filepaths: typ.List[str]) \
-            -> typ.Generator[Struct, None, None]:
+            -> typ.Generator[DirEntry, None, None]:
         """
         get the next writable file out of a filepaths list, while also
         traversing into subdirectories, if some appear in that list
@@ -142,7 +138,7 @@ class FileSlack:
         filepaths = list(set(filepaths))
         for filepath in filepaths:
             entry = self.fatfs.find_file(filepath)
-            if entry.attributes.subDirectory:
+            if entry.is_dir():
                 # if the user supplied path is a directory, we will use all
                 # files from it as possible files where we can exploit file
                 # slack. Attention: This might be a place, where files can
@@ -172,7 +168,7 @@ class FileSlack:
                 # dont do anything, if we dont have files anymore
                 break
             occupied, ram_slack, free_slack = self.calculate_slack_space(entry)
-            if free_slack == 0 or entry.start_cluster < 2:
+            if free_slack == 0 or entry.get_start_cluster() < 2:
                 # if current entry has no slack space, continue with next entry
                 continue
             written_bytes, cluster_id = self._write_to_slack(instream, entry)
@@ -186,7 +182,7 @@ class FileSlack:
                           + " still %d Bytes in stream" % len(instream.peek()))
         return metadata
 
-    def _write_to_slack(self, instream: typ.BinaryIO, entry: DIR_ENTRY) \
+    def _write_to_slack(self, instream: typ.BinaryIO, entry: DirEntry) \
             -> typ.Tuple[int, int]:
         """
         writes from instream into slackspace of filename
@@ -200,7 +196,7 @@ class FileSlack:
         bufferv = instream.read(free_slack)
         LOGGER.info("%d bytes read from instream", len(bufferv))
         # find position where we can start writing data
-        last_cluster = self.fatfs.follow_cluster(entry.start_cluster).pop()
+        last_cluster = self.fatfs.follow_cluster(entry.get_start_cluster()).pop()
         last_cluster_start = self.fatfs.get_cluster_start(last_cluster)
         self.stream.seek(last_cluster_start + occupied + ram_slack)
         # write bytes into stream
