@@ -43,9 +43,9 @@ class FATtools:
             else:
                 dot = ' '
             print(filetype, deleted, dot,
-                    str(entry.get_start_cluster()).ljust(8),
-                    str(entry.get_filesize()).ljust(8),
-                    entry.get_name()
+                  str(entry.get_start_cluster()).ljust(8),
+                  str(entry.get_filesize()).ljust(8),
+                  entry.get_name()
                  )
 
     def list_fat(self):
