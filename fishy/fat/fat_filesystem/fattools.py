@@ -26,26 +26,27 @@ class FATtools:
             dir_iterator = self.fat.get_root_dir_entries()
         else:
             dir_iterator = self.fat.get_dir_entries(cluster_id)
-        for entry, lfn in dir_iterator:
-            if lfn != "":
-                # get correct filetype
-                if entry.attributes.subDirectory:
-                    filetype = 'd'
-                else:
-                    filetype = 'f'
-                # check if file is marked as deleted
-                if entry.name[0] == 0xe5 or entry.name[0] == 0x05:
-                    deleted = 'd'
-                else:
-                    deleted = ' '
-                # check if it is a dot entry
-                if entry.name[0] == 0x2e:
-                    dot = '.'
-                else:
-                    dot = ' '
-                print(filetype, deleted, dot,
-                      str(entry.start_cluster).ljust(8),
-                      str(entry.fileSize).ljust(8), lfn)
+        for entry in dir_iterator:
+            # get correct filetype
+            if entry.is_dir():
+                filetype = 'd'
+            else:
+                filetype = 'f'
+            # check if file is marked as deleted
+            if entry.is_deleted():
+                deleted = 'd'
+            else:
+                deleted = ' '
+            # check if it is a dot entry
+            if entry.is_dot_entry():
+                dot = '.'
+            else:
+                dot = ' '
+            print(filetype, deleted, dot,
+                    str(entry.get_start_cluster()).ljust(8),
+                    str(entry.get_filesize()).ljust(8),
+                    entry.get_name()
+                 )
 
     def list_fat(self):
         """

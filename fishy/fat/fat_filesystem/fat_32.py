@@ -15,9 +15,8 @@ example to print all fat entries
 >>>         print(i,fs.get_cluster_value(i))
 
 example to print all root directory entries
->>>     for i,v in fs.get_root_dir_entries():
->>>         if v != "":
->>>             print(v, i.start_cluster)
+>>>     for entry in fs.get_root_dir_entries():
+>>>         print(entry.get_start_cluster())
 
 """
 import typing as typ

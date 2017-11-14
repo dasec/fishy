@@ -105,6 +105,12 @@ class DirEntry(object):
         """
         return self.byte_representation == b'\x00' * 32
 
+    def is_deleted(self) -> bool:
+        """
+        checks if this directory entry is marked as deleted
+        """
+        return self.parsed.name[0] == 0xe5
+
     def is_lfn(self) -> bool:
         """
         checks if this entry is a long filename entry
@@ -179,8 +185,8 @@ class DirEntry(object):
                 # if this dir entry has its lfn_name set, return it
                 return self.lfn_name
             # if this dir entry has no lfn use its name field
-            name = self._reconstruct_name().decode('ascii').rstrip(' ')
-            extension = self.parsed.extension.decode('ascii').rstrip(' ')
+            name = self._reconstruct_name().decode('utf-8').rstrip(' ')
+            extension = self.parsed.extension.decode('utf-8').rstrip(' ')
             if extension != "":
                 return name + "." + extension
             return name
