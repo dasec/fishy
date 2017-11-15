@@ -3,7 +3,7 @@ from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG
 
 
 class FileSlackMetadata:
-        """ meta data class for ntfs slack """
+    """ meta data class for ntfs slack """
     def __init__(self, d=None):
         """
         :param d: dict, dictionary representation of a FileSlackMetadata
@@ -33,21 +33,21 @@ class FileSlackMetadata:
 
 
 class slackSpace:
-        """ class for slack space objects"""
+    """ class for slack space objects"""
     def __init__(self, size, addr):
         self.size = size
         self.addr = addr
 
 
 class fileLoc:
-        """ class for single file location """
+    """ class for single file location """
     def __init__(self, addr, size):
         self.size = size
         self.addr = addr
 
 
 class fileInSlack:
-        """ class file in slack with list of locations """
+    """ class file in slack with list of locations """
     def __init__(self, name, size, ):
         self.lockList = []
         self.name = name
@@ -55,7 +55,7 @@ class fileInSlack:
 
 
 class NtfsSlack:
-        """ class for ntfs slack operations """
+    """ class for ntfs slack operations """
     def __init__(self, stream):
         self.stream = stream
         self.instream = None
