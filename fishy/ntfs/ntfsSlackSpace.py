@@ -1,5 +1,4 @@
 from .ntfsSlack import NtfsSlack
-from .ntfsSlack import FileSlackMetadata
 
 class NTFSFileSlack:
     def __init__(self, stream):
