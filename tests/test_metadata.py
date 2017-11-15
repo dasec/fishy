@@ -1,4 +1,7 @@
 # pylint: disable=missing-docstring
+"""
+This file contains tests against fishy.metadata
+"""
 import json
 import tempfile
 import unittest
@@ -6,12 +9,17 @@ from fishy.metadata import Metadata, InformationMissingError
 
 
 class StubMetadata:  # pylint: disable=too-few-public-methods
+    """
+    stub metadata class to test serialization of hiding technique metadata
+    """
     def __init__(self):
         self.information = [1, 2, 3]
 
 
 class TestMetadataClass(unittest.TestCase):
+    """ Tests against metadata class """
     def test_module_identifier(self):
+        """ Test if setting and getting the module identifier works """
         # Test get_module without initializing module identifier
         meta = Metadata()
         self.assertEqual(meta.get_module(), 'main')
@@ -26,6 +34,7 @@ class TestMetadataClass(unittest.TestCase):
             meta.set_module('should-not-change')
 
     def test_get_metadata_main(self):
+        """ Test if setting and getting values from main context works """
         # Test if we can get and set attributes in main context
         meta = Metadata()
         meta.set("random", "foo")
@@ -43,12 +52,14 @@ class TestMetadataClass(unittest.TestCase):
             meta.set("random", "foo")
 
     def test_get_nonexisting_file(self):
+        """ Test if getting a non existing file entry fails as expected """
         # Test access to a file providing a file_id, that does not exist
         meta = Metadata()
         with self.assertRaises(KeyError):
             meta.get_file("42")
 
     def test_add_file(self):
+        """ Test if adding a file works """
         # Adding a file with filename
         meta = Metadata('test-module')
         meta.add_file("testfile", StubMetadata())
@@ -65,6 +76,7 @@ class TestMetadataClass(unittest.TestCase):
                          {'information': [1, 2, 3]})
 
     def test_write(self):
+        """ Test if serialization of the metadata class works """
         tmpfile = tempfile.NamedTemporaryFile(mode='w+')
         meta = Metadata()
         # Test writing if module identifier is missing
@@ -88,6 +100,7 @@ class TestMetadataClass(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_read(self):
+        """ Test if deserialization from a serialized metadata class works """
         tmpfile = tempfile.NamedTemporaryFile(mode='w+')
         meta = Metadata('test-module')
         meta.add_file("testfile", StubMetadata())

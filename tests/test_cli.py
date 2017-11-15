@@ -1,4 +1,7 @@
 # pylint: disable=missing-docstring
+"""
+These tests run against fishy.cli while simulating calls via command line.
+"""
 import io
 import json
 import os
@@ -9,6 +12,15 @@ from fishy import cli
 
 
 class CaptureStdout(list):
+    """
+    capture stdout output of a function into a list
+
+    usage:
+        >>> with CaptureStdout() as output:
+        >>>     cli.main()
+        >>> output[0]
+        b'the cli output'
+    """
     def __enter__(self):
         self._stdout = sys.stdout  # pylint: disable=attribute-defined-outside-init
         self._bytestream = io.BytesIO()  # pylint: disable=attribute-defined-outside-init
@@ -27,8 +39,13 @@ class CaptureStdout(list):
 
 
 class TestCliFileSlack(object):
+    """ test fileslack subcommand """
 
     def test_write_fileslack_from_file(self, testfs_fat_stable1):
+        """
+        Test if writing from a file into the slackspace of a given
+        destination works.
+        """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         testfilename = os.path.basename(testfilepath)
@@ -55,6 +72,10 @@ class TestCliFileSlack(object):
         os.remove(metadata_file)
 
     def test_write_fileslack_from_stdin(self, testfs_fat_stable1):
+        """
+        Test if writing fro stdin into the slackspace of a given destination
+        works.
+        """
         teststring = "Small test for CLI"
         metadata_file = tempfile.NamedTemporaryFile().name
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
@@ -84,6 +105,7 @@ class TestCliFileSlack(object):
         os.remove(metadata_file)
 
     def test_read_fileslack_stdout(self, testfs_fat_stable1):
+        """ Test if reading from fileslack into stdout works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
@@ -108,6 +130,7 @@ class TestCliFileSlack(object):
         os.remove(metadata_file)
 
     def test_read_fileslack_outfile(self, testfs_fat_stable1):
+        """ Test if reading from slackspace into a given output file works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         outfilepath = tempfile.NamedTemporaryFile().name
@@ -134,6 +157,7 @@ class TestCliFileSlack(object):
         os.remove(outfilepath)
 
     def test_clear_fileslack(self, testfs_fat_stable1):
+        """ Test if clearing the slackspace works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
@@ -163,8 +187,10 @@ class TestCliFileSlack(object):
 
 
 class TestCliClusterAllocation(object):
+    """ test addcluster subcommand """
 
     def test_write_from_file(self, testfs_fat_stable1):
+        """ Test if writing from from a file into additional clusters works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
@@ -186,6 +212,7 @@ class TestCliClusterAllocation(object):
         os.remove(metadata_file)
 
     def test_write_from_stdin(self, testfs_fat_stable1):
+        """ Test if writing from from stdin into additional clusters works """
         teststring = "Small test for CLI"
         metadata_file = tempfile.NamedTemporaryFile().name
         for img_path in testfs_fat_stable1:
@@ -212,6 +239,7 @@ class TestCliClusterAllocation(object):
         os.remove(metadata_file)
 
     def test_read_stdout(self, testfs_fat_stable1):
+        """ Test if reading from additional clusters to stdout works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name
@@ -236,6 +264,10 @@ class TestCliClusterAllocation(object):
         os.remove(metadata_file)
 
     def test_read_outfile(self, testfs_fat_stable1):
+        """
+        Test if reading from additional clusters to a given output file
+        works.
+        """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         outfilepath = tempfile.NamedTemporaryFile().name
@@ -262,6 +294,7 @@ class TestCliClusterAllocation(object):
         os.remove(outfilepath)
 
     def test_clear(self, testfs_fat_stable1):
+        """ Test if clearing additional clusters works """
         teststring = "Small test for CLI"
         testfilepath = tempfile.NamedTemporaryFile().name
         metadata_file = tempfile.NamedTemporaryFile().name

@@ -1,11 +1,17 @@
 # pylint: disable=missing-docstring, protected-access
+"""
+These tests run against fishy.fat.cluster_allocator which implements the
+additional cluster allocation hiding technique for FAT filesystems
+"""
 import io
 import pytest
 from fishy.fat.cluster_allocator import ClusterAllocator
 
 
 class TestWrite(object):
+    """ Test write method """
     def test_write_single_cluster(self, testfs_fat_stable1):
+        """ Test if writing to a single additional cluster works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object
@@ -23,6 +29,7 @@ class TestWrite(object):
                                 == expected_start_cluster
 
     def test_write_directory(self, testfs_fat_stable1):
+        """ Test if writing to a directory fails """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object
@@ -36,6 +43,7 @@ class TestWrite(object):
                             fatfs.write(reader, 'onedirectory')
 
     def test_write_no_cluster(self, testfs_fat_stable1):
+        """ Test if writing to a file without allocated clusters fails """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object
@@ -50,7 +58,9 @@ class TestWrite(object):
                                         + 'iwanttoreadcorrectly.txt')
 
 class TestRead(object):
+    """ Test read method """
     def test_read(self, testfs_fat_stable1):
+        """ Test if reading from a single additional cluster works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object
@@ -71,6 +81,7 @@ class TestRead(object):
                     assert result.decode('utf-8') == teststring
 
     def test_read_multi_cluster(self, testfs_fat_stable1):
+        """ Test if reading from multiple additional clusters works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object
@@ -91,6 +102,7 @@ class TestRead(object):
 
 class TestClean(object):
     def test_clean(self, testfs_fat_stable1):
+        """ Test if cleaning additional clusters works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create Allocator object

@@ -12,7 +12,9 @@ from fishy.fat.fat_filesystem import fat_32
 
 
 class TestPreDataRegion(object):
+    """ Tests for parsing FAT predata region """
     def test_parse_predata_fat12(self, testfs_fat_stable1):
+        """ Test if parsing the predata region for FAT12 works """
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
             assert fatfs.pre.sector_size == 512
@@ -23,6 +25,7 @@ class TestPreDataRegion(object):
             assert fatfs.pre.sectors_per_fat == 2
 
     def test_parse_predata_fat16(self, testfs_fat_stable1):
+        """ Test if parsing the predata region for FAT16 works """
         with open(testfs_fat_stable1[1], 'rb') as img_stream:
             fatfs = fat_16.FAT16(img_stream)
             assert fatfs.pre.sector_size == 512
@@ -33,6 +36,7 @@ class TestPreDataRegion(object):
             assert fatfs.pre.sectors_per_fat == 52
 
     def test_parse_predata_fat32(self, testfs_fat_stable1):
+        """ Test if parsing the predata region for FAT32 works """
         with open(testfs_fat_stable1[2], 'rb') as img_stream:
             fatfs = fat_32.FAT32(img_stream)
             assert fatfs.pre.sector_size == 512
@@ -48,6 +52,7 @@ class TestPreDataRegion(object):
             assert fatfs.pre.bootsector_copy_sector == 6
 
 class TestGetClusterValue(object):
+    """ Test if getting the value of a FAT entry works """
     def test_get_cluster_value_fat12(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
@@ -85,6 +90,7 @@ class TestGetClusterValue(object):
             assert fatfs.get_cluster_value(7) == 'last_cluster'
 
 class TestGetFreeCluster(object):
+    """ test if getting a free cluster via the FAT works """
     def test_get_free_cluster_fat12(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
@@ -104,6 +110,7 @@ class TestGetFreeCluster(object):
             assert result == 13
 
 class TestFollowCluster(object):
+    """ Test if listing the cluster chain for a given cluster_id works"""
     def test_follow_cluster_fat12(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
@@ -129,6 +136,7 @@ class TestFollowCluster(object):
                 result = fatfs.follow_cluster(50)
 
 class TestClusterToStream(object):
+    """ Test if writing the content of a cluster to a stream works """
     def test_cluster_to_stream_fat12(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[0], 'rb') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
@@ -168,6 +176,7 @@ class TestClusterToStream(object):
 
 
 class TestGetRootDirEntries(object):
+    """ Test if getting root directory entries works """
     expected_entries = ['another',
                         'areallylongfilenamethatiwanttoreadcorrectly.txt',
                         'long_file.txt',
@@ -202,6 +211,7 @@ class TestGetRootDirEntries(object):
 
 
 class TestWriteFatEntry_FAT12(object):
+    """ Test if writing FAT entries works for FAT12 """
     def test_write_fat_entry_fat12_even(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[0], 'rb+') as img_stream:
             fatfs = fat_12.FAT12(img_stream)
@@ -255,6 +265,7 @@ class TestWriteFatEntry_FAT12(object):
 
 
 class TestWriteFatEntry_FAT16(object):
+    """ Test if writing FAT entries works for FAT16 """
     def test_write_fat_entry_fat16(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[1], 'rb+') as img_stream:
             fatfs = fat_16.FAT16(img_stream)
@@ -285,6 +296,7 @@ class TestWriteFatEntry_FAT16(object):
                 fatfs.write_fat_entry(2, 0xfff7)
 
 class TestWriteFatEntry_FAT32(object):
+    """ Test if writing FAT entries works for FAT32 """
     def test_write_fat_entry_fat32(self, testfs_fat_stable1):
         with open(testfs_fat_stable1[2], 'rb+') as img_stream:
             fatfs = fat_32.FAT32(img_stream)
@@ -315,6 +327,7 @@ class TestWriteFatEntry_FAT32(object):
                 fatfs.write_fat_entry(2, 0xffffff7)
 
 class TestFindFile(object):
+    """ Test if finding a file via a given filepath works """
     def test_find_file(self, testfs_fat_stable1):
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb') as img_stream:

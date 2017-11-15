@@ -1,4 +1,8 @@
 # pylint: disable=missing-docstring, protected-access
+"""
+This file contains tests against fishy.fat.file_slack, which implements the
+fileslack hiding technique for FAT filesystems
+"""
 import io
 import os
 import shutil
@@ -10,7 +14,9 @@ from fishy.fat.file_slack import FileSlack
 
 
 class TestFileWalk:
+    """ Test recursive file listing """
     def test_file_walk(self, testfs_fat_stable1):
+        """ Test if file_walk works in a simple case """
         for img_path in testfs_fat_stable1:
             print("IMAGE:", img_path)
             with open(img_path, 'rb') as img_stream:
@@ -21,7 +27,7 @@ class TestFileWalk:
                 result = []
                 for file_entry in fatfs._file_walk(entry):
                     result.append(file_entry)
-                # Assume that we only found 1 file
+                # Assume that we only found 2 file
                 assert len(result) == 2
                 # unpack that file into result
                 result = result[0]
@@ -39,6 +45,7 @@ class TestFileWalk:
                 assert result.parsed.fileSize == 11
 
     def test_file_walk_nondir(self, testfs_fat_stable1):
+        """ Test if file_walk fails if given DirEntry is not a directory """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb') as img_stream:
                 # create FileSlack object
@@ -49,7 +56,9 @@ class TestFileWalk:
                     next(next_file)
 
 class TestWrite:
+    """ Test writing into the slack space """
     def test_write_file(self, testfs_fat_stable1):
+        """" Test writing a file into root directory """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
@@ -68,6 +77,7 @@ class TestWrite:
                             fatfs.write(reader, ['no_free_slack.txt'])
 
     def test_write_file_in_subdir(self, testfs_fat_stable1):
+        """ Test writing a file into a subdirectory """
         # only testing fat12 as resulting cluster_id of different fat
         # versions differs
         img_path = testfs_fat_stable1[0]
@@ -86,6 +96,7 @@ class TestWrite:
                     assert result.clusters, [(13, 512 == 28)]
 
     def test_write_file_autoexpand_subdir(self, testfs_fat_stable1):  # pylint: disable=invalid-name
+        """ Test if autoexpansion for directories as input filepath works """
         # only testing fat12 as resulting cluster_id of different fat
         # versions differs
         # if user supplies a directory instead of a file path, all files under
@@ -107,7 +118,9 @@ class TestWrite:
                                                (15, 512, 1264)]
 
 class TestRead:
+    """ Test reading slackspace """
     def test_read_slack(self, testfs_fat_stable1):
+        """ Test if reading content of slackspace in a simple case works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
@@ -129,6 +142,7 @@ class TestRead:
 
 class TestClear:
     def test_clear_slack(self, testfs_fat_stable1):
+        """ Test if clearing slackspace of a file works """
         for img_path in testfs_fat_stable1:
             with open(img_path, 'rb+') as img_stream:
                 # create FileSlack object
@@ -151,5 +165,3 @@ class TestClear:
                     assert result == expected
 
 
-if __name__ == '__main__':
-    unittest.main()
