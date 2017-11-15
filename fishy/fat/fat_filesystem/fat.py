@@ -295,6 +295,8 @@ class FAT:  # pylint: disable=too-many-instance-attributes
             # scan current directory for filename
             filename_found = False
             for entry in current_directory:
+                LOGGER.info("find_file: comparing '%s' with '%s'",
+                            entry.get_name(), fpart)
                 if entry.get_name() == fpart:
                     filename_found = True
                     break
@@ -303,8 +305,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
 
             # if it is a subdirectory and not the last name, enter it
             if entry.is_dir() and path:
-                current_directory = []
+                current_directory.clear()
                 for entry in self.get_dir_entries(entry.get_start_cluster()):
-                    if entry.is_file():
-                        current_directory.append(entry)  # pylint: disable=bad-whitespace
+                    current_directory.append(entry)  # pylint: disable=bad-whitespace
         return entry
