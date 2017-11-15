@@ -4,12 +4,15 @@ This file contains tests for all three different fat implementations under
 fishy.fat.filesystem.fat_*
 """
 import io
+import logging
 import pytest
 from fishy.fat.fat_filesystem.fat_wrapper import create_fat
 from fishy.fat.fat_filesystem import fat_12
 from fishy.fat.fat_filesystem import fat_16
 from fishy.fat.fat_filesystem import fat_32
 
+
+logging.basicConfig(level=logging.DEBUG)
 
 class TestPreDataRegion(object):
     """ Tests for parsing FAT predata region """
@@ -346,6 +349,14 @@ class TestFindFile(object):
                 assert not result.parsed.attributes.hidden
                 assert not result.parsed.attributes.readonly
                 assert result.parsed.fileSize == 8001
+
+    def test_find_file_in_subdir(self, testfs_fat_stable1):
+        """ Test if finding file in a multiple nested direcotry works """
+        for img_path in testfs_fat_stable1:
+            with open(img_path, 'rb') as img_stream:
+                # create FAT object
+                fatfs = create_fat(img_stream)
+                result = fatfs.find_file("onedirectory/nested_directory/royce.txt")
 
     def test_find_non_existing(self, testfs_fat_stable1):
         # Test finding a non existing file
