@@ -1,13 +1,17 @@
+"""
+interface for ntfs slack implementation
+"""
+
 from .ntfsSlack import NtfsSlack
 
 class NTFSFileSlack:
+    """calls ntfsSlack methods  """
     def __init__(self, stream):
         """
         :param stream: filedescriptor of a FAT filesystem
         """
         self.stream = stream
-        self.slackTool = NtfsSlack(stream)
-    
+        self.slack_tool = NtfsSlack(stream)    
 
     def write(self, instream, filepaths):
         """
@@ -19,8 +23,8 @@ class NTFSFileSlack:
         """
         if filepaths is None:
             filepaths = ["/"]
-        m = self.slackTool.write(instream, filepaths)
-        return m
+        meta = self.slack_tool.write(instream, filepaths)
+        return meta
 
     def read(self, outstream, metadata):
         """
@@ -28,11 +32,11 @@ class NTFSFileSlack:
         :param outstream: stream to write into
         :param metadata: FileSlackMetadata object
         """
-        self.slackTool.read(outstream, metadata)
+        self.slack_tool.read(outstream, metadata)
 
     def clear(self, metadata):
         """
         clears the slackspace of a files
         :param metadata: FileSlackMetadata object
         """
-        self.slackTool.clear(metadata)
+        self.slack_tool.clear(metadata)

@@ -1,4 +1,7 @@
-# -*- coding: utf-8 -*-
+"""
+ntfs slack implementation
+"""
+
 from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG
 
 
@@ -32,24 +35,24 @@ class FileSlackMetadata:
             yield addr[0], addr[1]
 
 
-class slackSpace:
+class slack_space:
     """ class for slack space objects"""
     def __init__(self, size, addr):
         self.size = size
         self.addr = addr
 
 
-class fileLoc:
+class file_loc:
     """ class for single file location """
     def __init__(self, addr, size):
         self.size = size
         self.addr = addr
 
 
-class fileInSlack:
+class slack_file:
     """ class file in slack with list of locations """
     def __init__(self, name, size, ):
-        self.lockList = []
+        self.loc_list = []
         self.name = name
         self.size = size
 
@@ -62,17 +65,16 @@ class NtfsSlack:
         # Open img file
         self.img = Img_Info(stream)
         # Open the filesystem
-        self.fs = FS_Info(self.img, offset=0)
+        self.fs_inf = FS_Info(self.img, offset=0)
         # Get the blocksize
-        self.blocksize = self.fs.info.block_size  # 4096
+        self.blocksize = self.fs_inf.info.block_size  # 4096
         # get sector size
-        self.sectorsize = self.fs.info.dev_bsize  # 512
+        self.sectorsize = self.fs_inf.info.dev_bsize  # 512
         # get cluster size
         self.cluster_size = self.blocksize / self.sectorsize  # 8
         self.slack_list = []
         self.total_slacksize = 0
         self.filesize_left = 0
-        self.args = []
         self.input = ""
         self.filepath = ""
 
@@ -81,26 +83,25 @@ class NtfsSlack:
         self.instream = instream
         self.filepath = filepath
         # size of file to hide
-        fileSize = self.get_file_size()
-        # print ("filesize:%s"%fileSize)
+        file_size = self.get_file_size()
         # fill list of slack space objects till file size is reached
-        self.filesize_left = fileSize
+        self.filesize_left = file_size
         self.fill_slack_list()
-        if fileSize > self.total_slacksize:
+        if file_size > self.total_slacksize:
             raise Exception("Not enough slack space")
         # .ELF(7F 45 4C 46)
-        print ("File hidden")
+        print("File hidden")
         hiddenfiles = self.write_file_to_slack()
-        meta = self.createMetaData(hiddenfiles)
+        meta = self.create_metadata(hiddenfiles)
         return meta
 
-    def createMetaData(self, hiddenfiles):
+    def create_metadata(self, hiddenfiles):
         """ create meta data object """
-        m = FileSlackMetadata()
+        meta = FileSlackMetadata()
         for file in hiddenfiles:
-            for loc in file.lockList:
-                m.add_addr(loc.addr, loc.size)
-        return m
+            for loc in file.loc_list:
+                meta.add_addr(loc.addr, loc.size)
+        return meta
 
     def read(self, outstream, meta):
         """ read hidden data from slack """
@@ -117,33 +118,33 @@ class NtfsSlack:
             stream.seek(addr)
             stream.write(length * b'\x00')
 
-    def get_slack(self, f):
+    def get_slack(self, file):
         """ calculate slack size of file """
-        meta = f.info.meta
+        meta = file.info.meta
         if not meta:
             return 0
 
         # get last block of file to check for slack
         resident = True
-        metaBlock = f.info.meta.addr
-        mftEntrySize = 1024
-        mftOffset = 16
-        mtfOffsetToData = 360
+        meta_block = file.info.meta.addr
+        mftentry_size = 1024
+        mft_offset = 16
+        mftoffset_todata = 360
         # File size
-        size = f.info.meta.size
-        metaAddr = (metaBlock + mftOffset) * mftEntrySize
-        for attr in f:
+        size = file.info.meta.size
+        meta_addr = (meta_block + mft_offset) * mftentry_size
+        for attr in file:
             for run in attr:
                 last_block_offset = run.len - 1
                 last_blocks_start = run.addr
                 resident = False
         # File data resident in mft $Data entry
         if resident:
-            offsetToSlack = mtfOffsetToData + size
-            metaSlackStart = metaAddr + offsetToSlack
-            metaFreeSlack = mftEntrySize - offsetToSlack
-            self.slack_list.append(slackSpace(metaFreeSlack, metaSlackStart))
-            return metaFreeSlack
+            offsetto_slack = mftoffset_todata + size
+            metaslack_start = meta_addr + offsetto_slack
+            meta_freeslack = mftentry_size - offsetto_slack
+            self.slack_list.append(slack_space(meta_freeslack, metaslack_start))
+            return meta_freeslack
 
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
@@ -156,102 +157,92 @@ class NtfsSlack:
 
         start_addr_slack = last_block * self.blocksize + l_d_size
         # print("%s slack found"%s_size)
-        self.slack_list.append(slackSpace(s_size, start_addr_slack))
+        self.slack_list.append(slack_space(s_size, start_addr_slack))
         return s_size
 
-    def is_fs_directory(self, f):
+    def is_fs_directory(self, file):
         """ Checks if an inode is a filesystem directory. """
-        return f.info.name.type == TSK_FS_NAME_TYPE_DIR
+        return file.info.name.type == TSK_FS_NAME_TYPE_DIR
 
-    def is_fs_regfile(self, f):
+    def is_fs_regfile(self, file):
         """Checks if an inode is a regular file."""
-        return f.info.name.type == TSK_FS_NAME_TYPE_REG
+        return file.info.name.type == TSK_FS_NAME_TYPE_REG
 
     def get_file_slack(self, directory, indent=0):
         """ Iterate over directoy recursive and add slackspace until file size is reached """
-        for f in directory:
+        for file in directory:
             if self.filesize_left > 0:
-                if(self.is_fs_regfile(f)):
+                if self.is_fs_regfile(file):
                     # if file: get slack of file and add slack to total slack size
-                    slackSize = self.get_slack(f)
-                    self.total_slacksize += slackSize
+                    slack_size = self.get_slack(file)
+                    self.total_slacksize += slack_size
                     # subtract slacksize to stop if enough space was found
-                    self.filesize_left -= slackSize
+                    self.filesize_left -= slack_size
                 # recurse into directories
-                if(self.is_fs_directory(f)):
+                if self.is_fs_directory(file):
                     try:
-                        d = f.as_directory()
-                        if f.info.name.name != b'.' and f.info.name.name != b'..':
-                            self.get_file_slack(d, indent + 1)
+                        direc = file.as_directory()
+                        if file.info.name.name != b'.' and file.info.name.name != b'..':
+                            self.get_file_slack(direc, indent + 1)
                     except RuntimeError:
-                        print ('RunError!')
+                        print('RunError!')
                     except IOError:
-                        print ("IOError while opening %s" % (f.info.name.name))
+                        print("IOError while opening %s" % (file.info.name.name))
 
     def get_file_slack_single_file(self, file):
         """ get slack size of single file"""
         if self.filesize_left > 0:
-            slackSize = self.get_slack(file)
-            self.total_slacksize += slackSize
-            self.filesize_left -= slackSize
+            slack_size = self.get_slack(file)
+            self.total_slacksize += slack_size
+            self.filesize_left -= slack_size
 
     def write_file_to_slack(self):
         """ write a file in found slack """
-        hiddenFiles = []
+        hidden_files = []
         # read file
-        inputFile = self.input
-        length = len(inputFile)
+        input_file = self.input
+        length = len(input_file)
         # position for input file partitioning
         pos = 0
         # random id for file metadata
-        fileID = "123"
+        file_id = "123"
         # create hidden file object with id and length
-        hiddenFile = fileInSlack(fileID, length)
+        hidden_file = slack_file(file_id, length)
         # open image
         stream = open(self.stream, 'rb+')
         # iterate over list of slackspace
-        for s in self.slack_list:
+        for slack in self.slack_list:
             # go to address of free slack
-            stream.seek(s.addr)
-            # write file to slack space, set position and add a location to the hidden files location list
-            if s.size >= length:
-                stream.write(inputFile[pos:pos + length])
-                hiddenFile.lockList.append(fileLoc(s.addr, length))
+            stream.seek(slack.addr)
+            # write file to slack space, set position and 
+            # add a location to the hidden files location list
+            if slack.size >= length:
+                stream.write(input_file[pos:pos + length])
+                hidden_file.loc_list.append(file_loc(slack.addr, length))
                 break
             else:
-                stream.write(inputFile[pos:pos + s.size])
-                hiddenFile.lockList.append(fileLoc(s.addr, s.size))
-                pos += s.size
-                length -= s.size
-        stream.flush
-        stream.close
-        self.instream.close
+                stream.write(input_file[pos:pos + slack.size])
+                hidden_file.loc_list.append(file_loc(slack.addr, slack.size))
+                pos += slack.size
+                length -= slack.size
+        # stream.flush
+        # stream.close
+        # self.instream.close
         # write meta data
-        # self.write_info_file(hiddenFile)
+        # self.write_info_file(hidden_file)
         # add hidden file object to list of hidden files
-        hiddenFiles.append(hiddenFile)
-        return hiddenFiles
+        hidden_files.append(hidden_file)
+        return hidden_files
 
     def get_file_size(self):
         """ get size of file to hide """
-        if len(self.args) > 0:
-            length = 0
-            # get size of all files
-            for arg in self.args:
-                inputStream = open(arg, "rb")
-                inputFile = inputStream.read()
-                inputStream.close()
-                length += len(inputFile)
-            return length
-        else:
-            self.input = self.instream.read()
-            length = len(self.input)
-            return length
+        self.input = self.instream.read()
+        length = len(self.input)
+        return length
 
 
 
             #    def get_Volume_Slack(self):
-            #        #TODO do
             #        selectedPartition = None
             #        #find partition by offset
             #        for partition in volume:
@@ -259,14 +250,15 @@ class NtfsSlack:
             #                selectedPartition = partition
             #                break
             #        #free sectors after filesystem(+1 for copy of boot sector)
-            #        freeSectors = selectedPartition.len - (fs.info.block_count+1)*cluster_size
+            #        freeSectors = selectedPartition.len - (fs_inf.info.block_count+1)*cluster_size
             #        print ("free Sectors:%s"%freeSectors )
             #        #get address of first free sector
-            #        firstFreeSectorAddr = (fs.info.last_block+2)*blocksize
+            #        firstFreeSectorAddr = (fs_inf.info.last_block+2)*blocksize
             #        fileSytemSlackSize = freeSectors*sectorsize
-            #        print ("File System Slack: %s - %s(%s)"%(firstFreeSectorAddr,firstFreeSectorAddr+fileSytemSlackSize,fileSytemSlackSize))
+            #        print ("File System Slack: %s - %s(%s)"
+            #        %(firstFreeSectorAddr,firstFreeSectorAddr+fileSytemSlackSize,fileSytemSlackSize))
             #        #create slack space object and append to list
-            #        slack_list.append(slackSpace(fileSytemSlackSize,firstFreeSectorAddr))
+            #        slack_list.append(slack_space(fileSytemSlackSize,firstFreeSectorAddr))
             #        #set the total slack size
             #        self.total_slacksize += fileSytemSlackSize
 
@@ -275,10 +267,10 @@ class NtfsSlack:
         # look file slack
         for path in self.filepath:
             try:
-                directory = self.fs.open_dir(path)
+                directory = self.fs_inf.open_dir(path)
                 self.get_file_slack(directory)
             except OSError:
-                file = self.fs.open(path)
+                file = self.fs_inf.open(path)
                 self.get_file_slack_single_file(file)
                 # look for volume slack?
 
