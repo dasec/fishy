@@ -16,14 +16,14 @@ class NTFS:
         :param stream: binary stream of the NTFS data
         """
         self.stream = stream
-        self.start_offset: int = stream.tell()
+        self.start_offset = stream.tell()
         self.bootsector = NTFS_BOOTSECTOR.parse_stream(stream)
-        self.cluster_size: int = self.bootsector.cluster_size*self.bootsector.sector_size
-        self.mft_offset: int = self.bootsector.mft_cluster*self.cluster_size
-        self.record_size: int = self.__calculate_record_size()
+        self.cluster_size = self.bootsector.cluster_size*self.bootsector.sector_size
+        self.mft_offset = self.bootsector.mft_cluster*self.cluster_size
+        self.record_size = self.__calculate_record_size()
 
         stream.seek(self.start_offset + self.mft_offset)
-        self.mft_record: bytes = stream.read(self.record_size)
+        self.mft_record = stream.read(self.record_size)
 
         self.mft_runs = self.get_data_runs(self.mft_record)
         self.ROOT_DIR_RECORD = 5
@@ -55,8 +55,8 @@ class NTFS:
         """
 
         #Check which mft run the record is in
-        offset: int = 0
-        records: int = 0
+        offset = 0
+        records = 0
         for run in self.mft_runs:
             records += int(run['length']/self.record_size)
             offset += run['offset']
@@ -186,7 +186,7 @@ class NTFS:
 
             #Extract name from FILE_NAME_ATTRIBUTE
             filename_attribute = FILE_NAME_ATTRIBUTE.parse(record[offset:])
-            name: bytes = filename_attribute.file_name
+            name = filename_attribute.file_name
             return name.decode("utf-16")
 
 
