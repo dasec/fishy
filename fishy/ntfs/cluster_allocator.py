@@ -8,26 +8,58 @@ from .ntfs_filesystem.ntfs import NTFS
 
 
 class AllocatorMetadata:
+    """
+    This class contains the metadata needed by the
+    ClusterAllocator for allocating additional clusters
+    to a file in ntfs
+    """
 
-    def __init__(self):
-        self.file = None
-        self.original_runs = []
-        self.new_runs = []
+    def __init__(self, d: typing.Dict = None):
+        """
+        Declaration of the needed attributes
+        """
+        if d is None:
+            self.file = None
+            self.original_runs = []
+            self.new_runs = []
+        else:
+            self.file = d['file']
+            self.original_runs = d['original_runs']
+            self.new_runs = d['new_runs']
 
 
 class ClusterAllocator:
+    """
+    This class can allocate additional clusters
+    to a file and write data into those clusters.
+    It can also read from clusters earlier allocated by it
+    and clear clusters allocated by it.
+    """
 
     def __init__(self, stream: typing.BinaryIO):
+        """
+        Parse the stream as ntfs
+        """
         self.stream = stream
         self.ntfs = NTFS(stream)
 
 
-    def allocate_clusters(self, n: int) -> [{'lenght', 'offset'}]:
+    def allocate_clusters(self, n: int) -> [{'lenght', 'offset'}] -> AllocatorMetadata:
+        """
+        Find n unallocated clusters and add them to the data runs of the $Bitmap file
+        """
 
+        #Get the allocation bitmap from the $Bitmap file
         bitmap_record = self.ntfs.get_record(6)
         bitmap = self.ntfs.get_data(6)
 
+        #Get the runs already allocated
         runs = self.ntfs.get_data_runs(bitmap_record)
+        #Shorten the bitmap to only the actual bitmap
+        #TODO Only read the first run in the frist place
+        bitmap = bitmap[:runs[0]['length']]
+
+        #Search for the requested amount of unallocated clusters
         new_runs = []
         clusters_found = []
         cluster_pos = 0
