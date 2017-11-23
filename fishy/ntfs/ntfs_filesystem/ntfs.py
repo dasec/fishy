@@ -1,15 +1,21 @@
 """
-Class for NTFS operations
+Contains a class for NTFS operations
 """
 
 import io
 from .bootsector import NTFS_BOOTSECTOR
 from .attribute_header import ATTRIBUTE_HEADER
 from .record_header import RECORD_HEADER
-from .attributes import ATTRIBUTE_LIST_ID, FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_ID, FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
+from .attributes import FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_ID,\
+FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
+
+ROOT_DIR_RECORD = 5
 
 #TODO Implement reading data from records with attribute list
 class NTFS:
+    """
+    Class for NTFS operations
+    """
 
     def __init__(self, stream: io.BufferedReader):
         """
@@ -17,25 +23,25 @@ class NTFS:
         """
         self.stream = stream
         self.start_offset = stream.tell()
-        self.bootsector = NTFS_BOOTSECTOR.parse_stream(stream)
-        self.cluster_size = self.bootsector.cluster_size*self.bootsector.sector_size
-        self.mft_offset = self.bootsector.mft_cluster*self.cluster_size
-        self.record_size = self.__calculate_record_size()
+        bootsector = self.get_bootsector()
+        self.cluster_size = bootsector.cluster_size*bootsector.sector_size
+        self.mft_offset = bootsector.mft_cluster*self.cluster_size
+        self.record_size = self._calculate_record_size(bootsector)
 
         stream.seek(self.start_offset + self.mft_offset)
         self.mft_record = stream.read(self.record_size)
 
         self.mft_runs = self.get_data_runs(self.mft_record)
-        self.ROOT_DIR_RECORD = 5
 
 
-    def __calculate_record_size(self) -> int:
+    def _calculate_record_size(self, bootsector) -> int:
         """
         Calculates the size of a MFT record
         using the cluster_size field of the bootsector
+        :param bootsector: The ntfs bootsector
         """
 
-        size = self.bootsector.clusters_per_file_record
+        size = bootsector.clusters_per_file_record
 
         #If the size is positive it is in clusters
         if size > 0:
@@ -46,6 +52,28 @@ class NTFS:
             size = 2**(-1*size)
 
         return size
+
+
+    def get_bootsector(self) -> NTFS_BOOTSECTOR:
+        """
+        Returns a NTFS_BOOTSECTOR struct of the bootsector
+        """
+        self.stream.seek(self.start_offset)
+        return NTFS_BOOTSECTOR.parse_stream(self.stream)
+
+
+    def get_bootsector_copy(self) -> NTFS_BOOTSECTOR:
+        """
+        Returns a NTFS_BOOTSECTOR struct of the bootsector copy
+        """
+        #Get the main bootsector to look for disk size
+        self.stream.seek(self.start_offset)
+        bootsector = NTFS_BOOTSECTOR.parse_stream(self.stream)
+        #Calculate the offset to the bootsector copy (last sector)
+        offset = self.start_offset + (bootsector.total_sectors)*512
+        #Parse and return the bootsector copy
+        self.stream.seek(offset)
+        return NTFS_BOOTSECTOR.parse_stream(self.stream)
 
 
     def get_record(self, n: int) -> bytes:
@@ -89,15 +117,14 @@ class NTFS:
         path = name.split('/')
 
         #Start of recursion: Search the root directory
-        if record_n == None:
-            record_n = self.ROOT_DIR_RECORD
+        if record_n is None:
+            record_n = ROOT_DIR_RECORD
 
         #Get the INDEX_ROOT attribute of the directory
         record = self.get_record(record_n)
         offset = self.find_attribute(record, INDEX_ROOT_ID)
         attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
         offset += attribute_header.offset
-        index_root = INDEX_ROOT.parse(record[offset:])
 
         #Get the header of the index entries
         offset += INDEX_ROOT.sizeof()
@@ -131,13 +158,18 @@ class NTFS:
                     #print(index_record_entry)
 
                     #The first path component is found
-                    #index_record_entry.file_name seems to be corrupted rather often, so the name is looked up in the mft record
-                    if self.get_filename_from_record(index_record_entry.record_reference.segment_number_low_part) == path[0]:
+                    #index_record_entry.file_name seems to be corrupted rather often,
+                    #so the name is looked up in the mft record
+                    if self.get_filename_from_record(\
+                            index_record_entry.record_reference.segment_number_low_part\
+                            ) == path[0]:
+
                         #Remove the first path component
                         path.remove(path[0])
                         #And recursively call with the rest of the path
                         name = "/".join(path)
-                        return self.get_record_of_file(name, index_record_entry.record_reference.segment_number_low_part)
+                        return self.get_record_of_file(name,\
+                                index_record_entry.record_reference.segment_number_low_part)
 
                     #Read the flags and update the offset
                     flags = index_record_entry.flags
@@ -160,13 +192,18 @@ class NTFS:
                 #print(index_record_entry.file_name.decode('utf-16'))
 
                 #The first path component is found
-                #index_record_entry.file_name seems to be corrupted rather often, so the name is looked up in the mft record
-                if self.get_filename_from_record(index_record_entry.record_reference.segment_number_low_part) == path[0]:
+                #index_record_entry.file_name seems to be corrupted rather often,
+                #so the name is looked up in the mft record
+                if self.get_filename_from_record(\
+                        index_record_entry.record_reference.segment_number_low_part\
+                        ) == path[0]:
+
                     #Remove the first path component
                     path.remove(path[0])
                     #And recursively call with the rest of the path
                     name = "/".join(path)
-                    return self.get_record_of_file(name, index_record_entry.record_reference.segment_number_low_part)
+                    return self.get_record_of_file(name,\
+                            index_record_entry.record_reference.segment_number_low_part)
 
                 #Read the flags and update the offset
                 flags = index_record_entry.flags
@@ -274,9 +311,9 @@ class NTFS:
         """
 
         #Try to find offset of data attribute if none is given
-        if offset == None:
+        if offset is None:
             offset = self.find_attribute(record, DATA_ID)
-            if offset == None:
+            if offset is None:
                 return None
 
         header = ATTRIBUTE_HEADER.parse(record[offset:])
@@ -309,5 +346,3 @@ class NTFS:
                 byte = record[offset]
 
             return runs
-
-

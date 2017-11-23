@@ -5,8 +5,30 @@ This file contains tests for the NTFS class
 import pytest
 from fishy.ntfs.ntfs_filesystem.ntfs import NTFS
 
+class TestGetBootsector(object):
+    """
+    Tests if the bootsectors are parsed correctly
+    """
+    def test_get_bootsector(self, testfs_ntfs_stable1):
+        """ Tests for the main bootsector """
+        with open(testfs_ntfs_stable1[0], 'rb') as fs:
+            ntfs = NTFS(fs)
+            bootsector = ntfs.get_bootsector()
+            assert bootsector.oem_name == b'NTFS    '
+            assert bootsector.eos_marker == b'\x55\xaa'
+
+    def test_get_bootsector_copy(self, testfs_ntfs_stable1):
+        """ Tests for the bootsector copy """
+        with open(testfs_ntfs_stable1[0], 'rb') as fs:
+            ntfs = NTFS(fs)
+            bootsector = ntfs.get_bootsector_copy()
+            assert bootsector.oem_name == b'NTFS    '
+            assert bootsector.eos_marker == b'\x55\xaa'
+
+
 class TestBasicInformation(object):
-    """ Tests if the basic information of the filesystem
+    """
+    Tests if the basic information of the filesystem
     is parsed correctly
     """
     def test_parse_bootsector(self, testfs_ntfs_stable1):
