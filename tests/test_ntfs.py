@@ -65,9 +65,7 @@ class TestGetRecordOfFile(object):
             assert ntfs.get_record_of_file('$MFT') == 0
             assert ntfs.get_record_of_file('$MFTMirr') == 1
             assert ntfs.get_record_of_file('$BadClus') == 8
-            assert ntfs.get_record_of_file('another') == 64
-            assert ntfs.get_record_of_file('onedirectory/nested_directory') == 69
-            assert ntfs.get_record_of_file('onedirectory/nested_directory/royce.txt') == 70
+            assert ntfs.get_record_of_file('$Extend/$Reparse') == 26
             assert ntfs.get_record_of_file('notexisting') == None
 
 
