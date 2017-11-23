@@ -67,8 +67,7 @@ class NTFS:
         Returns a NTFS_BOOTSECTOR struct of the bootsector copy
         """
         #Get the main bootsector to look for disk size
-        self.stream.seek(self.start_offset)
-        bootsector = NTFS_BOOTSECTOR.parse_stream(self.stream)
+        bootsector = self.get_bootsector()
         #Calculate the offset to the bootsector copy (last sector)
         offset = self.start_offset + (bootsector.total_sectors)*512
         #Parse and return the bootsector copy
