@@ -131,8 +131,19 @@ function copy_files {
 	# Usage: copy_files [FILESYSTEM_IMAGE] [FILESTRUCTURE_SUFFIX]
 	suffix="$2"
 	sudo mount "$1" "$workingdir"/mount-fs
-	sudo cp -r "$filestructure$suffix"/* "$workingdir"/mount-fs
-    sync
+	# copy files under filestructure in a stable order
+	find "$filestructure$suffix" | grep -vE "^$filestructure$suffix$" \
+		| sort | while read entry; do
+		relativeentry=${entry#"$filestructure$suffix"/}
+		if [ -d "$entry" ]; then
+			# if entry is a directory, create it
+			sudo mkdir "$workingdir"/mount-fs/"$relativeentry"
+		else
+			# if entry is a file, copy it
+			sudo cp "$entry" "$workingdir"/mount-fs/"$relativeentry"
+		fi
+	done
+	sync
 	sudo umount "$workingdir"/mount-fs
 }
 
