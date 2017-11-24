@@ -4,7 +4,7 @@
 # FAT16 and FAT32 filesystems and copies a test
 # filestructure into them
 #
-# Requires: 
+# Requires:
 # * a directory called 'mount-fs' to mount the created filesystem
 # * a directory called 'fs-files' including the filestructure
 #   that will be copied into the created filesystem images
@@ -132,6 +132,7 @@ function copy_files {
 	suffix="$2"
 	sudo mount "$1" "$workingdir"/mount-fs
 	sudo cp -r "$filestructure$suffix"/* "$workingdir"/mount-fs
+    sync
 	sudo umount "$workingdir"/mount-fs
 }
 
@@ -151,7 +152,7 @@ function create_fat {
 
 		# Create a 26MB FAT16 image
 		dd if=/dev/zero of="$fsdest/testfs-fat16$suffix.dd" bs=512 count=50000
-		mkfs.vfat -F 16 "$fsdest/testfs-fat16$suffix.dd"
+		mkfs.vfat -R 4 -F 16 "$fsdest/testfs-fat16$suffix.dd"
 		copy_files "$fsdest/testfs-fat16$suffix.dd" "$suffix"
 
 		# Create a 282MB FAT32 image
