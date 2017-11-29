@@ -2,7 +2,7 @@
 Contains a class for NTFS operations
 """
 
-import io
+import typing
 from .bootsector import NTFS_BOOTSECTOR
 from .attribute_header import ATTRIBUTE_HEADER
 from .record_header import RECORD_HEADER
@@ -10,6 +10,7 @@ from .attributes import FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_I
 FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
 
 ROOT_DIR_RECORD = 5
+BITMAP_RECORD   = 6
 
 #TODO Implement reading data from records with attribute list
 class NTFS:
@@ -17,14 +18,15 @@ class NTFS:
     Class for NTFS operations
     """
 
-    def __init__(self, stream: io.BufferedReader):
+    def __init__(self, stream: typing.BinaryIO):
         """
         :param stream: binary stream of the NTFS data
         """
         self.stream = stream
         self.start_offset = stream.tell()
         bootsector = self.get_bootsector()
-        self.cluster_size = bootsector.cluster_size*bootsector.sector_size
+        self.sector_size = bootsector.sector_size
+        self.cluster_size = bootsector.cluster_size*self.sector_size
         self.mft_offset = bootsector.mft_cluster*self.cluster_size
         self.record_size = self._calculate_record_size(bootsector)
 
@@ -235,11 +237,13 @@ class NTFS:
         return record_header.first_attribute_offset
 
 
-    def find_attribute(self, record: bytes, attr_id: int) -> int:
+    def find_attribute(self, record: bytes, attr_id: int, include_header: bool = True) -> int:
         """
         Returns the offset of the first attribute with the specified id from the mft record
         :param record: The mft record
         :param attr_id: The id of the attribute to find
+        :param include_header: Whether the offset should include the header
+        :return: The offset to the attribute
         """
         offset = self.get_attribute_header_offset(record)
         while offset < self.record_size:
@@ -247,6 +251,15 @@ class NTFS:
 
             #Attribute found
             if attribute_header.type == attr_id:
+                #Header should not be included in offset
+                #TODO Definitely create tests for that
+                if not include_header:
+                    #Add offset to actual attribute
+                    if attribute_header.nonresident:
+                        offset += attribute_header.datarun_offset
+                    else:
+                        offset += attribute_header.offset
+
                 return offset
 
             #There is a next attribute
@@ -345,3 +358,92 @@ class NTFS:
                 byte = record[offset]
 
             return runs
+        else:
+            return []
+
+    def get_attribute_size(self, record: bytes, attr_id: int) -> int:
+        """
+        Returns the size of the given attribute in the given record
+        :param record: The record of the attribute
+        :param attr_id: The id of the attribute to look for
+        """
+        #Get the header of the requested attribute
+        offset = self.find_attribute(record, attr_id)
+        #There is no attribute of the requested type
+        if offset is None:
+            return 0
+
+        #Parse the attribute header
+        attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
+        #Distinguish between nonresident and resident attributes
+        if attribute_header.nonresident:
+            return attribute_header.alloc_size
+        else:
+            return attribute_header.size
+
+    #TODO Test test test and test
+    def write_data(self, record_n: int, data: bytes) -> bool:
+        """
+        Writes data into an existing data attribute of a mft record without changing its size
+        :param record_n: The the number of the record to write into
+        :param data: The data to write
+        :return: Whether the write was successful
+        """
+        #Get the desired record
+        record = self.get_record(record_n)
+        #Check if the data attribute is big enough for the data to write
+        attr_size = self.get_attribute_size(record, DATA_ID)
+        data_size = len(data)
+
+        #Append RAM Slack to data
+        if data_size % self.sector_size != 0:
+            data.append(b'\0' * (data_size % self.sector_size))
+            data_size += data_size % self.sector_size
+
+        if attr_size < data_size:
+            return false
+
+        #Get the runs of the data attribute
+        runs = self.get_data_runs(record)
+        #There is no data attribute
+        if runs is None:
+            return false
+        #The data attribute is resident
+        elif runs == []:
+            #Treat the resident data like a data run
+            offset = self.mft_offset + self.record_size*record_n + \
+                    self.find_attribute(record, DATA_ID, False)
+            runs.append({'length': attr_size, 'offset': offset})
+
+        #Write the data to the data runs
+        written = 0
+        offset = self.start_offset
+        for run in runs:
+            offset += run['offset']
+            length = run['length']
+            #For the last run
+            if written+length > data_size:
+                length = data_size - written
+
+            #Write the data to the run
+            self.stream.seek(offset)
+            written_to_run += self.stream.write(data[offset:offset+length])
+
+            #Something went wrong
+            if written_to_run != length:
+                return false
+
+            written += written_to_run
+
+            #All data written
+            if written == data_size:
+                return true
+
+
+    #TODO Implement
+    def allocate_clusters(self, clusters: []) -> bool:
+        """
+        Sets the given clusters as allocated in the $Bitmap file
+        :param clusters: The clusters to allocate
+        """
+        pass
