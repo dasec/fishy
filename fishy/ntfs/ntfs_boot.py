@@ -3,12 +3,12 @@ import hashlib
 
 class NTFSMeta: 
 
-    def __init__(self, file):
+	def __init__(self, file):
 		""" init: open ntfs image
-			file: saves file name
+		file: saves file name
 		""" 
 		self.file = file
-		
+
 		if os.path.isfile(self.file): 
 			print("ok")
 			# test.is_ntfs() TODO is this needed?
@@ -18,9 +18,9 @@ class NTFSMeta:
 
 	def is_altered(self): 
 		""" is_altered:
-			compare boot sector with the backup boot sector (via hash values)
-				true: the sector was altered
-				false: the sector was not altered
+		compare boot sector with the backup boot sector (via hash values)
+		true: the sector was altered
+		false: the sector was not altered
 		"""
 		offset = 512 # sector size TODO needs to be determined dynamically
 		try:
@@ -30,7 +30,7 @@ class NTFSMeta:
 			# create hash value for boot sector
 			hash_boot = hashlib.sha256()
 			hash_boot.update(data)
-			
+
 			# determine file size
 			statinfo = os.stat(self.file)
 			# skip to last partition (backup boot sector)
@@ -39,7 +39,7 @@ class NTFSMeta:
 			# create hash value for backup boot sector
 			hash_back = hashlib.sha256()
 			hash_back.update(backup)
-			
+
 			# compare hash values
 			if hash_boot.hexdigest() == hash_back.hexdigest():
 				# nothing to do here
@@ -59,7 +59,7 @@ class NTFSMeta:
 		"""
 		with open(self.file, "rb") as f:
 			offset = 512
-		# 	f.seek(0) jump to start of file needed?
+			# 	f.seek(0) jump to start of file needed?
 			pos = f.tell()
 			current_pos = 0
 			last = os.stat(filename).st_size - offset
@@ -70,12 +70,13 @@ class NTFSMeta:
 				f.seek(last + current_pos)
 				d = f.read(1)
 				if not c:
-					print ("End of file")
-					break
+				print ("End of file")
+				break
 				if not c == d:
-					# do something 
-					print(c)
+				# do something 
+				print(c)
 				current_pos = current_pos + 1
 			f.seek(pos)
+			f.close()
 
 
