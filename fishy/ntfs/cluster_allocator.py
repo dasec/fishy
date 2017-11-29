@@ -64,14 +64,18 @@ class ClusterAllocator:
         clusters_found = []
         cluster_pos = 0
 
+        #Go through every bit of the bitmap
         for byte in bitmap:
             for position in range(8):
                 bit = (byte >> position) & 1
+                #Cluster is unallocated
                 if bit == 0:
                     clusters_found.append(cluster_pos+position)
+                    #The desired number of unallocated clusters was found
                     if len(clusters_found) == n:
                         break
 
+            #Also exit outer loop when desired number found
             if len(clusters_found) == n:
                 break
 
