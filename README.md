@@ -167,3 +167,43 @@ To build all images that might be necessary for unittests, run
 ```
 $ ./create_testfs.sh -t all
 ```
+
+## How to implement a hiding technique
+
+Here some general rules an hints, how one can integrate a hiding technique into the
+existing project structure:
+
+1. Under fishy create a **wrapper module** for each hiding technique, which handles
+   the filesystem specific hiding technique calls + does main-metadata handling.
+   The cli module would only know about this wrapper module, not your filesystem
+   specific hiding technique module.
+2. Hiding techniques are **located** in either `fat`, `ntfs` or `ext4` submodule.
+3. **Create a Metadata class** in your hiding technique implementation. This class
+   holds hiding technique dependent metadata, to be able to restore hidden data
+   after write operations. Only use primitive data types in this class, so they
+   can be serialized via the `__dict__` attribute. Let the write method return
+   an instance of this class, which then will be written to the metadata file.
+4. Every hiding technique should **implement at least** a `write`, `read` and a
+   `clear` method.
+5. Ony **operate on streams** in your hiding technique implementation. E.g. don't
+   pass a file to the write implementation, which then would be opened, read
+   and its content hidden. Instead let the wrapper script handle opening things.
+   This shall ensure that the hiding technique gets more reusable and also simpler,
+   as non technique specific things don't be handled there.
+
+A simple example would be the `fishy.fat.cluster_allocator.py`
+
+## Metadata handling
+
+To be able to restore hidden data, most hiding techniques will need some
+additional information. These information will be stored in a metadata file.
+The `fishy.metadata` class provides such a class that will be used to read and
+write metadata files. The purpose of this class is to ensure, that all metadata
+files have a similar datastructure. Though the program can detect at an
+early point, that for example a user uses the wrong hiding technique to restore
+hidden data. This metadata class we can call the 'main-metadata' class
+
+When implementing a hiding technique, this technique must implement its own,
+hiding technique specific, metadata class. So the hiding technique itself defines
+which data will be stored. The write method then returns this technique specific
+metadata class which then gets serialized and stored in the main-metadata.
