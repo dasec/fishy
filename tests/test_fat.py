@@ -46,7 +46,8 @@ class TestPreDataRegion(object):
             assert fatfs.pre.sectors_per_cluster == 8
             assert fatfs.pre.reserved_sector_count == 32
             assert fatfs.pre.fat_count == 2
-            assert fatfs.pre.sectors_per_fat == 544
+            assert fatfs.pre.sectors_per_fat == 544 or \
+                   fatfs.pre.sectors_per_fat == 537
             assert fatfs.pre.free_data_cluster_count == 68599
             assert fatfs.pre.last_allocated_data_cluster == 12
             assert fatfs.pre.flags.active_fat == 0
