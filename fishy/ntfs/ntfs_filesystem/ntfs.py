@@ -10,7 +10,7 @@ from .attributes import FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_I
 FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
 
 ROOT_DIR_RECORD = 5
-BITMAP_RECORD   = 6
+BITMAP_RECORD  = 6
 
 #TODO Implement reading data from records with attribute list
 class NTFS:
@@ -395,7 +395,7 @@ class NTFS:
 
         #No data attribute in the record
         if offset is None:
-           return False
+            return False
 
         #Get attribute header
         attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
@@ -438,14 +438,14 @@ class NTFS:
         data_size = len(data)
 
         #Size of the data attribute couldn't be set to size of data to write
-        if not self.set_data_size(data_size):
+        if not self.set_data_size(record_n, data_size):
             return False
 
         #Get the runs of the data attribute
         runs = self.get_data_runs(record)
         #There is no data attribute
         if runs is None:
-            return false
+            return False
         #The data attribute is resident
         elif runs == []:
             #Treat the resident data like a data run
@@ -472,17 +472,17 @@ class NTFS:
 
             #Write the data to the run
             self.stream.seek(offset)
-            written_to_run += self.stream.write(data[offset:offset+length])
+            written_to_run = self.stream.write(data[offset:offset+length])
 
             #Something went wrong
             if written_to_run != length:
-                return false
+                return False
 
             written += written_to_run
 
             #All data written
             if written == data_size:
-                return true
+                return True
 
 
     #TODO Implement
