@@ -381,6 +381,49 @@ class NTFS:
         else:
             return attribute_header.size
 
+
+    #TODO Allocate more space if needed and consider the real size field in the record header
+    def set_data_size(self, record_n: int, size: int) -> bool:
+        """
+        :param record_n: The record number of the data attribute
+        :param size: The size to set
+        :return: Whether setting the size was successful
+        """
+        #Get the desired record
+        record = self.get_record(record_n)
+        offset = self.find_attribute(record, DATA_ID)
+
+        #No data attribute in the record
+        if offset is None:
+           return False
+
+        #Get attribute header
+        attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
+        #Distinguish between resident and nonresident attribute
+        if attribute_header.nonresident:
+            #Don't allow for setting a size bigger than the allocated disk space
+            if size > attribute_header.alloc_size:
+                return False
+            #Set the size
+            attribute_header.real_size = size
+            #Set the stream size to the next cluster boundary
+            attribute_header.stream_size = size + (self.cluster_size - size % self.cluster_size)
+
+        else:
+            #Check if new size fits into record
+            if size > (self.record_size - (8+offset)):
+                return False
+            #Set the size
+            attribute_header.length = size
+
+        #Write the changes
+        offset = self.mft_offset + record_n*self.record_size + offset
+        self.stream.seek(self.start_offset + offset)
+        self.stream.write(attribute_header.build())
+
+        return True
+
+
     #TODO Test test test and test
     def write_data(self, record_n: int, data: bytes) -> bool:
         """
@@ -392,16 +435,11 @@ class NTFS:
         #Get the desired record
         record = self.get_record(record_n)
         #Check if the data attribute is big enough for the data to write
-        attr_size = self.get_attribute_size(record, DATA_ID)
         data_size = len(data)
 
-        #Append RAM Slack to data
-        if data_size % self.sector_size != 0:
-            data.append(b'\0' * (data_size % self.sector_size))
-            data_size += data_size % self.sector_size
-
-        if attr_size < data_size:
-            return false
+        #Size of the data attribute couldn't be set to size of data to write
+        if not self.set_data_size(data_size):
+            return False
 
         #Get the runs of the data attribute
         runs = self.get_data_runs(record)
@@ -411,9 +449,16 @@ class NTFS:
         #The data attribute is resident
         elif runs == []:
             #Treat the resident data like a data run
+            length = self.get_attribute_size(record, DATA_ID)
             offset = self.mft_offset + self.record_size*record_n + \
                     self.find_attribute(record, DATA_ID, False)
-            runs.append({'length': attr_size, 'offset': offset})
+            runs.append({'length': length, 'offset': offset})
+        #The data attribute is nonresident
+        else:
+            #Append RAM Slack to data
+            if data_size % self.sector_size != 0:
+                data.append(b'\0' * (self.sector_size - data_size % self.sector_size))
+                data_size += self.sector_size - data_size % self.sector_size
 
         #Write the data to the data runs
         written = 0
