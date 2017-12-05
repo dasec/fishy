@@ -60,7 +60,7 @@ read and write performance. Interesting values are the count of free sectors
 and the id of the last written cluster.
 
 File Allocation Table
----------------------
+.....................
 
 The File Allocation Table records the status of data clusters. Depending on the
 type the size varies between 12 to 32 bit per record. Mainly there are four
@@ -84,7 +84,7 @@ The bad cluster status indicates a faulty sector in this cluster.
 Once this status is set, the filesystem will never use this cluster again.
 
 Root- and Subdirectories
-------------------------
+........................
 
 The root directory holds the start directory of the filesysten ("/"). For FAT12 and
 FAT16 it starts directly behind the file allocation table. The location in FAT32
