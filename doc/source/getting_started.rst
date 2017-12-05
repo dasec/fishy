@@ -19,12 +19,11 @@ Usage
 The cli interface groups all hiding techniques (and others) into
 subcommands. Currently available subcommands are: 
 
-* `fattools` <#fattools>` - Provides some information about a FAT
-filesystem \* ```metadata`` <#metadata>`__ - Provides some information
-about data that is stored in a metadata file \*
-```fileslack`` <#file-slack>`__ - Exploitation of File Slack \*
-```addcluster`` <#additional-cluster-allocation>`__ - Allocate
-additional clusters for a file
+
+* `fattools <#fattools>`_ - Provides some information about a FAT filesystem 
+* `metadata <#metadata>`_ - Provides some information about data that is stored in a metadata file 
+* `fileslack <#file-slack>`__ - Exploitation of File Slack 
+* `addcluster <#additional-cluster-allocation>`__ - Allocate additional clusters for a file
 
 FATtools
 ........
