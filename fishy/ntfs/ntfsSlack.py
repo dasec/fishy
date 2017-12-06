@@ -3,7 +3,6 @@ ntfs slack implementation
 """
 
 from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG
-import pytsk3
 
 
 class FileSlackMetadata:
@@ -170,7 +169,6 @@ class NtfsSlack:
         # Slack space size
         s_size = self.blocksize - l_d_size
 
-        return 0
         start_addr_slack = last_block * self.blocksize + l_d_size
         # print("%s slack found"%s_size)
         self.slack_list.append(slack_space(s_size, start_addr_slack))
