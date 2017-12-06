@@ -5,11 +5,8 @@ Toolkit for filesystem based data hiding techniques
 
 * FAT:
 	* File Slack [✓]
-	* Partition Slack
-	* Mark Clusters as 'bad', but write content to them
+	* Bad Cluster Allocation
 	* Allocate More Clusters for a file [✓]
-	* Overwrite Bootsector Copy?
-	* Overwrite FAT Copies when they are not FAT0 or FAT1
 
 * NTFS:
 	* File Slack [✓]
@@ -17,6 +14,16 @@ Toolkit for filesystem based data hiding techniques
 	* Mark clusters as 'bad', but write data into them
 	* Add data attribute to directories
 	* Alternate Data Streams
+	
+# Requirements
+
+* python3
+* argparse
+* construct
+* pytsk3
+* pytest (optional, for testing)
+* sphinx (optional, for documentation)
+
 # Installation
 
 ```bash
@@ -26,6 +33,9 @@ $ sudo pip install -r requirements.txt
 $ sudo python setup.py test
 # Install the program
 $ sudo python setup.py install
+# Create documentation
+$ cd doc
+$ make html
 ```
 
 # Usage
