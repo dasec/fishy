@@ -11,6 +11,12 @@ Toolkit for filesystem based data hiding techniques
 	* Overwrite Bootsector Copy?
 	* Overwrite FAT Copies when they are not FAT0 or FAT1
 
+* NTFS:
+	* File Slack [✓]
+	* Allocate More Clusters for File
+	* Mark clusters as 'bad', but write data into them
+	* Add data attribute to directories
+	* Alternate Data Streams
 # Installation
 
 ```bash
