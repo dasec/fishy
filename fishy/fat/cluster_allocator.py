@@ -1,6 +1,25 @@
 """
 This module implements additional cluster allocation to hide data in FAT
-filesystems.
+filesystems. It offers methods to read, write and clear the additional clusters
+allocated for a file.
+
+:Example:
+
+>>> f = open('/dev/sdb1', 'rb+')
+>>> fs = ClusterAllocator(f)
+>>> filename = 'afile.txt'
+
+to write something from stdin to additional clusters of a file:
+
+>>> metadata = fs.write(sys.stdin.buffer, filename)
+
+to read something from additional allocated clusters:
+
+>>> fs.read(sys.stdout.buffer, metadata)
+
+delete additional allocated clusters for a file:
+
+>>> fs.clear(metadata)
 """
 
 import logging

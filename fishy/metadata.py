@@ -8,34 +8,34 @@ example of the resulting data structure that will be written to disk
 (everything represented under the key 'metadata' comes from a
 Sub-Metadata class and can vary, depending on the hiding technique)
 
-{
-  "module": "fat-file-slack"
-  "version": 2,
-  "files": {
-    "0": {
-      "uid": "0",
-      "filename": "test_file1.txt",
-      "metadata": {
-        "clusters": [
-          [ 10, 512, 6 ]
-        ]
-      }
+    {
+    "module": "fat-file-slack"
+    "version": 2,
+    "files": {
+        "0": {
+        "uid": "0",
+        "filename": "test_file1.txt",
+        "metadata": {
+            "clusters": [
+            [ 10, 512, 6 ]
+            ]
+        }
+        },
+        "1": {
+        "uid": "1",
+        "filename": "test_file2.txt",
+        "metadata": {
+            "clusters": [
+            [ 3, 512, 6 ]
+            ]
+        }
+        }
     },
-    "1": {
-      "uid": "1",
-      "filename": "test_file2.txt",
-      "metadata": {
-        "clusters": [
-          [ 3, 512, 6 ]
-        ]
-      }
     }
-  },
-}
 
-usage example:
+:Example:
 
-first we create a Sub-Metadata class. It should be defined each hiding
+first we create a Sub-Metadata class. It should be defined in each hiding
 technique and specifies which data a hiding technique will store. In this
 example we use the FileSlackMetadata class, because it is currently the only
 one that exists.

@@ -9,7 +9,7 @@ and Linux FAT implementations [2].
 [1]: Shu-fen-2009
 [2]: Berghel2008
 
-usage example:
+:Example:
 
 >>> f = open('/dev/sdb1', 'rb+')
 >>> fs = FileSlack(f)
