@@ -1,5 +1,5 @@
-Module Descriptions
-===================
+Modules Overview
+================
 
 General module structure
 ------------------------
@@ -32,53 +32,18 @@ read and a clear method to hide/read/delete data.
 the given filesystem or use custom filesystem parsers, which then are located
 under the particular filesystem package.
 
-
-Filesystem Implementations
---------------------------
-
-FAT Filesystem
-**************
-
-This toolkit uses its own FAT implementation, supporting FAT12, FAT16 and FAT32.
-It implements most of parsing the filesystem and some basic write operations,
-which can be used by hiding techniques.
-
-To parse a filesystem image use the wrapper function `create_fat`.
-This parses a file stream and returns the appropriate FAT instance.
-
-.. code-block:: python
-
-        from fishy.fat.fat_filesystem.fat_wrapper import create_fat
-
-        f = open('testfs.dd', 'rb')
-        fs = create_fat(f)
-
-
-This filesystem instance provides some important methods.
-
-.. autoclass:: fishy.fat.fat_filesystem.fat.FAT
-        :members:
-
-Metadata
---------
-
-.. automodule:: fishy.metadata
-        :members:
-
-Hiding Techniques
+Metadata handling
 -----------------
 
-FAT
-***
+To be able to restore hidden data, most hiding techniques will need some
+additional information. These information will be stored in a metadata file.
+The `fishy.metadata` class provides such a class that will be used to read and
+write metadata files. The purpose of this class is to ensure, that all metadata
+files have a similar datastructure. Though the program can detect at an
+early point, that for example a user uses the wrong hiding technique to restore
+hidden data. This metadata class we can call the 'main-metadata' class
 
-File Slack
-..........
-
-.. automodule:: fishy.fat.file_slack
-        :members:
-
-Additional Cluster Allocation
-.............................
-
-.. automodule:: fishy.fat.cluster_allocator
-        :members:
+When implementing a hiding technique, this technique must implement its own,
+hiding technique specific, metadata class. So the hiding technique itself defines
+which data will be stored. The write method then returns this technique specific
+metadata class which then gets serialized and stored in the main-metadata.

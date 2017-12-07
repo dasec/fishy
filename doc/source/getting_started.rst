@@ -4,7 +4,7 @@ Getting Started
 Installation
 ------------
 
-.. code:: bash
+.. code:: shell
 
     # Install requirements
     $ sudo pip install -r requirements.txt

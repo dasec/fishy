@@ -14,6 +14,7 @@ fishy - filesystem based data hiding techniques
    filesystem_datastructures
    hiding_techniques
    modules
+   module_documentation
 
 Indices and tables
 ==================
