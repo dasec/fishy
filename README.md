@@ -17,12 +17,15 @@ Toolkit for filesystem based data hiding techniques
 	
 # Requirements
 
-* python3
-* argparse
-* construct
-* pytsk3
-* pytest (optional, for testing)
-* sphinx (optional, for documentation)
+* Build:
+	* python3
+	* argparse - command line argument parsing
+	* construct - parsing FAT filesystems
+	* pytsk3 - parsing NTFS filesystems
+* Testing
+	* pytest
+* Documentation
+	* sphinx
 
 # Installation
 
