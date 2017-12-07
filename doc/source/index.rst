@@ -12,7 +12,8 @@ fishy - filesystem based data hiding techniques
 
    getting_started
    filesystem_datastructures
-   fileslack
+   hiding_techniques
+   modules
 
 Indices and tables
 ==================

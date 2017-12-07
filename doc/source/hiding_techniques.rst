@@ -1,5 +1,11 @@
+Hiding Techniques
+=================
+
+Following sections give a brief overview about each implemented hiding technique.
+
+
 File Slack
-==========
+----------
 
 The smallest unit in the data area is called "cluster".
 This unit is a fixed size value, that can often be configured at creation time
