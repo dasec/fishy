@@ -1,4 +1,5 @@
 # fishy
+
 Toolkit for filesystem based data hiding techniques
 
 # Techniques we found
@@ -18,12 +19,13 @@ Toolkit for filesystem based data hiding techniques
 # Requirements
 
 * Build:
-	* python3
+	* Python version 3.5 or higher
 	* argparse - command line argument parsing
 	* construct - parsing FAT filesystems
 	* pytsk3 - parsing NTFS filesystems
 * Testing
-	* pytest
+	* pytest - unit test framework
+	* mount and dd - unix tools. needed for test image generation 
 * Documentation
 	* sphinx
 
