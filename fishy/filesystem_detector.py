@@ -5,6 +5,7 @@ Basic filesystem detector for FAT and NTFS
 import typing as typ
 from .fat.fat_filesystem import fat_detector
 from .ntfs import ntfs_detector
+from .ext4 import ext4_detector
 
 
 # TODO: This is a duplicate of fat_detector
@@ -28,5 +29,7 @@ def get_filesystem_type(stream: typ.BinaryIO) -> str:
         return "FAT"
     elif ntfs_detector.is_ntfs(stream):
         return "NTFS"
+    elif ext4_detector.is_ext4(stream):
+        return "EXT4"
     else:
         raise UnsupportedFilesystemError()
