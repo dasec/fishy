@@ -23,8 +23,8 @@ class TestFileSystemDetector(object):
                 assert result == 'NTFS'
 
     def test_ext4_images(self, testfs_ext4_stable1):
-        """ Test if ext4 images won't be recognized """
+        """ Test if ext4 images are detected correctly """
         for img in testfs_ext4_stable1:
             with open(img, 'rb') as fs_stream:
-                with pytest.raises(UnsupportedFilesystemError):
-                    get_filesystem_type(fs_stream)
+                result = get_filesystem_type(fs_stream)
+                assert result == 'EXT4'
