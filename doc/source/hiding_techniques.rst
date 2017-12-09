@@ -21,6 +21,8 @@ The RAM Slack begins at the end of the file and ends at the end of the current
 sector.
 The Drive Slack reaches from the end of RAM Slack to the end of the cluster.
 
+.. image:: _static/fileslack_image.png
+
 Most filesystem implementations for FAT and NTFS pad the RAM Slack with zeros,
 nowadays. This padding behaviour must be honoured by our implementation, as
 non-zero values in this area would be suspicious to any observer.
