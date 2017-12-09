@@ -1,13 +1,25 @@
 Getting Started
 ===============
 
+Requirements
+------------
+
+* Build:
+        * Python version 3.5 or higher
+        * argparse - command line argument parsing
+        * construct - parsing FAT filesystems
+        * pytsk3 - parsing NTFS filesystems
+* Testing
+        * pytest - unit test framework
+        * mount and dd - unix tools. needed for test image generation
+* Documentation
+        * sphinx
+
 Installation
 ------------
 
 .. code:: shell
 
-    # Install requirements
-    $ sudo pip install -r requirements.txt
     # To run unit tests before installing
     $ sudo python setup.py test
     # Install the program
