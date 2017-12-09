@@ -7,7 +7,7 @@ Following sections give a brief overview about each implemented hiding technique
 File Slack
 ----------
 
-The smallest unit in the data area is called "cluster".
+The smallest unit in the data area of a filesystem is called "cluster".
 This unit is a fixed size value, that can often be configured at creation time
 of the filesystem.
 It is calculated from the `sector size * sectors per cluster`.

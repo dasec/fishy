@@ -7,9 +7,9 @@ Filesystem Implementations
 FAT Filesystem
 **************
 
-This toolkit uses its own FAT implementation, supporting FAT12, FAT16 and FAT32.
-It implements most of parsing the filesystem and some basic write operations,
-which can be used by hiding techniques.
+This toolkit uses its own FAT implementation, supporting FAT12, FAT16 and
+FAT32.  It implements most parts of parsing the filesystem and some basic write
+operations, which can be used by hiding techniques.
 
 To parse a filesystem image use the wrapper function `create_fat`.
 This parses a file stream and returns the appropriate FAT instance.
