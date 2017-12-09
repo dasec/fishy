@@ -1,4 +1,4 @@
-from .parser import Parser
+from fishy.ext4.parser import Parser
 
 class GDT:
 
@@ -46,14 +46,14 @@ class GDT:
     }
 
     def __init__(self, filename, superblock):
-        if(int(self.superblock.data['feature_incompat'], 0) & 0x80) == 0x80:
+        if (int(superblock.data['feature_incompat'], 0) & 0x80) == 0x80:
             self.is_64bit = True
         else:
             self.is_64bit = False
         self.data = self.parse_gdt(filename)
 
     def parse_gdt(self, filename):
-        if(self.is_64bit) :
+        if self.is_64bit:
             d = Parser.parse(filename, 1024, 64, structure=self.structure64)
         else:
             d = Parser.parse(filename, 1024, 32, structure = self.structure32)
