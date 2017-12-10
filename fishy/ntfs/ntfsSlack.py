@@ -3,6 +3,7 @@ ntfs slack implementation
 """
 
 from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG
+import struct
 
 
 class FileSlackMetadata:
@@ -123,20 +124,21 @@ class NtfsSlack:
         meta = file.info.meta
         if not meta:
             return 0
-        #file.info.meta.mode==365???
-        if file.info.name.name.decode('utf-8').find("$") != -1:
+        #avoid special files
+        if(file.info.meta.addr<16):
             return 0
-
+        #if file.info.name.name.decode('utf-8').find("$") != -1:
+        #    return 0
+        
         # get last block of file to check for slack
         resident = True
         meta_block = file.info.meta.addr
         mftentry_size = 1024
         mft_offset = 16
-        mftoffset_todata = 360
         # File size
         size = file.info.meta.size
         meta_addr = (meta_block + mft_offset) * mftentry_size
-        #avoid special files
+        
         for attr in file:
             for run in attr:
                 last_block_offset = run.len - 1
@@ -144,11 +146,31 @@ class NtfsSlack:
                 resident = False
         # File data resident in mft $Data entry
         if resident:
-            offsetto_slack = mftoffset_todata + size
-            metaslack_start = meta_addr + offsetto_slack
-            meta_freeslack = mftentry_size - offsetto_slack
-            self.slack_list.append(slack_space(meta_freeslack, metaslack_start))
-            return meta_freeslack
+            stream = open(self.stream, 'rb+')
+            #allocated size of mft entry
+            stream.seek(meta_addr+28)
+            mft_alloc_size = stream.read(4)
+            mftalloc_sizedec = struct.unpack("<L", mft_alloc_size)[0]
+            #get actual size of mft entry
+            stream.seek(meta_addr+24)
+            mft_entry_size = stream.read(4)
+            mftentry_sizedec = struct.unpack("<L", mft_entry_size)[0]
+            #offset to slack in mft entry
+            mftslack_start = meta_addr+mftentry_sizedec
+            #write to mft entry after end of attributes
+            #-2 at end to avoid overwriting fixup values
+            mftslack_end = meta_addr+mftalloc_sizedec-2
+            if mftentry_sizedec >= 512:
+                mftslack_size = mftslack_end - mftslack_start
+                self.slack_list.append(slack_space(mftslack_size, mftslack_start))
+                return mftslack_size
+            mftslack_end1 = (mftslack_start + 512 - (mftslack_start % 512)) - 2
+            mftslack_size1 = mftslack_end1 - mftslack_start
+            self.slack_list.append(slack_space(mftslack_size1, mftslack_start))              
+            mftslack_size2 = mftslack_end - (mftslack_end1 + 2)
+            self.slack_list.append(slack_space(mftslack_size2, mftslack_end1 + 2))
+            return mftslack_size1 + mftslack_size2
+            
 
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
