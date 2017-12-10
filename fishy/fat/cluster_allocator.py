@@ -118,6 +118,7 @@ class ClusterAllocator:
                 LOGGER.info("Got cluster %d as next cluster to write into",
                             next_cluster)
             except NoFreeClusterAvailableError:
+                self.clear(metadata)
                 raise NoFreeClusterAvailableError()
             # allocate this cluster in FAT
             self.fatfs.write_fat_entry(last_cluster, next_cluster)
@@ -133,8 +134,8 @@ class ClusterAllocator:
             LOGGER.info("%d bytes written into cluster %d",
                         written_bytes, next_cluster)
             last_cluster = next_cluster
-        # write overall length into metadata
-        metadata.set_length(written_length)
+            # write overall length into metadata
+            metadata.set_length(written_length)
         # finish fat chain
         LOGGER.info("Finishing cluster chain on cluster %d", last_cluster)
         self.fatfs.write_fat_entry(last_cluster, 'last_cluster')

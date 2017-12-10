@@ -178,6 +178,7 @@ class FileSlack:
                                  written_bytes)
 
         if instream.peek():
+            self.clear(metadata)
             raise IOError("No slack space left, to write data. But there are"
                           + " still %d Bytes in stream" % len(instream.peek()))
         return metadata
