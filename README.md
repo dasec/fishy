@@ -1,25 +1,49 @@
 # fishy
-Toolkit for filesystem based data hiding techniques
+
+`fishy` is a toolkit for filesystem based data hiding techniques, implemented
+in Python. It collects various common exploitation methods, that make use of
+existing datastructures on the filesystem layer, for hiding data from
+conventional file access methods. This toolkit is intended to introduce people
+to the concept of established anti-forensic methods associated with data
+hiding.
 
 # Techniques we found
 
 * FAT:
 	* File Slack [✓]
-	* Partition Slack
-	* Mark Clusters as 'bad', but write content to them
+	* Bad Cluster Allocation
 	* Allocate More Clusters for a file [✓]
-	* Overwrite Bootsector Copy?
-	* Overwrite FAT Copies when they are not FAT0 or FAT1
+
+* NTFS:
+	* File Slack [✓]
+	* Allocate More Clusters for File
+	* Mark clusters as 'bad', but write data into them
+	* Add data attribute to directories
+	* Alternate Data Streams
+	
+# Requirements
+
+* Build:
+	* Python version 3.5 or higher
+	* argparse - command line argument parsing
+	* construct - parsing FAT filesystems
+	* pytsk3 - parsing NTFS filesystems
+* Testing
+	* pytest - unit test framework
+	* mount and dd - unix tools. needed for test image generation 
+* Documentation
+	* sphinx
 
 # Installation
 
 ```bash
-# Install requirements
-$ sudo pip install -r requirements.txt
 # To run unit tests before installing
 $ sudo python setup.py test
 # Install the program
 $ sudo python setup.py install
+# Create documentation
+$ cd doc
+$ make html
 ```
 
 # Usage

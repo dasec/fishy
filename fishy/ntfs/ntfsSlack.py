@@ -123,6 +123,9 @@ class NtfsSlack:
         meta = file.info.meta
         if not meta:
             return 0
+        #file.info.meta.mode==365???
+        if file.info.name.name.decode('utf-8').find("$") != -1:
+            return 0
 
         # get last block of file to check for slack
         resident = True
@@ -133,6 +136,7 @@ class NtfsSlack:
         # File size
         size = file.info.meta.size
         meta_addr = (meta_block + mft_offset) * mftentry_size
+        #avoid special files
         for attr in file:
             for run in attr:
                 last_block_offset = run.len - 1
@@ -148,10 +152,20 @@ class NtfsSlack:
 
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
-
+        
+        blocknoram = self.blocksize - self.sectorsize
         # Actual file data in the last block
         l_d_size = size % self.blocksize
-
+        
+        #skip ram slack
+        size_in_ramslack = l_d_size % self.sectorsize
+        if size_in_ramslack > 0:
+            l_d_size += self.sectorsize - size_in_ramslack
+        
+        #skip file if data within last sector to avoid RAM slack
+        if l_d_size == 0 or l_d_size >= blocknoram:
+            return 0
+        
         # Slack space size
         s_size = self.blocksize - l_d_size
 
