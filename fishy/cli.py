@@ -11,6 +11,7 @@ from .file_slack import FileSlack
 from .cluster_allocation import ClusterAllocation
 from .metadata import Metadata
 from fishy.reserved_gdt_blocks import ReservedGDTBlocks
+from fishy.osd2 import OSD2
 
 
 def do_metadata(args: argparse.Namespace) -> None:
@@ -159,6 +160,47 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.clear()
 
+
+def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    handles osd2 subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        osd2 = OSD2(device, Metadata(), args.dev)
+        if not args.file:
+            # write from stdin into osd2 fields
+            osd2.write(sys.stdin.buffer)
+        else:
+            # write from files into osd2 fields
+            with open(args.file, 'rb') as fstream:
+                osd2.write(fstream, args.file)
+        with open(args.metadata, 'w+') as metadata_out:
+            osd2.metadata.write(metadata_out)
+    elif args.read:
+        # read hidden file to stdout
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            osd2 = OSD2(device, meta, args.dev)
+            osd2.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden file into outfile
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            osd2 = OSD2(device, meta, args.dev)
+            osd2.read_into_file(args.outfile)
+    elif args.clear:
+        # clear osd2 fields
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            osd2 = OSD2(device, meta, args.dev)
+            osd2.clear()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Toolkit for filesystem based data hiding techniques.')
     # TODO: Maybe this option should be required for hiding technique
@@ -214,6 +256,16 @@ def main():
     reserved_gdt_blocks.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear reserved GDT blocks')
     reserved_gdt_blocks.add_argument('file', metavar='FILE', nargs='?', help="File to write into reserved GDT blocks, if nothing provided, use stdin")
 
+    # OSD2
+    osd2 = subparsers.add_parser('osd2', help='hide data in osd2 fields of inodes')
+    osd2.set_defaults(which='osd2')
+    osd2.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    osd2.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from osd2 fields to stdout')
+    osd2.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from osd2 fields to OUTFILE')
+    osd2.add_argument('-w', '--write', dest='write', action='store_true', help='write to osd2 fields')
+    osd2.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear osd2 fields')
+    osd2.add_argument('file', metavar='FILE', nargs='?', help="File to write into osd2 fields, if nothing provided, use stdin")
+
     # Parse cli arguments
     args = parser.parse_args()
 
@@ -241,6 +293,10 @@ def main():
             # if 'reserved_gdt_blocks' was chosen
             if args.which == 'reserved_gdt_blocks':
                 do_reserved_gdt_blocks(args, device)
+
+            # if 'osd2' was chosen
+            if args.which == "osd2":
+                do_osd2(args, device)
 
 
 if __name__ == "__main__":
