@@ -10,6 +10,7 @@ from .fat.fat_filesystem.fat_wrapper import create_fat
 from .file_slack import FileSlack
 from .cluster_allocation import ClusterAllocation
 from .metadata import Metadata
+from fishy.reserved_gdt_blocks import ReservedGDTBlocks
 
 
 def do_metadata(args: argparse.Namespace) -> None:
@@ -119,6 +120,44 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.clear()
 
+def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    handles reserved_gdt_blocks subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+        if not args.file:
+            # write from stdin into reserved GDT blocks
+            reserve.write(sys.stdin.buffer)
+        else:
+            # write from files into reserved GDT blocks
+            with open(args.file, 'rb') as fstream:
+                reserve.write(fstream, args.file)
+        with open(args.metadata, 'w+') as metadata_out:
+            reserve.metadata.write(metadata_out)
+    elif args.read:
+        # read hidden file to stdout
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            reserve = ReservedGDTBlocks(device, meta, args.dev)
+            reserve.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden file into outfile
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            reserve = ReservedGDTBlocks(device, meta, args.dev)
+            reserve.read_into_file(args.outfile)
+    elif args.clear:
+        # clear reserved GDT blocks
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            reserve = ReservedGDTBlocks(device, meta, args.dev)
+            reserve.clear()
 
 def main():
     parser = argparse.ArgumentParser(description='Toolkit for filesystem based data hiding techniques.')
@@ -164,6 +203,17 @@ def main():
     addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
     addcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
     addcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
+
+    # Reserved GDT blocks
+    reserved_gdt_blocks = subparsers.add_parser('reserved_gdt_blocks', help='hide data in reserved GDT blocks')
+    reserved_gdt_blocks.set_defaults(which='reserved_gdt_blocks')
+    reserved_gdt_blocks.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    reserved_gdt_blocks.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from reserved GDT blocks to stdout')
+    reserved_gdt_blocks.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from reserved GDT blocks to OUTFILE')
+    reserved_gdt_blocks.add_argument('-w', '--write', dest='write', action='store_true', help='write to reserved GDT blocks')
+    reserved_gdt_blocks.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear reserved GDT blocks')
+    reserved_gdt_blocks.add_argument('file', metavar='FILE', nargs='?', help="File to write into reserved GDT blocks, if nothing provided, use stdin")
+
     # Parse cli arguments
     args = parser.parse_args()
 
@@ -187,6 +237,10 @@ def main():
             # if 'addcluster' was chosen
             if args.which == 'addcluster':
                 do_addcluster(args, device)
+
+            # if 'reserved_gdt_blocks' was chosen
+            if args.which == 'reserved_gdt_blocks':
+                do_reserved_gdt_blocks(args, device)
 
 
 if __name__ == "__main__":
