@@ -25,6 +25,7 @@ Installation
     # Install the program
     $ sudo python setup.py install
     # Generate documentation
+    $ pip install sphinx spinx-argparse
     $ python setup.py doc
 
 Usage

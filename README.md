@@ -43,6 +43,7 @@ $ sudo python setup.py test
 # Install the program
 $ sudo python setup.py install
 # Create documentation
+$ pip install sphinx spinx-argparse
 $ python setup.py doc
 ```
 
