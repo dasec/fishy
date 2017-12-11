@@ -4,23 +4,22 @@ class Parser:
     @staticmethod
     def parse(image, offset, length, structure, byteorder='little'):
         data_dict = {}
-        
-        with open(image, 'rb') as dev:
-            dev.seek(offset)
-            data = dev.read(length)
-            for key in structure:
-                offset = structure[key]['offset']
-                size = structure[key]['size']
 
-                bytes = data[offset:offset+size]
-                value = int.from_bytes(bytes, byteorder=byteorder)
+        image.seek(offset)
+        data = image.read(length)
+        for key in structure:
+            offset = structure[key]['offset']
+            size = structure[key]['size']
 
-                if "format" in structure[key]:
-                    if structure[key]["format"] == "ascii":
-                        value = bytes.decode('ascii')
-                    else:
-                        form = getattr(builtins, structure[key]["format"])
-                        value = form(value)
+            bytes = data[offset:offset+size]
+            value = int.from_bytes(bytes, byteorder=byteorder)
 
-                data_dict[key] = value
+            if "format" in structure[key]:
+                if structure[key]["format"] == "ascii":
+                    value = bytes.decode('ascii')
+                else:
+                    form = getattr(builtins, structure[key]["format"])
+                    value = form(value)
+
+            data_dict[key] = value
         return data_dict
