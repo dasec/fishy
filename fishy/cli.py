@@ -120,7 +120,12 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator.clear()
 
 
-def main():
+def build_parser() -> argparse.ArgumentParser:
+    """
+    Get the cli parser
+
+    :rtype: argparse.ArgumentParser
+    """
     parser = argparse.ArgumentParser(description='Toolkit for filesystem based data hiding techniques.')
     # TODO: Maybe this option should be required for hiding technique
     #       subcommand but not for metadata.... needs more thoughs than I
@@ -164,7 +169,13 @@ def main():
     addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
     addcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
     addcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
+
+    return parser
+
+
+def main():
     # Parse cli arguments
+    parser =  build_parser()
     args = parser.parse_args()
 
     if args.debug:
