@@ -4,7 +4,7 @@ Basic filesystem detector for FAT and NTFS
 
 import typing as typ
 
-from fishy.ext4.ext_filesystem import ext4_detector
+from fishy.ext4.ext4_filesystem import ext4_detector
 from .fat.fat_filesystem import fat_detector
 from .ntfs import ntfs_detector
 

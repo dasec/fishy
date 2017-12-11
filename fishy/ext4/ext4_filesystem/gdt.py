@@ -1,6 +1,6 @@
 import math
 
-from fishy.ext4.ext_filesystem.parser import Parser
+from fishy.ext4.ext4_filesystem.parser import Parser
 
 
 class GDT:

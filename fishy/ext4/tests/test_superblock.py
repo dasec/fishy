@@ -1,7 +1,7 @@
 import pprint
 from unittest import TestCase
 
-from fishy.ext4.ext_filesystem.superblock import Superblock
+from fishy.ext4.ext4_filesystem.superblock import Superblock
 
 pp = pprint.PrettyPrinter(indent=4)
 

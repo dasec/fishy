@@ -1,9 +1,9 @@
 import typing as typ
 from pytsk3 import FS_Info, Img_Info
 
-from fishy.ext4.ext_filesystem.gdt import GDT
-from fishy.ext4.ext_filesystem.inode_table import InodeTable
-from fishy.ext4.ext_filesystem.superblock import Superblock
+from fishy.ext4.ext4_filesystem.gdt import GDT
+from fishy.ext4.ext4_filesystem.inode_table import InodeTable
+from fishy.ext4.ext4_filesystem.superblock import Superblock
 
 
 class EXT4:
