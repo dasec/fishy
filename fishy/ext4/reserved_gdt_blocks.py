@@ -1,7 +1,8 @@
 import logging
-import typing as typ
 import math
-from fishy.ext4.EXT4 import EXT4
+import typing as typ
+
+from fishy.ext4.ext_filesystem.EXT4 import EXT4
 
 LOGGER = logging.getLogger("ext4-reserved-gdt-blocks")
 

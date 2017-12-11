@@ -1,5 +1,7 @@
-from fishy.ext4.parser import Parser
 import math
+
+from fishy.ext4.ext_filesystem.parser import Parser
+
 
 class GDT:
 
@@ -71,7 +73,6 @@ class GDT:
                 data.append(Parser.parse(fs_stream, offset, 64, structure=self.structure64))
                 offset += 64
         else:
-            offset = 1024
             for i in range(0, total_block_group_count):
                 data.append(Parser.parse(fs_stream, offset, 32, structure=self.structure32))
                 offset += 32

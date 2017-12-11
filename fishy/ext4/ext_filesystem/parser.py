@@ -1,11 +1,12 @@
 import builtins
+import time
 
 class Parser:
     @staticmethod
     def parse(image, offset, length, structure, byteorder='little'):
         data_dict = {}
-
         image.seek(offset)
+
         data = image.read(length)
         for key in structure:
             offset = structure[key]['offset']
@@ -17,6 +18,10 @@ class Parser:
             if "format" in structure[key]:
                 if structure[key]["format"] == "ascii":
                     value = bytes.decode('ascii')
+                elif structure[key]["format"] == "raw":
+                    value = bytes
+                elif structure[key]["format"] == "time":
+                    value = time.gmtime(value)
                 else:
                     form = getattr(builtins, structure[key]["format"])
                     value = form(value)

@@ -1,4 +1,4 @@
-from fishy.ext4.parser import Parser
+from fishy.ext4.ext_filesystem.parser import Parser
 
 BOOT_SECTOR_SIZE = 1024
 SUPERBLOCK_SIZE = 1024
