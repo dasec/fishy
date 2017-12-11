@@ -24,6 +24,8 @@ Installation
     $ sudo python setup.py test
     # Install the program
     $ sudo python setup.py install
+    # Generate documentation
+    $ python setup.py doc
 
 Usage
 -----

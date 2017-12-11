@@ -33,6 +33,7 @@ hiding.
 	* mount and dd - unix tools. needed for test image generation 
 * Documentation
 	* sphinx
+	* sphinx-argparse
 
 # Installation
 
@@ -42,8 +43,7 @@ $ sudo python setup.py test
 # Install the program
 $ sudo python setup.py install
 # Create documentation
-$ cd doc
-$ make html
+$ python setup.py doc
 ```
 
 # Usage
