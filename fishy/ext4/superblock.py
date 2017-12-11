@@ -1,13 +1,8 @@
-import pprint
-
-from .parser import Parser
-
-pp = pprint.PrettyPrinter(indent=4)
+from fishy.ext4.parser import Parser
 
 BOOT_SECTOR_SIZE = 1024
-BLOCK_SIZE = 1024
+SUPERBLOCK_SIZE = 1024
 BYTEORDER = 'little'
-
 
 class Superblock:
 
@@ -107,9 +102,9 @@ class Superblock:
         "checksum":           {"offset": 0x3FC, "size": 4}
     }
 
-    def __init__(self, filename):
-        self.data = self.parse_superblock(filename)
+    def __init__(self, fs_stream):
+        self.data = self.parse_superblock(fs_stream)
 
-    def parse_superblock(self, filename):
-        d = Parser.parse(filename, BOOT_SECTOR_SIZE, BLOCK_SIZE, structure=self.structure)
+    def parse_superblock(self, fs_stream):
+        d = Parser.parse(fs_stream, BOOT_SECTOR_SIZE, SUPERBLOCK_SIZE, structure=self.structure)
         return d
