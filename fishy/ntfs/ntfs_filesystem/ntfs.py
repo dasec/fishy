@@ -109,7 +109,6 @@ class NTFS:
         :param record_n: The record number of the directory to look in
         """
 
-        #print(name)
         #End of recursion
         if name == '':
             return record_n
@@ -284,10 +283,10 @@ class NTFS:
         offset = self.find_attribute(record, DATA_ID)
 
         if offset != None:
-            return self.__extract_from_data_attribute(record, offset)
+            return self._extract_from_data_attribute(record, offset)
 
 
-    def __extract_from_data_attribute(self, record: bytes, offset: int) -> bytes:
+    def _extract_from_data_attribute(self, record: bytes, offset: int) -> bytes:
         """
         Extracts the data from a data attribute
         :param record: The record containing the data attribute
@@ -300,11 +299,25 @@ class NTFS:
         if header.nonresident:
             runs = self.get_data_runs(record, offset)
             data = bytearray()
+            data_len = header.real_size
+            bytes_read = 0
             offset = 0
             for run in runs:
+                #All data read
+                if bytes_read >= data_len:
+                    break
+
+                length = run['length']
+                #Data ends in current run
+                if bytes_read + length >= data_len:
+                    length = data_len - bytes_read
+
+                #Seek to the current run
                 offset += run['offset']
                 self.stream.seek(self.start_offset + offset)
-                data.extend(self.stream.read(run['length']))
+                #Read the data from the run
+                data.extend(self.stream.read(length))
+                bytes_read += length
 
             return data
 

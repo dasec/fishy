@@ -91,4 +91,15 @@ class TestGetRecordOfFile(object):
             assert ntfs.get_record_of_file('notexisting') == None
 
 
-
+class TestGetData(object):
+    """ Tests if getting the data of a file works correctly """
+    def test_get_data(self, testfs_ntfs_stable1):
+        """
+        Tests if the correct data is returned
+        """
+        with open(testfs_ntfs_stable1[0], 'rb') as fs:
+            ntfs = NTFS(fs)
+            record_another = ntfs.get_record_of_file('another')
+            record_long_file = ntfs.get_record_of_file('long_file.txt')
+            assert ntfs.get_data(record_another) == b'222\n'
+            assert ntfs.get_data(record_long_file) == b'1'*8000 + b'\n'
