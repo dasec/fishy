@@ -17,10 +17,10 @@ class EXT4OSD2Metadata:
                   object
         """
         if d is None:
-            self.inode_table = None
+            # self.inode_table = None
             self.inode_numbers = []
         else:
-            self.inode_table = d["inode_table"]
+            # self.inode_table = d["inode_table"]
             self.inode_numbers = d["inode_numbers"]
 
     def add_inode_number(self, inode_number: int) -> None:
