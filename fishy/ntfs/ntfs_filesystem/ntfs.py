@@ -1,41 +1,49 @@
 """
-Class for NTFS operations
+Contains a class for NTFS operations
 """
 
-import io
+import typing
 from .bootsector import NTFS_BOOTSECTOR
 from .attribute_header import ATTRIBUTE_HEADER
 from .record_header import RECORD_HEADER
-from .attributes import ATTRIBUTE_LIST_ID, FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_ID, FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
+from .attributes import FILE_NAME_ID, DATA_ID, INDEX_ROOT_ID, INDEX_ALLOCATION_ID,\
+FILE_NAME_ATTRIBUTE, INDEX_ROOT, INDEX_HEADER, INDEX_RECORD_HEADER, INDEX_RECORD_ENTRY
+
+ROOT_DIR_RECORD = 5
+BITMAP_RECORD  = 6
 
 #TODO Implement reading data from records with attribute list
 class NTFS:
+    """
+    Class for NTFS operations
+    """
 
-    def __init__(self, stream: io.BufferedReader):
+    def __init__(self, stream: typing.BinaryIO):
         """
         :param stream: binary stream of the NTFS data
         """
         self.stream = stream
         self.start_offset = stream.tell()
-        self.bootsector = NTFS_BOOTSECTOR.parse_stream(stream)
-        self.cluster_size = self.bootsector.cluster_size*self.bootsector.sector_size
-        self.mft_offset = self.bootsector.mft_cluster*self.cluster_size
-        self.record_size = self.__calculate_record_size()
+        bootsector = self.get_bootsector()
+        self.sector_size = bootsector.sector_size
+        self.cluster_size = bootsector.cluster_size*self.sector_size
+        self.mft_offset = bootsector.mft_cluster*self.cluster_size
+        self.record_size = self._calculate_record_size(bootsector)
 
         stream.seek(self.start_offset + self.mft_offset)
         self.mft_record = stream.read(self.record_size)
 
         self.mft_runs = self.get_data_runs(self.mft_record)
-        self.ROOT_DIR_RECORD = 5
 
 
-    def __calculate_record_size(self) -> int:
+    def _calculate_record_size(self, bootsector) -> int:
         """
         Calculates the size of a MFT record
         using the cluster_size field of the bootsector
+        :param bootsector: The ntfs bootsector
         """
 
-        size = self.bootsector.clusters_per_file_record
+        size = bootsector.clusters_per_file_record
 
         #If the size is positive it is in clusters
         if size > 0:
@@ -46,6 +54,27 @@ class NTFS:
             size = 2**(-1*size)
 
         return size
+
+
+    def get_bootsector(self) -> NTFS_BOOTSECTOR:
+        """
+        Returns a NTFS_BOOTSECTOR struct of the bootsector
+        """
+        self.stream.seek(self.start_offset)
+        return NTFS_BOOTSECTOR.parse_stream(self.stream)
+
+
+    def get_bootsector_copy(self) -> NTFS_BOOTSECTOR:
+        """
+        Returns a NTFS_BOOTSECTOR struct of the bootsector copy
+        """
+        #Get the main bootsector to look for disk size
+        bootsector = self.get_bootsector()
+        #Calculate the offset to the bootsector copy (last sector)
+        offset = self.start_offset + bootsector.total_sectors*bootsector.sector_size
+        #Parse and return the bootsector copy
+        self.stream.seek(offset)
+        return NTFS_BOOTSECTOR.parse_stream(self.stream)
 
 
     def get_record(self, n: int) -> bytes:
@@ -80,7 +109,6 @@ class NTFS:
         :param record_n: The record number of the directory to look in
         """
 
-        #print(name)
         #End of recursion
         if name == '':
             return record_n
@@ -89,15 +117,14 @@ class NTFS:
         path = name.split('/')
 
         #Start of recursion: Search the root directory
-        if record_n == None:
-            record_n = self.ROOT_DIR_RECORD
+        if record_n is None:
+            record_n = ROOT_DIR_RECORD
 
         #Get the INDEX_ROOT attribute of the directory
         record = self.get_record(record_n)
         offset = self.find_attribute(record, INDEX_ROOT_ID)
         attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
         offset += attribute_header.offset
-        index_root = INDEX_ROOT.parse(record[offset:])
 
         #Get the header of the index entries
         offset += INDEX_ROOT.sizeof()
@@ -131,13 +158,18 @@ class NTFS:
                     #print(index_record_entry)
 
                     #The first path component is found
-                    #index_record_entry.file_name seems to be corrupted rather often, so the name is looked up in the mft record
-                    if self.get_filename_from_record(index_record_entry.record_reference.segment_number_low_part) == path[0]:
+                    #index_record_entry.file_name seems to be corrupted rather often,
+                    #so the name is looked up in the mft record
+                    if self.get_filename_from_record(\
+                            index_record_entry.record_reference.segment_number_low_part\
+                            ) == path[0]:
+
                         #Remove the first path component
                         path.remove(path[0])
                         #And recursively call with the rest of the path
                         name = "/".join(path)
-                        return self.get_record_of_file(name, index_record_entry.record_reference.segment_number_low_part)
+                        return self.get_record_of_file(name,\
+                                index_record_entry.record_reference.segment_number_low_part)
 
                     #Read the flags and update the offset
                     flags = index_record_entry.flags
@@ -160,13 +192,18 @@ class NTFS:
                 #print(index_record_entry.file_name.decode('utf-16'))
 
                 #The first path component is found
-                #index_record_entry.file_name seems to be corrupted rather often, so the name is looked up in the mft record
-                if self.get_filename_from_record(index_record_entry.record_reference.segment_number_low_part) == path[0]:
+                #index_record_entry.file_name seems to be corrupted rather often,
+                #so the name is looked up in the mft record
+                if self.get_filename_from_record(\
+                        index_record_entry.record_reference.segment_number_low_part\
+                        ) == path[0]:
+
                     #Remove the first path component
                     path.remove(path[0])
                     #And recursively call with the rest of the path
                     name = "/".join(path)
-                    return self.get_record_of_file(name, index_record_entry.record_reference.segment_number_low_part)
+                    return self.get_record_of_file(name,\
+                            index_record_entry.record_reference.segment_number_low_part)
 
                 #Read the flags and update the offset
                 flags = index_record_entry.flags
@@ -199,11 +236,13 @@ class NTFS:
         return record_header.first_attribute_offset
 
 
-    def find_attribute(self, record: bytes, attr_id: int) -> int:
+    def find_attribute(self, record: bytes, attr_id: int, include_header: bool = True) -> int:
         """
         Returns the offset of the first attribute with the specified id from the mft record
         :param record: The mft record
         :param attr_id: The id of the attribute to find
+        :param include_header: Whether the offset should include the header
+        :return: The offset to the attribute
         """
         offset = self.get_attribute_header_offset(record)
         while offset < self.record_size:
@@ -211,6 +250,15 @@ class NTFS:
 
             #Attribute found
             if attribute_header.type == attr_id:
+                #Header should not be included in offset
+                #TODO Definitely create tests for that
+                if not include_header:
+                    #Add offset to actual attribute
+                    if attribute_header.nonresident:
+                        offset += attribute_header.datarun_offset
+                    else:
+                        offset += attribute_header.offset
+
                 return offset
 
             #There is a next attribute
@@ -235,10 +283,10 @@ class NTFS:
         offset = self.find_attribute(record, DATA_ID)
 
         if offset != None:
-            return self.__extract_from_data_attribute(record, offset)
+            return self._extract_from_data_attribute(record, offset)
 
 
-    def __extract_from_data_attribute(self, record: bytes, offset: int) -> bytes:
+    def _extract_from_data_attribute(self, record: bytes, offset: int) -> bytes:
         """
         Extracts the data from a data attribute
         :param record: The record containing the data attribute
@@ -251,11 +299,25 @@ class NTFS:
         if header.nonresident:
             runs = self.get_data_runs(record, offset)
             data = bytearray()
+            data_len = header.real_size
+            bytes_read = 0
             offset = 0
             for run in runs:
+                #All data read
+                if bytes_read >= data_len:
+                    break
+
+                length = run['length']
+                #Data ends in current run
+                if bytes_read + length >= data_len:
+                    length = data_len - bytes_read
+
+                #Seek to the current run
                 offset += run['offset']
                 self.stream.seek(self.start_offset + offset)
-                data.extend(self.stream.read(run['length']))
+                #Read the data from the run
+                data.extend(self.stream.read(length))
+                bytes_read += length
 
             return data
 
@@ -274,9 +336,9 @@ class NTFS:
         """
 
         #Try to find offset of data attribute if none is given
-        if offset == None:
+        if offset is None:
             offset = self.find_attribute(record, DATA_ID)
-            if offset == None:
+            if offset is None:
                 return None
 
         header = ATTRIBUTE_HEADER.parse(record[offset:])
@@ -309,5 +371,137 @@ class NTFS:
                 byte = record[offset]
 
             return runs
+        else:
+            return []
+
+    def get_attribute_size(self, record: bytes, attr_id: int) -> int:
+        """
+        Returns the size of the given attribute in the given record
+        :param record: The record of the attribute
+        :param attr_id: The id of the attribute to look for
+        """
+        #Get the header of the requested attribute
+        offset = self.find_attribute(record, attr_id)
+        #There is no attribute of the requested type
+        if offset is None:
+            return 0
+
+        #Parse the attribute header
+        attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
+        #Distinguish between nonresident and resident attributes
+        if attribute_header.nonresident:
+            return attribute_header.alloc_size
+        else:
+            return attribute_header.size
 
 
+    #TODO Allocate more space if needed and consider the real size field in the record header
+    def set_data_size(self, record_n: int, size: int) -> bool:
+        """
+        :param record_n: The record number of the data attribute
+        :param size: The size to set
+        :return: Whether setting the size was successful
+        """
+        #Get the desired record
+        record = self.get_record(record_n)
+        offset = self.find_attribute(record, DATA_ID)
+
+        #No data attribute in the record
+        if offset is None:
+            return False
+
+        #Get attribute header
+        attribute_header = ATTRIBUTE_HEADER.parse(record[offset:])
+        #Distinguish between resident and nonresident attribute
+        if attribute_header.nonresident:
+            #Don't allow for setting a size bigger than the allocated disk space
+            if size > attribute_header.alloc_size:
+                return False
+            #Set the size
+            attribute_header.real_size = size
+            #Set the stream size to the next cluster boundary
+            attribute_header.stream_size = size + (self.cluster_size - size % self.cluster_size)
+
+        else:
+            #Check if new size fits into record
+            if size > (self.record_size - (8+offset)):
+                return False
+            #Set the size
+            attribute_header.length = size
+
+        #Write the changes
+        offset = self.mft_offset + record_n*self.record_size + offset
+        self.stream.seek(self.start_offset + offset)
+        self.stream.write(attribute_header.build())
+
+        return True
+
+
+    #TODO Test test test and test
+    def write_data(self, record_n: int, data: bytes) -> bool:
+        """
+        Writes data into an existing data attribute of a mft record without changing its size
+        :param record_n: The the number of the record to write into
+        :param data: The data to write
+        :return: Whether the write was successful
+        """
+        #Get the desired record
+        record = self.get_record(record_n)
+        #Check if the data attribute is big enough for the data to write
+        data_size = len(data)
+
+        #Size of the data attribute couldn't be set to size of data to write
+        if not self.set_data_size(record_n, data_size):
+            return False
+
+        #Get the runs of the data attribute
+        runs = self.get_data_runs(record)
+        #There is no data attribute
+        if runs is None:
+            return False
+        #The data attribute is resident
+        elif runs == []:
+            #Treat the resident data like a data run
+            length = self.get_attribute_size(record, DATA_ID)
+            offset = self.mft_offset + self.record_size*record_n + \
+                    self.find_attribute(record, DATA_ID, False)
+            runs.append({'length': length, 'offset': offset})
+        #The data attribute is nonresident
+        else:
+            #Append RAM Slack to data
+            if data_size % self.sector_size != 0:
+                data.append(b'\0' * (self.sector_size - data_size % self.sector_size))
+                data_size += self.sector_size - data_size % self.sector_size
+
+        #Write the data to the data runs
+        written = 0
+        offset = self.start_offset
+        for run in runs:
+            offset += run['offset']
+            length = run['length']
+            #For the last run
+            if written+length > data_size:
+                length = data_size - written
+
+            #Write the data to the run
+            self.stream.seek(offset)
+            written_to_run = self.stream.write(data[offset:offset+length])
+
+            #Something went wrong
+            if written_to_run != length:
+                return False
+
+            written += written_to_run
+
+            #All data written
+            if written == data_size:
+                return True
+
+
+    #TODO Implement
+    def allocate_clusters(self, clusters: []) -> bool:
+        """
+        Sets the given clusters as allocated in the $Bitmap file
+        :param clusters: The clusters to allocate
+        """
+        pass
