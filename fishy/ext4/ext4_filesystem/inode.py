@@ -1,11 +1,4 @@
-import pprint
-
 from fishy.ext4.ext4_filesystem.parser import Parser
-
-pp = pprint.PrettyPrinter(indent=4)
-
-BYTEORDER = 'little'
-
 
 class Inode:
     """
@@ -89,7 +82,6 @@ class Inode:
             field_size = value["size"]
             bytes = header_part[field_offset:field_offset+field_size]
             header[key] = int.from_bytes(bytes, byteorder='little')
-
 
         extent_data["header"] = header
 

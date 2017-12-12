@@ -23,9 +23,3 @@ class EXT4:
         img_info = Img_Info(dev)
         fs_info = FS_Info(img_info, offset=0)
         return fs_info.info.block_size
-
-image = "/home/yannick/HDA/Semester5/PSE/ext4_example_wc.img"
-with open(image, 'rb+') as f:
-    ext4 = EXT4(f, image)
-
-    print(ext4.inode_tables[0].table_start)

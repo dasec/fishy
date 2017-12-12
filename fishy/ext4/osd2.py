@@ -67,7 +67,7 @@ class EXT4OSD2:
 
 
         instream_chunks = [instream[i:i+2] for i in range(0, len(instream), 2)]
-        print(instream_chunks)
+        # print(instream_chunks)
         inode_number = 1
         hidden_chunks = 0
 
@@ -90,7 +90,7 @@ class EXT4OSD2:
         :param metadata: EXT4OSD2Metadata object
         """
         inode_numbers = metadata.get_inode_numbers()
-        print(inode_numbers)
+        # print(inode_numbers)
         for nr in inode_numbers:
             outstream.write(self._read_from_osd2(nr))
 
@@ -101,7 +101,7 @@ class EXT4OSD2:
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
-            self._write_to_osd2(b"\x00\x00", nr)
+            self._clear_osd2(nr)
 
     def _write_to_osd2(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)
@@ -116,6 +116,11 @@ class EXT4OSD2:
             return True
         else:
             return False
+
+    def _clear_osd2(self, inode_nr: int):
+        total_osd2_offset = self._get_total_osd2_offset(inode_nr)
+        self.stream.seek(total_osd2_offset)
+        self.stream.write(b"\x00\x00")
 
     def _read_from_osd2(self, inode_nr: int):
         self.stream.seek(0)
