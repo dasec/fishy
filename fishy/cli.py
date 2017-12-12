@@ -5,13 +5,14 @@ import sys
 import argparse
 import logging
 import typing as typ
-from .fat.fat_filesystem.fattools import FATtools
-from .fat.fat_filesystem.fat_wrapper import create_fat
-from .file_slack import FileSlack
-from .cluster_allocation import ClusterAllocation
-from .metadata import Metadata
+from fishy.fat.fat_filesystem.fattools import FATtools
+from fishy.fat.fat_filesystem.fat_wrapper import create_fat
+from fishy.file_slack import FileSlack
+from fishy.cluster_allocation import ClusterAllocation
+from fishy.metadata import Metadata
 from fishy.reserved_gdt_blocks import ReservedGDTBlocks
 from fishy.osd2 import OSD2
+from fishy.superblock_slack import SuperblockSlack
 
 
 def do_metadata(args: argparse.Namespace) -> None:
@@ -160,6 +161,45 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.clear()
 
+def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    handles superblock_slack subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        slack = SuperblockSlack(device, Metadata(), args.dev)
+        if not args.file:
+            # write from stdin into superblock slack
+            slack.write(sys.stdin.buffer)
+        else:
+            # write from files into superblock slack
+            with open(args.file, 'rb') as fstream:
+                slack.write(fstream, args.file)
+        with open(args.metadata, 'w+') as metadata_out:
+            slack.metadata.write(metadata_out)
+    elif args.read:
+        # read hidden file to stdout
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            slack = SuperblockSlack(device, meta, args.dev)
+            slack.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden file into outfile
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            slack = SuperblockSlack(device, meta, args.dev)
+            slack.read_into_file(args.outfile)
+    elif args.clear:
+        # clear superblock slack
+        with open(args.metadata, 'r') as metadata_file:
+            meta = Metadata()
+            meta.read(metadata_file)
+            slack = SuperblockSlack(device, meta, args.dev)
+            slack.clear()
+
 
 def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
@@ -256,6 +296,16 @@ def main():
     reserved_gdt_blocks.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear reserved GDT blocks')
     reserved_gdt_blocks.add_argument('file', metavar='FILE', nargs='?', help="File to write into reserved GDT blocks, if nothing provided, use stdin")
 
+    # Superblock slack
+    superblock_slack = subparsers.add_parser('superblock_slack', help='hide data in superblock slack')
+    superblock_slack.set_defaults(which='superblock_slack')
+    superblock_slack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    superblock_slack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from superblock slack to stdout')
+    superblock_slack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from superblock slack to OUTFILE')
+    superblock_slack.add_argument('-w', '--write', dest='write', action='store_true', help='write to superblock slack')
+    superblock_slack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear superblock slack')
+    superblock_slack.add_argument('file', metavar='FILE', nargs='?', help="File to write into superblock slack, if nothing provided, use stdin")
+
     # OSD2
     osd2 = subparsers.add_parser('osd2', help='hide data in osd2 fields of inodes')
     osd2.set_defaults(which='osd2')
@@ -297,6 +347,10 @@ def main():
             # if 'osd2' was chosen
             if args.which == "osd2":
                 do_osd2(args, device)
+
+            # if 'superblock_slack' was chosen
+            if args.which == 'superblock_slack':
+                do_superblock_slack(args,device)
 
 
 if __name__ == "__main__":
