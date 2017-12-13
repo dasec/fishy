@@ -17,7 +17,10 @@ def do_metadata(args: argparse.Namespace) -> None:
     handles metadata subcommand execution
     :param args: argparse.Namespace
     """
-    meta = Metadata()
+    if args.password is None:
+        meta = Metadata()
+    else:
+        meta = Metadata(password=args.password)
     meta.read(args.metadata)
     meta.info()
 
@@ -47,7 +50,10 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         slacker = FileSlack(device, Metadata(), args.dev)
         slacker.info(args.destination)
     if args.write:
-        slacker = FileSlack(device, Metadata(), args.dev)
+        if args.password is None:
+            slacker = FileSlack(device, Metadata(), args.dev)
+        else:
+            slacker = FileSlack(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into fileslack
             slacker.write(sys.stdin.buffer, args.destination)
@@ -55,26 +61,35 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into fileslack
             with open(args.file, 'rb') as fstream:
                 slacker.write(fstream, args.destination, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             slacker.metadata.write(metadata_out)
     elif args.read:
         # read file slack of a single hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
             slacker.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden data in fileslack into outfile
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
             slacker.read_into_file(args.outfile)
     elif args.clear:
         # clear fileslack
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
             slacker.clear()
@@ -87,7 +102,10 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
-        allocator = ClusterAllocation(device, Metadata(), args.dev)
+        if args.password is None:
+            allocator = ClusterAllocation(device, Metadata(), args.dev)
+        else:
+            allocator = ClusterAllocation(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into additional clusters
             allocator.write(sys.stdin.buffer, args.destination)
@@ -95,26 +113,35 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into additional clusters
             with open(args.file, 'rb') as fstream:
                 allocator.write(fstream, args.destination, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             allocator.metadata.write(metadata_out)
     elif args.read:
         # read file slack of a single hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden data from additional clusters into outfile
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.read_into_file(args.outfile)
     elif args.clear:
         # clear additional clusters
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:            
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.clear()
@@ -126,6 +153,7 @@ def main():
     #       subcommand but not for metadata.... needs more thoughs than I
     #       currently have
     parser.add_argument('-d', '--device', dest='dev', required=False, help='Path to filesystem')
+    parser.add_argument('-p', '--password', dest='password', required=False, help='Password for encryption')
     # TODO Maybe we should provide a more fine grained option to choose between different log levels
     parser.add_argument('--debug', dest='debug', action='store_true', help="turn debug output on")
     subparsers = parser.add_subparsers(help='Hiding techniques sub-commands')
