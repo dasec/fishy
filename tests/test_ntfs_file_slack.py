@@ -43,7 +43,6 @@ class TestWrite:
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader,
                                          ['onedirectory/afileinadirectory.txt'])
-                    print(result.addrs)
                     assert result.addrs == [(87456, 28)]
 
     def test_write_file_autoexpand_subdir(self, testfs_ntfs_stable1):  # pylint: disable=invalid-name
@@ -61,9 +60,29 @@ class TestWrite:
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader, ['onedirectory'])
-                    print(result.addrs)
                     assert result.addrs == [(87456, 94),
                                                (87552, 186)]
+                    
+    def test_write_file_nodir(self, testfs_ntfs_stable1):
+        """ Test if autoexpansion for directories as input filepath works """
+        # if user supplies a directory instead of a file path, all files under
+        # this directory will recusively added
+        for img_path in testfs_ntfs_stable1:
+            # create FileSlack object
+            ntfs = FileSlack(img_path)
+            # setup raw stream and write testmessage
+            with io.BytesIO() as mem:
+                teststring = "This is a simple write test."*100
+                mem.write(teststring.encode('utf-8'))
+                mem.seek(0)
+                # write testmessage to disk
+                with io.BufferedReader(mem) as reader:
+                    result = ntfs.write(reader, None)
+                    assert result.addrs == [(42328, 166), (42496, 510),
+                                            (41584, 398), (43360, 158),
+                                            (43520, 510), (82296, 134),
+                                            (82432, 510), (83392, 62),
+                                            (83456, 352)]
 
 class TestRead:
     """ Test reading slackspace """
