@@ -14,6 +14,7 @@ Requirements
         * mount and dd - unix tools. needed for test image generation
 * Documentation
         * sphinx
+        * sphinx-argparse
 
 Installation
 ------------
