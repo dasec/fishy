@@ -15,7 +15,8 @@ hiding.
 	* Allocate More Clusters for a file [✓]
 
 * NTFS:
-	* File Slack [✓]
+	* File Slack (+ MFT Slack for files with resident $Data attribute) [✓]
+	* MFT Slack
 	* Allocate More Clusters for File
 	* Mark clusters as 'bad', but write data into them
 	* Add data attribute to directories
