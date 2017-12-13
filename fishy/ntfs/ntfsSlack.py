@@ -89,7 +89,7 @@ class NtfsSlack:
         self.filesize_left = file_size
         self.fill_slack_list()
         if file_size > self.total_slacksize:
-            raise Exception("Not enough slack space")
+            raise IOError("Not enough slack space")
         # .ELF(7F 45 4C 46)
         print("File hidden")
         hiddenfiles = self.write_file_to_slack()
@@ -128,8 +128,7 @@ class NtfsSlack:
         if(file.info.meta.addr<16):
             return 0
         #if file.info.name.name.decode('utf-8').find("$") != -1:
-        #    return 0
-        
+        #    return 0        
         # get last block of file to check for slack
         resident = True
         meta_block = file.info.meta.addr
@@ -137,8 +136,7 @@ class NtfsSlack:
         mft_offset = 16
         # File size
         size = file.info.meta.size
-        meta_addr = (meta_block + mft_offset) * mftentry_size
-        
+        meta_addr = (meta_block + mft_offset) * mftentry_size        
         for attr in file:
             for run in attr:
                 last_block_offset = run.len - 1
@@ -169,28 +167,21 @@ class NtfsSlack:
             self.slack_list.append(slack_space(mftslack_size1, mftslack_start))              
             mftslack_size2 = mftslack_end - (mftslack_end1 + 2)
             self.slack_list.append(slack_space(mftslack_size2, mftslack_end1 + 2))
-            return mftslack_size1 + mftslack_size2
-            
-
+            return mftslack_size1 + mftslack_size2          
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
-        
         blocknoram = self.blocksize - self.sectorsize
         # Actual file data in the last block
-        l_d_size = size % self.blocksize
-        
+        l_d_size = size % self.blocksize        
         #skip ram slack
         size_in_ramslack = l_d_size % self.sectorsize
         if size_in_ramslack > 0:
-            l_d_size += self.sectorsize - size_in_ramslack
-        
+            l_d_size += self.sectorsize - size_in_ramslack        
         #skip file if data within last sector to avoid RAM slack
         if l_d_size == 0 or l_d_size >= blocknoram:
-            return 0
-        
+            return 0        
         # Slack space size
         s_size = self.blocksize - l_d_size
-
         start_addr_slack = last_block * self.blocksize + l_d_size
         # print("%s slack found"%s_size)
         self.slack_list.append(slack_space(s_size, start_addr_slack))
@@ -276,28 +267,6 @@ class NtfsSlack:
         length = len(self.input)
         return length
 
-
-
-            #    def get_Volume_Slack(self):
-            #        selectedPartition = None
-            #        #find partition by offset
-            #        for partition in volume:
-            #            if partition.start == options.offset:
-            #                selectedPartition = partition
-            #                break
-            #        #free sectors after filesystem(+1 for copy of boot sector)
-            #        freeSectors = selectedPartition.len - (fs_inf.info.block_count+1)*cluster_size
-            #        print ("free Sectors:%s"%freeSectors )
-            #        #get address of first free sector
-            #        firstFreeSectorAddr = (fs_inf.info.last_block+2)*blocksize
-            #        fileSytemSlackSize = freeSectors*sectorsize
-            #        print ("File System Slack: %s - %s(%s)"
-            #        %(firstFreeSectorAddr,firstFreeSectorAddr+fileSytemSlackSize,fileSytemSlackSize))
-            #        #create slack space object and append to list
-            #        slack_list.append(slack_space(fileSytemSlackSize,firstFreeSectorAddr))
-            #        #set the total slack size
-            #        self.total_slacksize += fileSytemSlackSize
-
     def fill_slack_list(self):
         """ fill slack list with directory or single file """
         # look file slack
@@ -308,7 +277,4 @@ class NtfsSlack:
             except OSError:
                 file = self.fs_inf.open(path)
                 self.get_file_slack_single_file(file)
-                # look for volume slack?
-
-# if options.slack == "volume":
-#            get_Volume_Slack()
+        # look for volume slack?
