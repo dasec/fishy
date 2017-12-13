@@ -142,5 +142,7 @@ class FileSlack:
                 print("  Occupied in last cluster:", occp)
                 print("  Ram Slack:", rams)
                 print("  File Slack:", files)
+        elif self.fs_type == 'NTFS':
+            self.fs.info(filepaths)
         else:
             raise NotImplementedError()
