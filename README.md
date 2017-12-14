@@ -170,6 +170,8 @@ $ fishy -d testfs-fat12.dd addcluster -m metadata.json -c
 
 * Unittests can be executed by running `pytest`. Please make sure the `create_testfs.sh` script runs as expected.
 * To make sure tests will run against the current state of your project and not only against some old installed version, consider installing via `pip install -e .` or `python setup.py develop` instead of `python setup.py install`
+* Doctests can by executed with `python3 -m unittest tests/test_doctest.py`.
+* To add modules to doctest, extend the `load_tests` funtion under `tests/test_doctest.py`.
 
 ## Creating test filesystem images
 
