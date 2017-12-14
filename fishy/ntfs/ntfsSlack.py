@@ -36,21 +36,14 @@ class FileSlackMetadata:
             yield addr[0], addr[1]
 
 
-class slack_space:
+class slack_space:  # pylint: disable=too-few-public-methods
     """ class for slack space objects"""
     def __init__(self, size, addr):
         self.size = size
         self.addr = addr
 
 
-class file_loc:
-    """ class for single file location """
-    def __init__(self, addr, size):
-        self.size = size
-        self.addr = addr
-
-
-class slack_file:
+class slack_file:  # pylint: disable=too-few-public-methods
     """ class file in slack with list of locations """
     def __init__(self, name, size, ):
         self.loc_list = []
@@ -78,6 +71,7 @@ class NtfsSlack:
         self.filesize_left = 0
         self.input = ""
         self.filepath = ""
+        self.info = False
 
     def write(self, instream, filepath):
         """ write data to slack """
@@ -120,12 +114,16 @@ class NtfsSlack:
             stream.write(length * b'\x00')
 
     def get_slack(self, file):
-        """ calculate slack size of file """
+        """ calculate slack size of file or mft entry in case of resident $Data attribute"""
         meta = file.info.meta
         if not meta:
+            if self.info:
+                print("\tError checking MFT entry of file")
             return 0
-        #avoid special files
-        if file.info.meta.addr < 16:
+        #avoid ntfs meta files
+        if file.info.meta.addr < 27:
+            if self.info:
+                print("\tSkipping NTFS metafile")
             return 0
         #if file.info.name.name.decode('utf-8').find("$") != -1:
         #    return 0
@@ -144,15 +142,21 @@ class NtfsSlack:
                 resident = False
         # File data resident in mft $Data entry
         if resident:
+            if self.info:
+                print("\tFile is resident in MFT entry $Data attribute")
             stream = open(self.stream, 'rb+')
             #allocated size of mft entry
             stream.seek(meta_addr+28)
             mft_alloc_size = stream.read(4)
             mftalloc_sizedec = struct.unpack("<L", mft_alloc_size)[0]
+            if self.info:
+                print("\tMFT entry allocated size: %s"%mftalloc_sizedec)
             #get actual size of mft entry
             stream.seek(meta_addr+24)
             mft_entry_size = stream.read(4)
             mftentry_sizedec = struct.unpack("<L", mft_entry_size)[0]
+            if self.info:
+                print("\tMFT entry used size: %s"%mftentry_sizedec)
             #offset to slack in mft entry
             mftslack_start = meta_addr+mftentry_sizedec
             #write to mft entry after end of attributes
@@ -161,27 +165,42 @@ class NtfsSlack:
             if mftentry_sizedec >= 512:
                 mftslack_size = mftslack_end - mftslack_start
                 self.slack_list.append(slack_space(mftslack_size, mftslack_start))
+                if self.info:
+                    print("\tMFT slack size(avoiding fixup value): %s"%mftslack_size)
                 return mftslack_size
             mftslack_end1 = (mftslack_start + 512 - (mftslack_start % 512)) - 2
             mftslack_size1 = mftslack_end1 - mftslack_start
             self.slack_list.append(slack_space(mftslack_size1, mftslack_start))
             mftslack_size2 = mftslack_end - (mftslack_end1 + 2)
             self.slack_list.append(slack_space(mftslack_size2, mftslack_end1 + 2))
+            if self.info:
+                print("\tMFT slack size(avoiding fixup values): %s"%(mftslack_size1 + mftslack_size2))
             return mftslack_size1 + mftslack_size2
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
         blocknoram = self.blocksize - self.sectorsize
         # Actual file data in the last block
         l_d_size = size % self.blocksize
+        if self.info:
+            occ_blocks = int(l_d_size / self.sectorsize)
+            if l_d_size % self.sectorsize > 0:
+                occ_blocks += 1
+            print("\tOccupied sectors in last cluster: %s"%occ_blocks)
         #skip ram slack
         size_in_ramslack = l_d_size % self.sectorsize
+        ramslack_size = self.sectorsize - size_in_ramslack
+        if self.info:
+            print("\tRAM Slack: %s"%ramslack_size)
         if size_in_ramslack > 0:
-            l_d_size += self.sectorsize - size_in_ramslack
+            l_d_size += ramslack_size
         #skip file if data within last sector to avoid RAM slack
         if l_d_size == 0 or l_d_size >= blocknoram:
             return 0
         # Slack space size
         s_size = self.blocksize - l_d_size
+        if self.info:
+            print("\tDrive Slack: %s"%s_size)
+            print("\tFile Slack: %s"%(ramslack_size+s_size))
         start_addr_slack = last_block * self.blocksize + l_d_size
         #print("%s slack found"%s_size)
         self.slack_list.append(slack_space(s_size, start_addr_slack))
@@ -200,6 +219,8 @@ class NtfsSlack:
         for file in directory:
             if self.filesize_left > 0:
                 if self.is_fs_regfile(file):
+                    if self.info:
+                        print("File: %s"%file.info.name.name.decode("utf8"))
                     # if file: get slack of file and add slack to total slack size
                     slack_size = self.get_slack(file)
                     self.total_slacksize += slack_size
@@ -245,11 +266,11 @@ class NtfsSlack:
             # add a location to the hidden files location list
             if slack.size >= length:
                 stream.write(input_file[pos:pos + length])
-                hidden_file.loc_list.append(file_loc(slack.addr, length))
+                hidden_file.loc_list.append(slack_space(length, slack.addr))
                 break
             else:
                 stream.write(input_file[pos:pos + slack.size])
-                hidden_file.loc_list.append(file_loc(slack.addr, slack.size))
+                hidden_file.loc_list.append(slack_space(slack.size, slack.addr))
                 pos += slack.size
                 length -= slack.size
         # stream.flush
@@ -275,6 +296,8 @@ class NtfsSlack:
                 directory = self.fs_inf.open_dir(path)
                 self.get_file_slack(directory)
             except OSError:
+                if self.info:
+                    print("File: %s"%path)
                 file = self.fs_inf.open(path)
                 self.get_file_slack_single_file(file)
         # look for volume slack?

@@ -173,7 +173,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Metadata info
     metadata = subparsers.add_parser('metadata', help='list information about a metadata file')
     metadata.set_defaults(which='metadata')
-    metadata.add_argument('-m', '--metadata', dest='metadata', type=argparse.FileType('r'), help="filepath to metadata file")
+    metadata.add_argument('-m', '--metadata', dest='metadata', type=argparse.FileType('rb'), help="filepath to metadata file")
 
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')

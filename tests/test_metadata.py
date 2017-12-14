@@ -118,3 +118,19 @@ class TestMetadataClass(unittest.TestCase):
                          meta.metadata["files"]["0"]["filename"])
         self.assertEqual(meta2.metadata["files"]["0"]["metadata"],
                          meta.metadata["files"]["0"]["metadata"])
+        
+    def test_encryption(self):
+        """ Test if encryption of the metadata class works """
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
+        # Test if writing and reading with en-/decrytion works
+        meta = Metadata('test-module', password="password")
+        meta.add_file("testfile", StubMetadata())
+        meta.write(tmpfile)
+        tmpfile.seek(0)
+        meta.read(tmpfile)
+        result = meta.metadata
+        expected = json.loads('{"version": 2, "files": {"0": ' \
+                   + '{"uid": "0", "filename": ' \
+                   + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
+                   + '"module": "test-module"}')
+        self.assertEqual(result, expected)

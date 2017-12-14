@@ -60,8 +60,8 @@ class TestWrite:
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader, ['onedirectory'])
-                    assert result.addrs == [(87456, 94),
-                                               (87552, 186)]
+                    assert sorted(result.addrs) == sorted([(87456, 94),
+                                               (87552, 186)])
                     
     def test_write_file_nodir(self, testfs_ntfs_stable1):
         """ Test if autoexpansion for directories as input filepath works """
@@ -72,17 +72,17 @@ class TestWrite:
             ntfs = FileSlack(img_path)
             # setup raw stream and write testmessage
             with io.BytesIO() as mem:
-                teststring = "This is a simple write test."*100
+                teststring = "This is a simple write test."*129
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader, None)
-                    assert result.addrs == [(42328, 166), (42496, 510),
-                                            (41584, 398), (43360, 158),
-                                            (43520, 510), (82296, 134),
-                                            (82432, 510), (83392, 62),
-                                            (83456, 352)]
+                    assert sorted(result.addrs) == sorted([(82296, 134), 
+                                  (82432, 510), (83392, 62), (83456, 510), 
+                                  (87456, 94), (87552, 510), (88536, 38), 
+                                  (88576, 510), (90496, 126), (90624, 510), 
+                                  (91528, 118), (91648, 490)])
 
 class TestRead:
     """ Test reading slackspace """

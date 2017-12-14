@@ -1,5 +1,7 @@
 """
-Metadata is a simple class that holds and manages metadata.
+Metadata is a simple class that holds and manages metadata. If a password
+is set the metadata will be de-/encrypted in the read() and write() methods
+using simplecrypt.
 
 Its purpose is to unify the dataformat and provide a consistent method for
 reading and writing those metadata.
@@ -49,6 +51,11 @@ now we create our metadata object and save the FileSlackMetadata object into it
 >>> m = Metadata("fat-file-slack")
 >>> m.add_file("super-secret-file.txt", subm)
 
+optionaly we can encrypt the metadata by setting a password
+
+>>> m = Metadata("fat-file-slack", password="password")
+>>> m.add_file("super-secret-file.txt", subm)
+
 we can get a single file entry out of it (if we now the uid)
 
 >>> file_id = "0"
@@ -63,13 +70,19 @@ or we can use the iterator to iterate over all file entries
 
 write metadata to a file
 
->>> mdf = open("/tmp/metadata.json", "w+")
+>>> mdf = open("/tmp/metadata.json", "wb+")
 >>> m.write(mdf)
 
 read metadata file
 
 >>> m = Metadata()
->>> mdf = open("/tmp/metadata.json", "r")
+>>> mdf = open("/tmp/metadata.json", "rb")
+>>> m.read(mdf)
+
+decrypt and read encrypted metadata file
+
+>>> m = Metadata(password="password")
+>>> mdf = open("/tmp/metadata.json", "rb")
 >>> m.read(mdf)
 
 switch module context
@@ -102,7 +115,7 @@ class Metadata:
         """
         :param module_identifier: string that uniquely identifies the
                                   current module. Default main.
-        :password: password for encryption
+        :password: password to use for de-/encryption in methods read() and write()
         """
         self.metadata = {}
         self.password = password
@@ -219,7 +232,7 @@ class Metadata:
 
     def read(self, instream: typ.BinaryIO) -> None:
         """
-        reads json formatted content from stream.
+        reads json formatted content from stream. If a password is set the data will be decrypted.
 
         This will overwrite all content previously stored as metadata.
         The currently selected module will change to 'main'
@@ -234,7 +247,7 @@ class Metadata:
 
     def write(self, outstream: typ.BinaryIO) -> None:
         """
-        writes the current metadata into a stream
+        writes the current metadata into a stream. If a password is set the data will be encrypted.
         """
         # check if some information are missing
         if self.metadata["module"] is None:

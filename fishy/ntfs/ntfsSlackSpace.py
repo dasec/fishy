@@ -46,6 +46,7 @@ class NTFSFileSlack:
         prints info about available file slack of files
         """
         self.slack_tool.filepath = filepaths
+        self.slack_tool.info = True
         self.slack_tool.filesize_left = float('inf')
         self.slack_tool.fill_slack_list()
-        print("Total slack:%s"%self.slack_tool.total_slacksize)
+        print("\nTotal slack:%s"%self.slack_tool.total_slacksize)
