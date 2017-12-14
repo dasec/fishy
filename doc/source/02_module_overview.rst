@@ -110,8 +110,8 @@ Metadata handling
 
 To be able to restore hidden data, most hiding techniques will need some
 additional information. These information will be stored in a metadata file.
-The `fishy.metadata` class provides functions to read and write metadata files,
-automatically de-/encrypting the metadata if a password is provided.
+The `fishy.metadata` class provides functions to read and write metadata files
+and automatically de-/encrypting the metadata if a password is provided.
 The purpose of this class is to ensure, that all metadata files have a similar
 datastructure. Though the program can detect at an early point, that for example
 a user uses the wrong hiding technique to restore hidden data. This metadata class

@@ -1,10 +1,11 @@
 """
-Metadata is a simple class that holds and manages metadata. If a password
-is set the metadata will be de-/encrypted in the read() and write() methods
-using simplecrypt.
+Metadata is a simple class that holds and manages metadata.
 
 Its purpose is to unify the dataformat and provide a consistent method for
 reading and writing those metadata.
+
+If a password is set the metadata will be de-/encrypted in the read() and
+write() methods.
 
 example of the resulting data structure that will be written to disk
 (everything represented under the key 'metadata' comes from a
