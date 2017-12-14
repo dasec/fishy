@@ -133,4 +133,8 @@ class TestMetadataClass(unittest.TestCase):
                    + '{"uid": "0", "filename": ' \
                    + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
                    + '"module": "test-module"}')
-        self.assertEqual(result, expected)
+        self.assertEqual(result, expected)        
+        with self.assertRaises(IOError):
+            meta.password = None
+            tmpfile.seek(0)
+            meta.read(tmpfile)
