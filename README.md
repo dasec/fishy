@@ -32,8 +32,9 @@ hiding.
 	* pytest - unit test framework
 	* mount and dd - unix tools. needed for test image generation 
 * Documentation
-	* sphinx
-	* sphinx-argparse
+	* sphinx - generates the documentation
+	* sphinx-argparse - cli parameter documentation
+	* graphviz - unix tool. generates graphs, used in the documentation
 
 # Installation
 

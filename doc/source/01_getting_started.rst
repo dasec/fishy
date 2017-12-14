@@ -9,12 +9,14 @@ Requirements
         * argparse - command line argument parsing
         * construct - parsing FAT filesystems
         * pytsk3 - parsing NTFS filesystems
+        * simple-crypt - encryption of metadata using AES-CTR
 * Testing
         * pytest - unit test framework
         * mount and dd - unix tools. needed for test image generation
 * Documentation
-        * sphinx
-        * sphinx-argparse
+        * sphinx - generates the documentation
+        * sphinx-argparse - cli parameter documentation
+        * graphviz - unix tool. generates graphs, used in the documentation
 
 Installation
 ------------
