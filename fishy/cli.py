@@ -158,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
     #       subcommand but not for metadata.... needs more thoughs than I
     #       currently have
     parser.add_argument('-d', '--device', dest='dev', required=False, help='Path to filesystem')
-    parser.add_argument('-p', '--password', dest='password', required=False, help='Password for encryption')
+    parser.add_argument('-p', '--password', dest='password', required=False, help='Password for encryption of metadata')
     # TODO Maybe we should provide a more fine grained option to choose between different log levels
     parser.add_argument('--debug', dest='debug', action='store_true', help="turn debug output on")
     subparsers = parser.add_subparsers(help='Hiding techniques sub-commands')

@@ -50,3 +50,12 @@ Additional Cluster Allocation
 
 .. automodule:: fishy.fat.cluster_allocator
         :members:
+
+NTFS
+****
+
+File Slack
+..........
+
+.. automodule:: fishy.ntfs.ntfs_file_slack
+        :members:

@@ -1,5 +1,33 @@
 """
-ntfs slack implementation
+NtfsSlack offers methods to read, write and
+clear the slackspace of a given file in NTFS filesystems
+
+Since RAM slack is filled with zeros when writing a file in NTFS
+this implementation will only hide data in the Drive slack of
+the given files. If the Filedata is resident in the MFT entry
+$Data attribute the MFT slack will be used to hide data.
+
+
+:Example:
+
+>>> fs = NtfsSlack('/dev/sdb1')
+>>> filenames = [ 'afile.txt' ]
+
+to write something from stdin into slack:
+
+>>> metadata = fs.write(sys.stdin.buffer, filenames)
+
+to read something from slack to stdout:
+
+>>> fs.read(sys.stdout.buffer, metadata)
+
+to wipe slackspace of a file:
+
+>>> fs.clear(metadata)
+
+to display info about the slack of given files:
+
+>>> fs.info(filenames)
 """
 
 import struct
@@ -21,6 +49,7 @@ class FileSlackMetadata:
     def add_addr(self, addr, length):
         """
         adds an address to the list of addresses
+        
         :param address: int, start of slack
         :param length: int, length of the data, which was written
                        to fileslack
@@ -30,30 +59,49 @@ class FileSlackMetadata:
     def get_addr(self):
         """
         iterator for addresses
+        
         :returns: iterator, that returns address, length
         """
         for addr in self.addrs:
             yield addr[0], addr[1]
             
 def is_fs_directory(file):
-    """ Checks if an inode is a filesystem directory. """
+    """
+    Checks if an inode is a filesystem directory.
+    
+    :param file: pytsk3 file object
+    :return: True if file is a directory
+    """
     return file.info.name.type == TSK_FS_NAME_TYPE_DIR
 
 def is_fs_regfile(file):
-    """Checks if an inode is a regular file."""
+    """
+    Checks if an inode is a regular file.
+    
+    :param file: pytsk3 file object
+    :return: True if file is a regular file
+    """
     return file.info.name.type == TSK_FS_NAME_TYPE_REG
 
 
 class SlackSpace:  # pylint: disable=too-few-public-methods
-    """ class for slack space objects"""
+    """ class to save slack space start and size"""
     def __init__(self, size, addr):
+        """
+        :param size: size of slack space
+        :param addr: start of slack space
+        """
         self.size = size
         self.addr = addr
 
 
 class SlackFile:  # pylint: disable=too-few-public-methods
-    """ class file in slack with list of locations """
+    """ class to save info about hidden file """
     def __init__(self, name, size, ):
+        """
+        :param name: name of file
+        :param size: size of file
+        """
         self.loc_list = []
         self.name = name
         self.size = size
@@ -62,6 +110,9 @@ class SlackFile:  # pylint: disable=too-few-public-methods
 class NtfsSlack:
     """ class for ntfs slack operations """
     def __init__(self, stream):
+        """
+        :param stream: path to NTFS filesystem
+        """
         self.stream = stream
         self.instream = None
         # Open img file
@@ -82,7 +133,17 @@ class NtfsSlack:
         self.info = False
 
     def write(self, instream, filepath):
-        """ write data to slack """
+        """
+        creates list with slack space of given files (drive slack and mft slack if resident)
+        and writes from instream into slackspace.
+
+        :param instream: stream to read from
+        :param filepaths: list of strings, paths to files, which slackspace
+                          will be used
+        :raise IOError: Raises IOError if not enough slack was found to hide data
+
+        :return: FileSlackMetadata
+        """
         self.instream = instream
         self.filepath = filepath
         # size of file to hide
@@ -99,7 +160,11 @@ class NtfsSlack:
         return meta
 
     def create_metadata(self, hiddenfiles):
-        """ create meta data object """
+        """ 
+        create meta data object from SlackFile object returned from write_file_to_slack()
+        
+        :param hiddenfiles: SlackFile object returned from write_file_to_slack()
+        """
         meta = FileSlackMetadata()
         for file in hiddenfiles:
             for loc in file.loc_list:
@@ -107,7 +172,13 @@ class NtfsSlack:
         return meta
 
     def read(self, outstream, meta):
-        """ read hidden data from slack """
+        """
+        writes slackspace of files into outstream
+
+        :param outstream: stream to write into
+
+        :param metadata: FileSlackMetadata object
+        """
         stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
             stream.seek(addr)
@@ -115,14 +186,24 @@ class NtfsSlack:
             outstream.write(bufferv)
 
     def clear(self, meta):
-        """ delete hidden data from slack """
+        """
+        clears the slackspace of a files
+
+        :param metadata: FileSlackMetadata object
+        """
         stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
             stream.seek(addr)
             stream.write(length * b'\x00')
 
     def get_slack(self, file):
-        """ calculate slack size of file or mft entry in case of resident $Data attribute"""
+        """
+        calculate drive slack size of file or mft entry in case of resident $Data attribute, 
+        saving slack spaces in slack_list
+        
+        :param file: pytsk3 file object to calculate slack for
+        :return: size of slack found
+        """
         meta = file.info.meta
         if not meta:
             if self.info:
@@ -215,8 +296,13 @@ class NtfsSlack:
         self.slack_list.append(SlackSpace(s_size, start_addr_slack))
         return s_size
 
-    def get_file_slack(self, directory, indent=0):
-        """ Iterate over directoy recursive and add slackspace until file size is reached """
+    def get_file_slack(self, directory):
+        """
+        Iterate over directoy recursive and add slackspace until size of data
+        to hide is reached.
+        
+        :param directory: parent directory of files to calculate slack for
+        """
         for file in directory:
             if self.filesize_left > 0:
                 if is_fs_regfile(file):
@@ -232,21 +318,29 @@ class NtfsSlack:
                     try:
                         direc = file.as_directory()
                         if file.info.name.name != b'.' and file.info.name.name != b'..':
-                            self.get_file_slack(direc, indent + 1)
+                            self.get_file_slack(direc)
                     except RuntimeError:
                         print('RunError!')
                     except IOError:
                         print("IOError while opening %s" % (file.info.name.name))
 
     def get_file_slack_single_file(self, file):
-        """ get slack size of single file"""
+        """ 
+        get slack size of single file
+        
+        :param file: file to calculate slack for
+        """
         if self.filesize_left > 0:
             slack_size = self.get_slack(file)
             self.total_slacksize += slack_size
             self.filesize_left -= slack_size
 
     def write_file_to_slack(self):
-        """ write a file in found slack """
+        """ 
+        write a file to found slack
+        
+        :return: SlackFile to generate metadata with
+        """
         hidden_files = []
         # read file
         input_file = self.input
@@ -284,13 +378,17 @@ class NtfsSlack:
         return hidden_files
 
     def get_file_size(self):
-        """ get size of file to hide """
+        """
+        get size of file to hide
+        
+        :return: size of file to hide
+        """
         self.input = self.instream.read()
         length = len(self.input)
         return length
 
     def fill_slack_list(self):
-        """ fill slack list with directory or single file """
+        """ fill slack list with slack of files in directory or of single file """
         # look file slack
         for path in self.filepath:
             try:
@@ -302,3 +400,17 @@ class NtfsSlack:
                 file = self.fs_inf.open(path)
                 self.get_file_slack_single_file(file)
         # look for volume slack?
+        
+    def print_info(self, filepaths):
+        """
+        prints info about available file slack of files
+        
+        :param filepaths: files to print slack info for
+        :return: total size of slack found
+        """
+        self.filepath = filepaths
+        self.info = True
+        self.filesize_left = float('inf')
+        self.fill_slack_list()
+        print("\nTotal slack:%s"%self.total_slacksize)
+        return self.total_slacksize

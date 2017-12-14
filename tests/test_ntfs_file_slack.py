@@ -5,7 +5,7 @@ fileslack hiding technique for NTFS filesystems
 """
 import io
 import pytest
-from fishy.ntfs.ntfsSlackSpace import NTFSFileSlack as FileSlack
+from fishy.ntfs.ntfs_file_slack import NtfsSlack as FileSlack
 
 
 class TestWrite:
@@ -54,30 +54,12 @@ class TestWrite:
             ntfs = FileSlack(img_path)
             # setup raw stream and write testmessage
             with io.BytesIO() as mem:
-                teststring = "This is a simple write test."*10
-                mem.write(teststring.encode('utf-8'))
-                mem.seek(0)
-                # write testmessage to disk
-                with io.BufferedReader(mem) as reader:
-                    result = ntfs.write(reader, ['onedirectory'])
-                    assert sorted(result.addrs) == sorted([(87456, 94),
-                                               (87552, 186)])
-                    
-    def test_write_file_nodir(self, testfs_ntfs_stable1):
-        """ Test if autoexpansion for directories as input filepath works """
-        # if user supplies a directory instead of a file path, all files under
-        # this directory will recusively added
-        for img_path in testfs_ntfs_stable1:
-            # create FileSlack object
-            ntfs = FileSlack(img_path)
-            # setup raw stream and write testmessage
-            with io.BytesIO() as mem:
                 teststring = "This is a simple write test."*129
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
-                    result = ntfs.write(reader, None)
+                    result = ntfs.write(reader, ['/'])
                     assert sorted(result.addrs) == sorted([(82296, 134), 
                                   (82432, 510), (83392, 62), (83456, 510), 
                                   (87456, 94), (87552, 510), (88536, 38), 
@@ -113,7 +95,7 @@ class TestInfo:
         for img_path in testfs_ntfs_stable1:
             # create FileSlack object
             ntfs = FileSlack(img_path)
-            slack = ntfs.info(['/'])
+            slack = ntfs.print_info(['/'])
             assert slack == 3632
             
 class TestClear:

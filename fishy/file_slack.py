@@ -8,8 +8,8 @@ from .fat.file_slack import FileSlack as FATFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from .filesystem_detector import get_filesystem_type
 from .metadata import Metadata
-from .ntfs.ntfsSlackSpace import NTFSFileSlack
-from .ntfs.ntfsSlack import FileSlackMetadata as NTFSFileSlackMetadata
+from .ntfs.ntfs_file_slack import NtfsSlack as NTFSFileSlack
+from .ntfs.ntfs_file_slack import FileSlackMetadata as NTFSFileSlackMetadata
 
 LOGGER = logging.getLogger("FileSlack")
 
@@ -143,6 +143,6 @@ class FileSlack:
                 print("  Ram Slack:", rams)
                 print("  File Slack:", files)
         elif self.fs_type == 'NTFS':
-            self.fs.info(filepaths)
+            self.fs.print_info(filepaths)
         else:
             raise NotImplementedError()
