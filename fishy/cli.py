@@ -137,7 +137,7 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator.read_into_file(args.outfile)
     elif args.clear:
         # clear additional clusters
-        with open(args.metadata, 'rb') as metadata_file:            
+        with open(args.metadata, 'rb') as metadata_file:
             if args.password is None:
                 meta = Metadata()
             else:
@@ -203,7 +203,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main():
     # Parse cli arguments
-    parser =  build_parser()
+    parser = build_parser()
     args = parser.parse_args()
 
     if args.debug:

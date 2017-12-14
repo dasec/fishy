@@ -34,16 +34,24 @@ class FileSlackMetadata:
         """
         for addr in self.addrs:
             yield addr[0], addr[1]
+            
+def is_fs_directory(file):
+    """ Checks if an inode is a filesystem directory. """
+    return file.info.name.type == TSK_FS_NAME_TYPE_DIR
+
+def is_fs_regfile(file):
+    """Checks if an inode is a regular file."""
+    return file.info.name.type == TSK_FS_NAME_TYPE_REG
 
 
-class slack_space:  # pylint: disable=too-few-public-methods
+class SlackSpace:  # pylint: disable=too-few-public-methods
     """ class for slack space objects"""
     def __init__(self, size, addr):
         self.size = size
         self.addr = addr
 
 
-class slack_file:  # pylint: disable=too-few-public-methods
+class SlackFile:  # pylint: disable=too-few-public-methods
     """ class file in slack with list of locations """
     def __init__(self, name, size, ):
         self.loc_list = []
@@ -164,17 +172,18 @@ class NtfsSlack:
             mftslack_end = meta_addr+mftalloc_sizedec-2
             if mftentry_sizedec >= 512:
                 mftslack_size = mftslack_end - mftslack_start
-                self.slack_list.append(slack_space(mftslack_size, mftslack_start))
+                self.slack_list.append(SlackSpace(mftslack_size, mftslack_start))
                 if self.info:
                     print("\tMFT slack size(avoiding fixup value): %s"%mftslack_size)
                 return mftslack_size
             mftslack_end1 = (mftslack_start + 512 - (mftslack_start % 512)) - 2
             mftslack_size1 = mftslack_end1 - mftslack_start
-            self.slack_list.append(slack_space(mftslack_size1, mftslack_start))
+            self.slack_list.append(SlackSpace(mftslack_size1, mftslack_start))
             mftslack_size2 = mftslack_end - (mftslack_end1 + 2)
-            self.slack_list.append(slack_space(mftslack_size2, mftslack_end1 + 2))
+            self.slack_list.append(SlackSpace(mftslack_size2, mftslack_end1 + 2))
             if self.info:
-                print("\tMFT slack size(avoiding fixup values): %s"%(mftslack_size1 + mftslack_size2))
+                print("\tMFT slack size(avoiding fixup values): %s"
+                      %(mftslack_size1 + mftslack_size2))
             return mftslack_size1 + mftslack_size2
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
@@ -203,22 +212,14 @@ class NtfsSlack:
             print("\tFile Slack: %s"%(ramslack_size+s_size))
         start_addr_slack = last_block * self.blocksize + l_d_size
         #print("%s slack found"%s_size)
-        self.slack_list.append(slack_space(s_size, start_addr_slack))
+        self.slack_list.append(SlackSpace(s_size, start_addr_slack))
         return s_size
-
-    def is_fs_directory(self, file):
-        """ Checks if an inode is a filesystem directory. """
-        return file.info.name.type == TSK_FS_NAME_TYPE_DIR
-
-    def is_fs_regfile(self, file):
-        """Checks if an inode is a regular file."""
-        return file.info.name.type == TSK_FS_NAME_TYPE_REG
 
     def get_file_slack(self, directory, indent=0):
         """ Iterate over directoy recursive and add slackspace until file size is reached """
         for file in directory:
             if self.filesize_left > 0:
-                if self.is_fs_regfile(file):
+                if is_fs_regfile(file):
                     if self.info:
                         print("File: %s"%file.info.name.name.decode("utf8"))
                     # if file: get slack of file and add slack to total slack size
@@ -227,7 +228,7 @@ class NtfsSlack:
                     # subtract slacksize to stop if enough space was found
                     self.filesize_left -= slack_size
                 # recurse into directories
-                if self.is_fs_directory(file):
+                if is_fs_directory(file):
                     try:
                         direc = file.as_directory()
                         if file.info.name.name != b'.' and file.info.name.name != b'..':
@@ -255,7 +256,7 @@ class NtfsSlack:
         # random id for file metadata
         file_id = "123"
         # create hidden file object with id and length
-        hidden_file = slack_file(file_id, length)
+        hidden_file = SlackFile(file_id, length)
         # open image
         stream = open(self.stream, 'rb+')
         # iterate over list of slackspace
@@ -266,11 +267,11 @@ class NtfsSlack:
             # add a location to the hidden files location list
             if slack.size >= length:
                 stream.write(input_file[pos:pos + length])
-                hidden_file.loc_list.append(slack_space(length, slack.addr))
+                hidden_file.loc_list.append(SlackSpace(length, slack.addr))
                 break
             else:
                 stream.write(input_file[pos:pos + slack.size])
-                hidden_file.loc_list.append(slack_space(slack.size, slack.addr))
+                hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr))
                 pos += slack.size
                 length -= slack.size
         # stream.flush

@@ -50,3 +50,5 @@ class NTFSFileSlack:
         self.slack_tool.filesize_left = float('inf')
         self.slack_tool.fill_slack_list()
         print("\nTotal slack:%s"%self.slack_tool.total_slacksize)
+        return self.slack_tool.total_slacksize
+    

@@ -107,6 +107,15 @@ class TestRead:
                 result = mem.read()
                 assert result.decode('utf-8') == teststring
 
+class TestInfo:
+    def test_info_slack(self, testfs_ntfs_stable1):
+        """ Test if info works """
+        for img_path in testfs_ntfs_stable1:
+            # create FileSlack object
+            ntfs = FileSlack(img_path)
+            slack = ntfs.info(['/'])
+            assert slack == 3632
+            
 class TestClear:
     def test_clear_slack(self, testfs_ntfs_stable1):
         """ Test if clearing slackspace of a file works """
