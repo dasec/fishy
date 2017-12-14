@@ -9,18 +9,22 @@ and Linux FAT implementations [2].
 [1]: Shu-fen-2009
 [2]: Berghel2008
 
-usage example:
+:Example:
+
 >>> f = open('/dev/sdb1', 'rb+')
 >>> fs = FileSlack(f)
 >>> filenames = [ 'afile.txt' ]
 
 to write something from stdin into slack:
+
 >>> metadata = fs.write(sys.stdin.buffer, filenames)
 
 to read something from slack to stdout:
+
 >>> fs.read(sys.stdout.buffer, metadata)
 
 to wipe slackspace of a file:
+
 >>> fs.clear(metadata)
 """
 
@@ -49,6 +53,7 @@ class FileSlackMetadata:
     def add_cluster(self, cluster_id: int, offset: int, length: int) -> None:
         """
         adds a cluster to the list of clusters
+
         :param cluster_id: int, id of the cluster
         :param offset: int, offset, where the fileslack begins
         :param length: int, length of the data, which was written
@@ -60,6 +65,7 @@ class FileSlackMetadata:
             -> typ.Generator[typ.Tuple[int, int, int], None, None]:
         """
         iterator for clusters
+
         :returns: iterator, that returns cluster_id, offset, length
         """
         for cluster in self.clusters:
@@ -81,7 +87,9 @@ class FileSlack:
             typ.Generator[DirEntry, None, None]:
         """
         get file entries of directories recusively
+
         :param directory: entry point; needs to be a directory
+
         :returns: generator that traverses file entries of directories
                   recursively
         """
@@ -103,7 +111,9 @@ class FileSlack:
     def calculate_slack_space(self, entry: DirEntry) -> typ.Tuple[int, int]:
         """
         calculates the slack space for a given DirEntry
+
         :param entry: DirEntry, directory entry of the file
+
         :return: tuple of (occupation, free_slack), whereas occupation
                  is the occupied size of the last cluster by the file.
                  And free_slack is the size of the slack space
@@ -130,6 +140,7 @@ class FileSlack:
         """
         get the next writable file out of a filepaths list, while also
         traversing into subdirectories, if some appear in that list
+
         :param filepaths: list of strings, that link to files or directories
                           on the fat filesystem
         """
@@ -155,9 +166,11 @@ class FileSlack:
             -> FileSlackMetadata:
         """
         writes from instream into slackspace of filename
+
         :param instream: stream to read from
         :param filepaths: list of strings, paths to files, which slackspace
                           will be used
+
         :return: FileSlackMetadata
         """
         metadata = FileSlackMetadata()
@@ -208,7 +221,9 @@ class FileSlack:
             -> None:
         """
         writes slackspace of files into outstream
+
         :param outstream: stream to write into
+
         :param metadata: FileSlackMetadata object
         """
         for cluster_id, offset, length in metadata.get_clusters():
@@ -220,6 +235,7 @@ class FileSlack:
     def clear(self, metadata: FileSlackMetadata) -> None:
         """
         clears the slackspace of a files
+
         :param metadata: FileSlackMetadata object
         """
         for cluster_id, offset, length in metadata.get_clusters():

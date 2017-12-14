@@ -34,7 +34,9 @@ hiding.
 	* pytest - unit test framework
 	* mount and dd - unix tools. needed for test image generation 
 * Documentation
-	* sphinx
+	* sphinx - generates the documentation
+	* sphinx-argparse - cli parameter documentation
+	* graphviz - unix tool. generates graphs, used in the documentation
 
 # Installation
 
@@ -44,8 +46,8 @@ $ sudo python setup.py test
 # Install the program
 $ sudo python setup.py install
 # Create documentation
-$ cd doc
-$ make html
+$ pip install sphinx spinx-argparse
+$ python setup.py doc
 ```
 
 # Usage

@@ -1,6 +1,25 @@
 """
 This module implements additional cluster allocation to hide data in FAT
-filesystems.
+filesystems. It offers methods to read, write and clear the additional clusters
+allocated for a file.
+
+:Example:
+
+>>> f = open('/dev/sdb1', 'rb+')
+>>> fs = ClusterAllocator(f)
+>>> filename = 'afile.txt'
+
+to write something from stdin to additional clusters of a file:
+
+>>> metadata = fs.write(sys.stdin.buffer, filename)
+
+to read something from additional allocated clusters:
+
+>>> fs.read(sys.stdout.buffer, metadata)
+
+delete additional allocated clusters for a file:
+
+>>> fs.clear(metadata)
 """
 
 import logging
@@ -32,6 +51,7 @@ class AllocatorMetadata:
     def set_start_cluster(self, start_cluster: int) -> None:
         """
         set the start cluster id
+
         :param start_cluster: int, start cluster of the hidden data
         """
         self.start_cluster = start_cluster
@@ -39,6 +59,7 @@ class AllocatorMetadata:
     def get_start_cluster(self) -> int:
         """
         get start cluster id
+
         :rtype: int
         """
         return self.start_cluster
@@ -46,6 +67,7 @@ class AllocatorMetadata:
     def set_length(self, length: int) -> None:
         """
         set the overall length of written data
+
         :param length: int, count of bytes written to filesystem
         """
         self.length = length
@@ -53,6 +75,7 @@ class AllocatorMetadata:
     def get_length(self) -> int:
         """
         get the length of hidden data
+
         :rtype: int
         """
         return self.length
@@ -61,6 +84,7 @@ class AllocatorMetadata:
         """
         get the original last cluster of the file, for which addinional
         clusters were allocated
+
         :return: int, cluster_id of the last cluster
         """
         return self.original_last_cluster
@@ -69,6 +93,7 @@ class AllocatorMetadata:
         """
         set the original last cluster of the file, for which addinional
         clusters were allocated
+
         :param cluster_id: int, id of the original last cluster
         """
         self.original_last_cluster = cluster_id
@@ -91,9 +116,11 @@ class ClusterAllocator:
             -> AllocatorMetadata:
         """
         writes from instream into slackspace of filename
+
         :param instream: stream to read from
         :param filepath: string, path to file, for which additional clusters
                           will be allocated
+
         :return: AllocatorMetadata
         """
         metadata = AllocatorMetadata()
@@ -172,6 +199,7 @@ class ClusterAllocator:
             -> None:
         """
         writes slackspace of files into outstream
+
         :param outstream: stream to write into
         :param metadata: AllocatorMetadata object
         """
@@ -198,6 +226,7 @@ class ClusterAllocator:
     def clear(self, metadata: AllocatorMetadata) -> None:
         """
         clears the additional allocated clusters from a file
+
         :param metadata: AllocatorMetadata object
         """
         # calculate size of a cluster
