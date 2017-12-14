@@ -40,8 +40,9 @@ technique and specifies which data a hiding technique will store. In this
 example we use the FileSlackMetadata class, because it is currently the only
 one that exists.
 
+>>> from fishy.fat.file_slack import FileSlackMetadata
 >>> subm = FileSlackMetadata()
->>> subm.add_clusters(3, 512, 10)
+>>> subm.add_cluster(3, 512, 10)
 
 now we create our metadata object and save the FileSlackMetadata object into it
 
@@ -50,13 +51,15 @@ now we create our metadata object and save the FileSlackMetadata object into it
 
 we can get a single file entry out of it (if we now the uid)
 
->>> file_id = c8fbb7a2265df73967a3721c7dc7d99afcedce298268411e3e6bf53ceabf2e2b
+>>> file_id = "0"
 >>> m.get_file(file_id)
+{'uid': '0', 'filename': 'super-secret-file.txt', 'metadata': {'clusters': [(3, 512, 10)]}}
 
 or we can use the iterator to iterate over all file entries
 
 >>> for entry in m.get_files():
-        print(entry)
+...     print(entry)
+{'uid': '0', 'filename': 'super-secret-file.txt', 'metadata': {'clusters': [(3, 512, 10)]}}
 
 write metadata to a file
 
@@ -73,7 +76,7 @@ switch module context
 
 >>> m.set_module("MyModule")
 >>> m.get_module()
-"MyModule"
+'MyModule'
 """
 
 import json
@@ -226,7 +229,7 @@ class Metadata:
         if self.password is None:
             self.metadata = json.loads(instream.read().decode("utf8"))
         else:
-            self.metadata = json.loads(decrypt(self.password, instream.read()).decode("utf8")) 
+            self.metadata = json.loads(decrypt(self.password, instream.read()).decode("utf8"))
         self.module = 'main'
 
     def write(self, outstream: typ.BinaryIO) -> None:
