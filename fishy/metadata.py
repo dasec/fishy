@@ -243,10 +243,12 @@ class Metadata:
         if self.password is None:
             try:
                 self.metadata = json.loads(instream.read().decode("utf8"))
-            except UnicodeDecodeError as err:
-                raise IOError("An error occured while trying to decode the metadata with utf-8 codec." 
+            except UnicodeDecodeError:
+                raise IOError("An error occured while trying to decode the"
+                              +" metadata with utf-8 codec." 
                               +" Either a wrong file was supplied or the metadata was encrypted."
-                              +" If the metadata was encrypted try providing the right password via the --password argument.")              
+                              +" If the metadata was encrypted try providing"
+                              +" the right password via the --password argument.")
         else:
             self.metadata = json.loads(decrypt(self.password, instream.read()).decode("utf8"))
         self.module = 'main'
