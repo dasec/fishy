@@ -77,7 +77,7 @@ class TestMetadataClass(unittest.TestCase):
 
     def test_write(self):
         """ Test if serialization of the metadata class works """
-        tmpfile = tempfile.NamedTemporaryFile(mode='w+')
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
         meta = Metadata()
         # Test writing if module identifier is missing
         with self.assertRaises(InformationMissingError):
@@ -92,7 +92,7 @@ class TestMetadataClass(unittest.TestCase):
         meta.add_file("testfile", StubMetadata())
         meta.write(tmpfile)
         tmpfile.seek(0)
-        result = tmpfile.read()
+        result = tmpfile.read().decode("utf8")
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
                    + '{"uid": "0", "filename": ' \
                    + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
@@ -101,7 +101,7 @@ class TestMetadataClass(unittest.TestCase):
 
     def test_read(self):
         """ Test if deserialization from a serialized metadata class works """
-        tmpfile = tempfile.NamedTemporaryFile(mode='w+')
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
         meta = Metadata('test-module')
         meta.add_file("testfile", StubMetadata())
         meta.write(tmpfile)

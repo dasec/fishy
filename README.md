@@ -15,7 +15,8 @@ hiding.
 	* Allocate More Clusters for a file [✓]
 
 * NTFS:
-	* File Slack [✓]
+	* File Slack (+ MFT Slack for files with resident $Data attribute) [✓]
+	* MFT Slack
 	* Allocate More Clusters for File
 	* Mark clusters as 'bad', but write data into them
 	* Add data attribute to directories
@@ -28,6 +29,7 @@ hiding.
 	* argparse - command line argument parsing
 	* construct - parsing FAT filesystems
 	* pytsk3 - parsing NTFS filesystems
+	* simple-crypt - encryption of metadata using AES-CTR
 * Testing
 	* pytest - unit test framework
 	* mount and dd - unix tools. needed for test image generation 

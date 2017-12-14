@@ -40,3 +40,12 @@ class NTFSFileSlack:
         :param metadata: FileSlackMetadata object
         """
         self.slack_tool.clear(metadata)
+
+    def info(self, filepaths):
+        """
+        prints info about available file slack of files
+        """
+        self.slack_tool.filepath = filepaths
+        self.slack_tool.filesize_left = float('inf')
+        self.slack_tool.fill_slack_list()
+        print("Total slack:%s"%self.slack_tool.total_slacksize)

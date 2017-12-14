@@ -79,6 +79,7 @@ switch module context
 import json
 import pprint
 import typing as typ
+from simplecrypt import encrypt, decrypt
 
 
 class InformationMissingError(Exception):
@@ -94,12 +95,14 @@ class Metadata:
     holds metadata and gives modules a unified interface to
     store their information.
     """
-    def __init__(self, module_identifier: str = "main"):
+    def __init__(self, module_identifier: str = "main", password = None):
         """
         :param module_identifier: string that uniquely identifies the
                                   current module. Default main.
+        :password: password for encryption
         """
         self.metadata = {}
+        self.password = password
         self.module = 'main'
         self.set("version", 2)
         self.set("files", {})
@@ -220,7 +223,10 @@ class Metadata:
 
         :param stream: stream to read from
         """
-        self.metadata = json.loads(instream.read())
+        if self.password is None:
+            self.metadata = json.loads(instream.read().decode("utf8"))
+        else:
+            self.metadata = json.loads(decrypt(self.password, instream.read()).decode("utf8")) 
         self.module = 'main'
 
     def write(self, outstream: typ.BinaryIO) -> None:
@@ -234,7 +240,10 @@ class Metadata:
             raise InformationMissingError("Metadata version is missing")
 
         # write metadata to stream
-        outstream.write(json.dumps(self.metadata))
+        if self.password is None:
+            outstream.write(json.dumps(self.metadata).encode("utf8"))
+        else:
+            outstream.write(encrypt(self.password, json.dumps(self.metadata)))
         outstream.flush()
 
     def info(self) -> None:
