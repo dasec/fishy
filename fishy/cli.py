@@ -277,7 +277,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     # set exception handler
     sys.excepthook = general_excepthook
-    
+
     # Parse cli arguments
     parser = build_parser()
     args = parser.parse_args()
@@ -319,3 +319,4 @@ def general_excepthook(errtype, value, tb):
 
 if __name__ == "__main__":
     main()
+
