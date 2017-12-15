@@ -4,7 +4,7 @@ clear the slackspace of MFT records
 
 It will start with the mft entry at the given sector offset
 and calculate the slack of every entry until the provided data
-can be hidden or no more mft enries are left. After data was hidden 
+can be hidden or no more mft enries are left. After data was hidden
 successfully it will print out the next position to be used as offset
 when trying to hide more data. Without this offset previously
 hidden data will be overwritten.
@@ -123,15 +123,15 @@ class NtfsMftSlack:
         #store mft data block in here
         self.mft_data = []
 
-    def write(self, instream, mft_offset = 0):
+    def write(self, instream, mft_offset=0):
         """
         creates list with slack space starting at the provided offset
         and writes from instream into slackspace.
 
         :param instream: stream to read from
         :param mft_offset: first sector of mft entry to start with
-        
-        :raise IOError: Raises IOError if not enough slack was found to hide data
+
+        :raise IOError: Raises IOError if not enough slack was found to hide data or no input was provided.
 
         :return: MftSlackMetadata
         """
@@ -165,7 +165,7 @@ class NtfsMftSlack:
         print("File hidden")
         meta = self.create_metadata(hiddenfiles)
         return meta
-    
+
     def fill_slack_list(self, mft_offset=0, mft_limit=-1):
         """
         fill slack list with slack of mft entries starting at offset
@@ -223,7 +223,8 @@ class NtfsMftSlack:
                 if self.info:
                     print("\tdata run start: %s"%run.addr)
                     print("\tdata run length: %s"%run.len)
-                    print("\t(%s - %s)"%(run.addr*self.blocksize,(run.addr+run.len)*self.blocksize))
+                    print("\t(%s - %s)"%(run.addr*self.blocksize,
+                          (run.addr+run.len)*self.blocksize))
 
     def get_mft_slack(self, mft_cursor, stream):
         """
@@ -294,7 +295,7 @@ class NtfsMftSlack:
         for file in hiddenfiles:
             for loc in file.loc_list:
                 if self.info:
-                    print("\t%s slack at %s"%(loc.size,loc.addr))
+                    print("\t%s slack at %s"%(loc.size, loc.addr))
                 meta.add_addr(loc.addr, loc.size)
         return meta
 
@@ -377,7 +378,7 @@ class NtfsMftSlack:
             return length
         return -1
 
-    def print_info(self, mft_offset = 0, mft_limit = -1):
+    def print_info(self, mft_offset=0, mft_limit=-1):
         """
         prints info about available mft entries
 

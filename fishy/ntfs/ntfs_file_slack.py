@@ -141,7 +141,7 @@ class NtfsSlack:
         :param instream: stream to read from
         :param filepaths: list of strings, paths to files, which slackspace
                           will be used
-        :raise IOError: Raises IOError if not enough slack was found to hide data
+        :raise IOError: Raises IOError if not enough slack was found to hide data or no input was provided.
 
         :return: FileSlackMetadata
         """
@@ -158,6 +158,8 @@ class NtfsSlack:
         self.filepath = filepath
         # size of file to hide
         file_size = self.get_file_size()
+        if file_size < 0:
+            raise IOError("No Input")
         # fill list of slack space objects till file size is reached
         self.filesize_left = file_size
         self.fill_slack_list()
@@ -396,11 +398,13 @@ class NtfsSlack:
         """
         get size of file to hide
 
-        :return: size of file to hide
+        :return: size of file to hide -1 if no input was provided.
         """
-        self.input = self.instream.read()
-        length = len(self.input)
-        return length
+        if not self.instream.isatty():
+            self.input = self.instream.read()
+            length = len(self.input)
+            return length
+        return -1
 
     def fill_slack_list(self):
         """ fill slack list with slack of files in directory or of single file """

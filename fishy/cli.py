@@ -116,7 +116,7 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker = MftSlack(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into mftslack
-            slacker.write(sys.stdin.buffer, offset = args.offset)
+            slacker.write(sys.stdin.buffer, offset=args.offset)
         else:
             # write from files into mftslack
             with open(args.file, 'rb') as fstream:
@@ -302,7 +302,7 @@ def main():
             # if 'mftslack' was chosen
             if args.which == 'mftslack':
                 do_mftslack(args, device)
-                
+
             # if 'addcluster' was chosen
             if args.which == 'addcluster':
                 do_addcluster(args, device)
@@ -319,4 +319,3 @@ def general_excepthook(errtype, value, tb):
 
 if __name__ == "__main__":
     main()
-

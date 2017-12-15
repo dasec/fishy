@@ -23,7 +23,7 @@ class MftSlack:
 
     to write something from stdin into slack:
     >>> fs.write(sys.stdin.buffer, m)
-    
+
     to write something from stdin into slack with offset:
     >>> fs.write(sys.stdin.buffer, m, 36)
 
@@ -48,7 +48,7 @@ class MftSlack:
         else:
             raise NotImplementedError()
 
-    def write(self, instream: typ.BinaryIO, filename: str = None, offset = 0) -> None:
+    def write(self, instream: typ.BinaryIO, filename: str=None, offset=0) -> None:
         """
         writes data from instream into slackspace of mft entires starting at the offset.
         Metadata of those files will be stored in Metadata object
@@ -113,10 +113,10 @@ class MftSlack:
         else:
             raise NotImplementedError()
 
-    def info(self, offset = 0, limit = -1) -> None:
+    def info(self, offset=0, limit=-1) -> None:
         """
         prints info about available file slack of mft entries
-        
+
         :param offset: First sector of mft entry to start with.
         :param limit: Amount of mft entries to display info for. Unlimited if -1.
         """
