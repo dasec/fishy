@@ -36,7 +36,7 @@ to display info about the mft slack:
 """
 
 import struct
-from pytsk3 import FS_Info, Img_Info
+from pytsk3 import FS_Info, Img_Info  # pylint: disable=no-name-in-module
 
 
 class MftSlackMetadata:
@@ -131,7 +131,8 @@ class NtfsMftSlack:
         :param instream: stream to read from
         :param mft_offset: first sector of mft entry to start with
 
-        :raise IOError: Raises IOError if not enough slack was found to hide data or no input was provided.
+        :raise IOError: Raises IOError if not enough slack was found to hide
+                        data or no input was provided.
 
         :return: MftSlackMetadata
         """
@@ -224,7 +225,7 @@ class NtfsMftSlack:
                     print("\tdata run start: %s"%run.addr)
                     print("\tdata run length: %s"%run.len)
                     print("\t(%s - %s)"%(run.addr*self.blocksize,
-                          (run.addr+run.len)*self.blocksize))
+                                         (run.addr+run.len)*self.blocksize))
 
     def get_mft_slack(self, mft_cursor, stream):
         """

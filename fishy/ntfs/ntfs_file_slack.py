@@ -31,7 +31,7 @@ to display info about the slack of given files:
 """
 
 import struct
-from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG
+from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG  # pylint: disable=no-name-in-module
 
 
 class FileSlackMetadata:
