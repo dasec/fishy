@@ -164,7 +164,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument('-d', '--device', dest='dev', required=False, help='Path to filesystem')
     parser.add_argument('-p', '--password', dest='password', required=False, help='Password for encryption of metadata')
     # TODO Maybe we should provide a more fine grained option to choose between different log levels
-    parser.add_argument('--debug', dest='debug', action='store_true', help="turn debug output on")
+    parser.add_argument('--verbose', '-v', action='count', help="Increase verbosity. Use it multiple times to increase verbosity further.")
     subparsers = parser.add_subparsers(help='Hiding techniques sub-commands')
 
     # FAT Tools
@@ -208,14 +208,33 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     # set exception handler
     sys.excepthook = general_excepthook
-
     # Parse cli arguments
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.debug:
-        # Turn debug output on
+    # Set logging level (verbosity)
+    if args.verbose is None: args.verbose = 0
+    if args.verbose == 1:
+        logging.basicConfig(level=logging.INFO)
+    elif args.verbose >= 2:
         logging.basicConfig(level=logging.DEBUG)
+    if args.verbose > 2:
+        fish = """
+                   .|_-
+             ___.-´  /_.
+        .--´`    `´`-,/     .
+       ..--.-´-.      ´-.  /|
+      (o( o( o )         ./.
+      `       ´             -
+   (               `.       /
+    -....--   .\    \--..-  \\
+        `--´    -.-´      \.-
+                           \|
+        """
+        LOGGER.debug(fish)
+        LOGGER.debug("Thank you for debugging so hard! We know it is "
+                     "a mess. So, here is a friend, who will support you :)")
+
 
     # if 'metadata' was chosen
     if args.which == 'metadata':
