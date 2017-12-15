@@ -2,6 +2,7 @@
 Implementation of fishy's command line interface.
 """
 import sys
+import traceback
 import argparse
 import logging
 import typing as typ
@@ -10,6 +11,9 @@ from .fat.fat_filesystem.fat_wrapper import create_fat
 from .file_slack import FileSlack
 from .cluster_allocation import ClusterAllocation
 from .metadata import Metadata
+
+
+LOGGER = logging.getLogger("cli")
 
 
 def do_metadata(args: argparse.Namespace) -> None:
@@ -202,6 +206,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main():
+    # set exception handler
+    sys.excepthook = general_excepthook
+
     # Parse cli arguments
     parser = build_parser()
     args = parser.parse_args()
@@ -228,5 +235,15 @@ def main():
                 do_addcluster(args, device)
 
 
+def general_excepthook(errtype, value, tb):
+    """
+    This function serves as a general exception handler, who catches all
+    exceptions, that were not handled at a higher lever
+    """
+    LOGGER.critical("Error: %s: %s.", errtype, value)
+    LOGGER.info("".join(traceback.format_exception(type, value, tb)))
+    sys.exit(1)
+
 if __name__ == "__main__":
     main()
+
