@@ -131,6 +131,7 @@ class NtfsSlack:
         self.input = ""
         self.filepath = ""
         self.info = False
+        self.mftentry_size = 1024
 
     def write(self, instream, filepath):
         """
@@ -144,6 +145,15 @@ class NtfsSlack:
 
         :return: FileSlackMetadata
         """
+        #get mft record size
+        with open(self.stream, 'rb+') as mftstream:
+            mftstream.seek(4*16)
+            mftentry_size_b = mftstream.read(1)
+            mftentry_size_i = struct.unpack("<b", mftentry_size_b)[0]
+            if mftentry_size_i < 0:
+                self.mftentry_size = 2**(mftentry_size_i*-1)
+            else:
+                self.mftentry_size = mftentry_size_i * self.cluster_size
         self.instream = instream
         self.filepath = filepath
         # size of file to hide
@@ -154,8 +164,8 @@ class NtfsSlack:
         if file_size > self.total_slacksize:
             raise IOError("Not enough slack space")
         # .ELF(7F 45 4C 46)
-        print("File hidden")
         hiddenfiles = self.write_file_to_slack()
+        print("File hidden")
         meta = self.create_metadata(hiddenfiles)
         return meta
 
@@ -164,6 +174,7 @@ class NtfsSlack:
         create meta data object from SlackFile object returned from write_file_to_slack()
 
         :param hiddenfiles: SlackFile object returned from write_file_to_slack()
+        :return: FileSlackMetadata object
         """
         if self.info:
             print("Creating metadata:")
@@ -181,7 +192,7 @@ class NtfsSlack:
 
         :param outstream: stream to write into
 
-        :param metadata: FileSlackMetadata object
+        :param meta: FileSlackMetadata object
         """
         stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
@@ -193,7 +204,7 @@ class NtfsSlack:
         """
         clears the slackspace of a files
 
-        :param metadata: FileSlackMetadata object
+        :param meta: FileSlackMetadata object
         """
         stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
@@ -220,14 +231,14 @@ class NtfsSlack:
             return 0
         #if file.info.name.name.decode('utf-8').find("$") != -1:
         #    return 0
-        # get last block of file to check for slack
         resident = True
         meta_block = file.info.meta.addr
-        mftentry_size = 1024
         mft_offset = 16
         # File size
         size = file.info.meta.size
-        meta_addr = (meta_block + mft_offset) * mftentry_size
+        # start of mft entry
+        meta_addr = (meta_block + mft_offset) * self.mftentry_size
+        # get last block of file to check for slack
         for attr in file:
             for run in attr:
                 last_block_offset = run.len - 1
