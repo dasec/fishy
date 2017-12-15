@@ -9,6 +9,7 @@ import typing as typ
 from .fat.fat_filesystem.fattools import FATtools
 from .fat.fat_filesystem.fat_wrapper import create_fat
 from .file_slack import FileSlack
+from .mft_slack import MftSlack
 from .cluster_allocation import ClusterAllocation
 from .metadata import Metadata
 
@@ -96,6 +97,61 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
                 meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slacker = FileSlack(device, meta, args.dev)
+            slacker.clear()
+
+
+def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    hanles mftslack subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.info:
+        slacker = MftSlack(device, Metadata(), args.dev)
+        slacker.info(args.offset, args.limit)
+    if args.write:
+        if args.password is None:
+            slacker = MftSlack(device, Metadata(), args.dev)
+        else:
+            slacker = MftSlack(device, Metadata(password=args.password), args.dev)
+        if not args.file:
+            # write from stdin into mftslack
+            slacker.write(sys.stdin.buffer, offset=args.offset)
+        else:
+            # write from files into mftslack
+            with open(args.file, 'rb') as fstream:
+                slacker.write(fstream, args.file, args.offset)
+        with open(args.metadata, 'wb+') as metadata_out:
+            slacker.metadata.write(metadata_out)
+    elif args.read:
+        # read file slack of a single hidden file to stdout
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            slacker = MftSlack(device, meta, args.dev)
+            slacker.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden data in fileslack into outfile
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            slacker = MftSlack(device, meta, args.dev)
+            slacker.read_into_file(args.outfile)
+    elif args.clear:
+        # clear fileslack
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            slacker = MftSlack(device, meta, args.dev)
             slacker.clear()
 
 
@@ -191,6 +247,19 @@ def build_parser() -> argparse.ArgumentParser:
     fileslack.add_argument('-i', '--info', dest='info', action='store_true', help='print file slack information of given files')
     fileslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
 
+    # MftSlack
+    mftslack = subparsers.add_parser('mftslack', help='Operate on mft slack')
+    mftslack.set_defaults(which='mftslack')
+    mftslack.add_argument('-s', '--seek', dest='offset', default=0, type=int, required=False, help='sector offset to the start of the first mft entry to be used when hiding data. To avoid overwriting data use the "Next position" provided by the last execution of this module.')
+    mftslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    mftslack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from slackspace to stdout')
+    mftslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
+    mftslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
+    mftslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
+    mftslack.add_argument('-i', '--info', dest='info', action='store_true', help='print mft slack information of given files')
+    mftslack.add_argument('-l', '--limit', dest='limit', default=-1, type=int, required=False, help='limit the amount of mft entries to print information for when using the "--info" switch')
+    mftslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
+
     # Additional Cluster Allocation
     addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
     addcluster.set_defaults(which='addcluster')
@@ -249,6 +318,10 @@ def main():
             if args.which == 'fileslack':
                 do_fileslack(args, device)
 
+            # if 'mftslack' was chosen
+            if args.which == 'mftslack':
+                do_mftslack(args, device)
+
             # if 'addcluster' was chosen
             if args.which == 'addcluster':
                 do_addcluster(args, device)
@@ -265,4 +338,3 @@ def general_excepthook(errtype, value, tb):
 
 if __name__ == "__main__":
     main()
-

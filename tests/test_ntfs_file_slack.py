@@ -1,6 +1,6 @@
 # pylint: disable=missing-docstring, protected-access
 """
-This file contains tests against fishy.ntfs.ntfsSlackSpace, which implements the
+This file contains tests against fishy.ntfs.ntfs_file_slack, which implements the
 fileslack hiding technique for NTFS filesystems
 """
 import io
