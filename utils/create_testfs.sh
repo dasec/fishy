@@ -196,7 +196,7 @@ function create_ext4 {
 	else
 		# Create a 10MB NTFS image
 		dd if=/dev/zero of="$fsdest/testfs-ext4$suffix.dd" bs=512 count=20000
-		mkfs.ext4 "$fsdest/testfs-ext4$suffix.dd"
+		mkfs.ext4 -F "$fsdest/testfs-ext4$suffix.dd"
 		copy_files "$fsdest/testfs-ext4$suffix.dd" "$suffix"
 	fi
 }
