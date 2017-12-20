@@ -42,7 +42,7 @@ def testfs_fat_stable1():
 def testfs_ntfs_stable1():
     """
     creates NFTS filesystem test images
-    :return: list of strings, containing paths to fat test images
+    :return: list of strings, containing paths to ntfs test images
     """
     image_dir = tempfile.mkdtemp()
 

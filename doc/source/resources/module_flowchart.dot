@@ -1,0 +1,36 @@
+digraph G {
+	splines=ortho
+	rankdir = BT;
+
+	node[fixedsize=true, width=5, shape=component]
+	edge[fontcolor="#636363", fontsize=10]
+
+	subgraph cluster_0 {
+		"placeholder2" [style=invisible];
+		"cli" [label=CLI];
+		"Qtechnique" [label="Hiding Technique", shape=diamond];
+		
+	}
+
+	subgraph cluster_1 {
+		"techniqueWrapper" [label="Hiding Technique Wrapper"];
+		"Qfstype" [label="FS Type", shape=diamond];
+		"writeMeta" [label="Write Metadata", shape=box];
+	}
+
+	subgraph cluster_2 {
+		"Write/Read/Clear" [shape=box];
+		"hidingTechnique" [label="Hiding Technique"];
+	}
+
+	"cli" -> "Qtechnique";
+	"Qtechnique" -> "techniqueWrapper"[label="[File Slack]"]
+	"Qtechnique" -> "techniqueWrapper"[label="[Bad Cluster]"]
+	"Qtechnique" -> "techniqueWrapper"[label="[...]"]
+	"techniqueWrapper" -> "Qfstype"
+	"Qfstype" -> "hidingTechnique"[label="[FAT]"]
+	"Qfstype" -> "hidingTechnique"[label="[NTFS]"]
+	"Qfstype" -> "hidingTechnique"[label="[ext4]"]
+	"hidingTechnique" -> "writeMeta"
+	"hidingTechnique" -> "Write/Read/Clear"
+}

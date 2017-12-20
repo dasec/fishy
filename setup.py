@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Distribution
 
 
 setup(
@@ -16,7 +16,11 @@ setup(
         "argparse",
         "construct",
         "pytsk3",
+        "simple-crypt",
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
+    extras_require={
+        'build_sphinx': ['sphinx', 'sphinx-argparse'],
+    },
 )
