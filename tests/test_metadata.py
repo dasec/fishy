@@ -77,7 +77,7 @@ class TestMetadataClass(unittest.TestCase):
 
     def test_write(self):
         """ Test if serialization of the metadata class works """
-        tmpfile = tempfile.NamedTemporaryFile(mode='w+')
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
         meta = Metadata()
         # Test writing if module identifier is missing
         with self.assertRaises(InformationMissingError):
@@ -92,7 +92,7 @@ class TestMetadataClass(unittest.TestCase):
         meta.add_file("testfile", StubMetadata())
         meta.write(tmpfile)
         tmpfile.seek(0)
-        result = tmpfile.read()
+        result = tmpfile.read().decode("utf8")
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
                    + '{"uid": "0", "filename": ' \
                    + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
@@ -101,7 +101,7 @@ class TestMetadataClass(unittest.TestCase):
 
     def test_read(self):
         """ Test if deserialization from a serialized metadata class works """
-        tmpfile = tempfile.NamedTemporaryFile(mode='w+')
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
         meta = Metadata('test-module')
         meta.add_file("testfile", StubMetadata())
         meta.write(tmpfile)
@@ -118,3 +118,23 @@ class TestMetadataClass(unittest.TestCase):
                          meta.metadata["files"]["0"]["filename"])
         self.assertEqual(meta2.metadata["files"]["0"]["metadata"],
                          meta.metadata["files"]["0"]["metadata"])
+        
+    def test_encryption(self):
+        """ Test if encryption of the metadata class works """
+        tmpfile = tempfile.NamedTemporaryFile(mode='wb+')
+        # Test if writing and reading with en-/decrytion works
+        meta = Metadata('test-module', password="password")
+        meta.add_file("testfile", StubMetadata())
+        meta.write(tmpfile)
+        tmpfile.seek(0)
+        meta.read(tmpfile)
+        result = meta.metadata
+        expected = json.loads('{"version": 2, "files": {"0": ' \
+                   + '{"uid": "0", "filename": ' \
+                   + '"testfile", "metadata": {"information": [1, 2, 3]}}}, ' \
+                   + '"module": "test-module"}')
+        self.assertEqual(result, expected)        
+        with self.assertRaises(IOError):
+            meta.password = None
+            tmpfile.seek(0)
+            meta.read(tmpfile)

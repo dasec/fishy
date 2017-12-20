@@ -1,3 +1,4 @@
 argparse
 construct
 pytsk3
+simple-crypt

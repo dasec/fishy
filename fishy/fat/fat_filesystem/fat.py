@@ -46,6 +46,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
         """
         finds the value that is written into fat
         for given cluster_id
+
         :param cluster_id: int, cluster that will be looked up
         :return: int or string
         """
@@ -57,12 +58,14 @@ class FAT:  # pylint: disable=too-many-instance-attributes
         write a given value into FAT tables
         requires that FAT object holds self._fat_entry attribute with
         a valid construct.Mapping
+
         :param cluster_id: int, cluster_id to write the value into
         :param value: int or string, value that gets written into FAT
                       use integer for valid following cluster_ids
                       use string 'free_cluster', 'bad_cluster' or
                       'last_cluster' without need to distinguish between
                       different FAT versions.
+
         :raises: AttributeError, AssertionError, FieldError
         """
         # make sure cluster_id is valid
@@ -103,6 +106,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
     def get_free_cluster(self) -> int:
         """
         searches for the next free (unallocated cluster) in fat
+
         :return: int, the cluster_id of an unallocated cluster
         """
         # FAT32 FS_Info sector stores the last allocated cluster
@@ -138,6 +142,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
     def follow_cluster(self, start_cluster: int) -> typ.List[int]:
         """
         collect all cluster, that belong to a file
+
         :param start_cluster: cluster to start with
         :return: list of cluster numbers (int)
         """
@@ -159,6 +164,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
     def get_cluster_start(self, cluster_id: int) -> int:
         """
         calculates the start byte of a given cluster_id
+
         :param cluster_id: id of the cluster
         :return: int, start byte of the given cluster_id
         """
@@ -184,6 +190,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
                           length: int = None) -> None:
         """
         writes a cluster to a given stream
+
         :param cluster_id: int, cluster_id of the cluster
                            that will be written to stream
         :param stream: stream, the cluster will written into
@@ -208,6 +215,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
     def _root_to_stream(self, stream: typ.BinaryIO) -> None:
         """
         write root directory into a given stream
+
         only aplicable to FAT12 and FAT16
         :param stream: stream, where the root directory will be written into
         """
@@ -224,6 +232,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
             -> typ.Generator[DirEntry, None, None]:
         """
         iterator for reading a cluster as directory and parse its content
+
         :param cluster_id: int, cluster to parse
         :return: generator for DirEntry
         :raises: IOError
@@ -238,6 +247,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
             -> DirEntry:
         """
         generator for reading a cluster as directory and parse its content
+
         :param cluster_id: int, cluster to parse,
                            if cluster_id == 0, parse rootdir
         :return: DirEntry
@@ -276,6 +286,7 @@ class FAT:  # pylint: disable=too-many-instance-attributes
     def find_file(self, filepath: str) -> DirEntry:
         """
         returns the directory entry for a given filepath
+
         :param filepath: string, filepath to the file
         :return: DirEntry of the requested file
         """

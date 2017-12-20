@@ -1,3 +1,5 @@
+# Ignore testoutput of unittests
+doctests.xml
 # ignore images in doc for now
 doc/*png
 # ignore ide setting foo
