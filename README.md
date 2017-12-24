@@ -156,7 +156,7 @@ Available for these filesystem types:
 
 ```bash
 # write into slack space
-$ echo "TOP SECRET" | fishy -d testfs-ntfs.dd mftslack -d myfile.txt -m metadata.json -w
+$ echo "TOP SECRET" | fishy -d testfs-ntfs.dd mftslack -m metadata.json -w
 
 # read from slack space
 $ fishy -d testfs-ntfs.dd mftslack -m metadata.json -r
