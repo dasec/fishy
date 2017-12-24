@@ -146,6 +146,27 @@ File: myfile.txt
   File Slack: 1536
 ```
 
+## MFT Slack
+
+The `mftslack` subcommand provides functionality to read, write and clean the mft slack of files in a filesystem.
+
+Available for these filesystem types:
+
+* NTFS
+
+```bash
+# write into slack space
+$ echo "TOP SECRET" | fishy -d testfs-ntfs.dd mftslack -d myfile.txt -m metadata.json -w
+
+# read from slack space
+$ fishy -d testfs-ntfs.dd mftslack -m metadata.json -r
+TOP SECRET
+
+# wipe slack space
+$ fishy -d testfs-ntfs.dd mftslack -m metadata.json -c
+```
+
+
 ## Additional Cluster Allocation
 
 The `addcluster` subcommand provides methods to read, write and clean additional clusters for a file where data can be hidden.
