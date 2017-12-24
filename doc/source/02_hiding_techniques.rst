@@ -33,3 +33,32 @@ the File Slack.
 1. Find the last cluster of a file, which File Slack shall be exploited
 2. Calculate the start of the Drive Slack
 3. Write data until no data is left or the end of the cluster is reached
+
+MFT Entry Slack
+---------------
+
+The Master File Table (MFT) contains an entry for every file and directory stored in
+a NTFS partition. It contains the necessary metadata such as the file name, -size, and
+the location of the stored data. MFT entries allocate a fixed size, usually 1024 bytes,
+but only the first 42 bytes have a defined purpose (MFT Entry Header). The remaining bytes
+store attributes, which contain the metadata for a file (e.g.: $STANDARD_INFORMATION, 
+$FILE_NAME, $DATA). An MFT entry does not have to fill up all of its allocated bytes, which
+often leads to some unused space at the end of an entry.
+
+.. image:: _static/mft_entry.png
+
+This unused space, the MFT entry slack, can still contain data of an old MFT entry,
+which was previously stored in the same location. This makes the MFT entry slack an
+ideal place to hide data inconspicuously.
+
+NTFS uses a concept called Fixup (Brian Carrier, p.253) for its important data structures,
+such as the MFT, in order to detect damaged sectors and corrupt data structures. When an
+MFT entry is written to the disk the last two bytes of each sector are replaced with a
+signature value. To avoid damaging the MFT it is important to not overwrite the last two
+bytes of each sector when hiding data in the MFT entry slack.
+
+The process of hiding data in the MFT entry slack:
+
+1. Find the MFT entry to hide data in
+2. Calculate the slack, using the information in the MFT entry header
+3. Write data and avoid the last two bytes of each sector
