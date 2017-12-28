@@ -4,6 +4,7 @@ FileSlack os a wrapper for filesystem specific file slack implementations
 import logging
 import typing as typ
 from os import path
+from .fat.fat_filesystem.dir_entry import DirEntry
 from .fat.file_slack import FileSlack as FATFileSlack
 from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
 from .filesystem_detector import get_filesystem_type
@@ -130,6 +131,19 @@ class FileSlack:
         else:
             raise NotImplementedError()
 
+    def _print_file_info(self, dir_entry: DirEntry) -> None:
+        """
+        prints info about available file slack of a given file
+        :param dir_entry: directory entry of a file, for which the info will
+                          be printed
+        """
+        occp, rams, files = self.fs.calculate_slack_space(dir_entry)
+        print("File:", dir_entry.get_name())
+        print("  Occupied in last cluster:", occp)
+        print("  Ram Slack:", rams)
+        print("  File Slack:", files)
+
+
     def info(self, filepaths: typ.List[str]) -> None:
         """
         prints info about available file slack of files
@@ -137,11 +151,11 @@ class FileSlack:
         if self.fs_type == 'FAT':
             for filepath in filepaths:
                 dir_entry = self.fs.fatfs.find_file(filepath)
-                occp, rams, files = self.fs.calculate_slack_space(dir_entry)
-                print("File:", filepath)
-                print("  Occupied in last cluster:", occp)
-                print("  Ram Slack:", rams)
-                print("  File Slack:", files)
+                if dir_entry.is_dir():
+                    for entry in self.fs._file_walk(dir_entry):
+                        self._print_file_info(entry)
+                else:
+                    self._print_file_info(dir_entry)
         elif self.fs_type == 'NTFS':
             self.fs.print_info(filepaths)
         else:
