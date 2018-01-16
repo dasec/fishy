@@ -377,7 +377,7 @@ def build_parser() -> argparse.ArgumentParser:
     mftslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     mftslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     mftslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
-    mftslack.add_argument('-i', '--info', dest='info', action='store_true', help='print mft slack information of given files')
+    mftslack.add_argument('-i', '--info', dest='info', action='store_true', help='print mft slack information of entries in limit')
     mftslack.add_argument('-l', '--limit', dest='limit', default=-1, type=int, required=False, help='limit the amount of mft entries to print information for when using the "--info" switch')
     mftslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
 

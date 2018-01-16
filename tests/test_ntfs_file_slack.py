@@ -10,9 +10,9 @@ from fishy.ntfs.ntfs_file_slack import NtfsSlack as FileSlack
 
 class TestWrite:
     """ Test writing into the slack space """
-    def test_write_file(self, testfs_ntfs_stable1):
+    def test_write_file(self, testfs_ntfs_stable2):
         """" Test writing a file into root directory """
-        for img_path in testfs_ntfs_stable1:
+        for img_path in testfs_ntfs_stable2:
             # create FileSlack object
             ntfs = FileSlack(img_path)
             # setup raw stream and write testmessage
@@ -22,12 +22,27 @@ class TestWrite:
                 mem.seek(0)
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
-                    result = ntfs.write(reader, ['another'])
-                    assert result.addrs == [(82296, 28)]
+                    result = ntfs.write(reader, ['other_file.txt'])
+                    assert result.addrs == [(1733632, 28)]
                     with pytest.raises(IOError):
                         mem.seek(0)
                         ntfs = FileSlack(img_path)
                         ntfs.write(reader, ['no_free_slack.txt'])
+
+    def test_write_file_mft(self, testfs_ntfs_stable2):
+        """" Test writing a file into mft slack of resident $data file """
+        for img_path in testfs_ntfs_stable2:
+            # create FileSlack object
+            ntfs = FileSlack(img_path)
+            # setup raw stream and write testmessage
+            with io.BytesIO() as mem:
+                teststring = "This is a simple write test."
+                mem.write(teststring.encode('utf-8'))
+                mem.seek(0)
+                # write testmessage to disk
+                with io.BufferedReader(mem) as reader:
+                    result = ntfs.write(reader, ['big_mft_file.txt'])
+                    assert result.addrs == [(84768, 28)]
 
     def test_write_file_in_subdir(self, testfs_ntfs_stable1):
         """ Test writing a file into a subdirectory """
