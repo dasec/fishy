@@ -50,6 +50,14 @@ $ pip install sphinx sphinx-argparse
 $ python setup.py doc
 ```
 
+To generate the documentation as pdf:
+```bash
+$ cd doc
+$ make latex
+$ cd build/latex
+% make
+```
+
 # Usage
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
