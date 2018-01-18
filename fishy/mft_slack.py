@@ -34,16 +34,19 @@ class MftSlack:
     >>> fs.clear_with_metadata(m)
     """
     def __init__(self, fs_stream: typ.BinaryIO, metadata: Metadata,
-                 dev: str = None):
+                 dev: str = None, domirr = False):
         """
         :param fs_stream: Stream of filesystem
         :param metadata: Metadata object
+        :param dev: device to use
+        :param domirr: write copy of data to $MFTMirr
         """
         self.dev = dev
         self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'NTFS':
             self.fs = NTFSMftSlack(dev)
+            self.fs.domirr = domirr
             self.metadata.set_module("ntfs-mft-slack")
         else:
             raise NotImplementedError()
