@@ -7,7 +7,10 @@ and calculate the slack of every entry until the provided data
 can be hidden or no more mft enries are left. After data was hidden
 successfully it will print out the next position to be used as offset
 when trying to hide more data. Without this offset previously
-hidden data will be overwritten.
+hidden data will be overwritten. If domirr is set to True a copy
+of the data will be written to the respective entries in the $MFTMirr.
+This will avoid detection by chkdsk. Fixup values will not be overwritten to
+avoid damaging the mft entries.
 
 
 :Example:
@@ -51,7 +54,7 @@ class MftSlackMetadata:
         else:
             self.addrs = d["addrs"]
 
-    def add_addr(self, addr, length):
+    def add_addr(self, addr, length, mirr):
         """
         adds an address to the list of addresses
 
@@ -59,7 +62,7 @@ class MftSlackMetadata:
         :param length: int, length of the data, which was written
                        to fileslack
         """
-        self.addrs.append((addr, length))
+        self.addrs.append((addr, length, mirr))
 
     def get_addr(self):
         """
@@ -68,7 +71,7 @@ class MftSlackMetadata:
         :returns: iterator, that returns address, length
         """
         for addr in self.addrs:
-            yield addr[0], addr[1]
+            yield addr[0], addr[1], addr[2]
 
 class SlackSpace:  # pylint: disable=too-few-public-methods
     """ class to save slack space start and size"""
@@ -127,6 +130,8 @@ class NtfsMftSlack:
         self.mftmirr_data = []
         #write same data to mftmirr or not
         self.domirr = False
+        #only default. actual value will be read later
+        self.mftmirr_size = self.mftentry_size * 4
 
     def write(self, instream, mft_offset=0):
         """
@@ -178,7 +183,7 @@ class NtfsMftSlack:
 
         :param mft_offset: first sector of mft entry to start with.
         :param mft_limit: number of mft entries to get slack of. -1 for infinte.
-        only used for print_info
+                            only used for print_info.
         """
         #get the necessary info about the mft data runs
         self.get_mft_info(mft_offset)
@@ -219,6 +224,7 @@ class NtfsMftSlack:
         """
         if mirr:
             mft = self.fs_inf.open("$MFTMirr")
+            self.mftmirr_size = mft.info.meta.size
         else:
             mft = self.fs_inf.open("$MFT")
         mft_cursor = mft_cursor*self.sectorsize
@@ -319,7 +325,7 @@ class NtfsMftSlack:
             for loc in file.loc_list:
                 if self.info:
                     print("\t%s slack at %s"%(loc.size, loc.addr))
-                meta.add_addr(loc.addr, loc.size)
+                meta.add_addr(loc.addr, loc.size, loc.mirr)
         return meta
 
     def read(self, outstream, meta):
@@ -331,7 +337,7 @@ class NtfsMftSlack:
         :param meta: MftSlackMetadata object
         """
         stream = open(self.stream, 'rb+')
-        for addr, length in meta.get_addr():
+        for addr, length, mirr in meta.get_addr():
             stream.seek(addr)
             bufferv = stream.read(length)
             outstream.write(bufferv)
@@ -343,9 +349,12 @@ class NtfsMftSlack:
         :param meta: MftSlackMetadata object
         """
         stream = open(self.stream, 'rb+')
-        for addr, length in meta.get_addr():
+        for addr, length, mirr in meta.get_addr():
             stream.seek(addr)
             stream.write(length * b'\x00')
+            if mirr > 0:
+                stream.seek(mirr)
+                stream.write(length * b'\x00')
 
     def write_file_to_slack(self):
         """
@@ -374,17 +383,21 @@ class NtfsMftSlack:
             # add a location to the hidden files location list
             if slack.size >= length:
                 stream.write(input_file[pos:pos + length])
-                if mirr_offset is not None:
+                if mirr_offset is not None and slack.addr < self.mft_start + self.mftmirr_size:
                     stream.seek(slack.addr+mirr_offset)
                     stream.write(input_file[pos:pos + length])
-                hidden_file.loc_list.append(SlackSpace(length, slack.addr))
+                    hidden_file.loc_list.append(SlackSpace(length, slack.addr, slack.addr+mirr_offset))
+                else:
+                    hidden_file.loc_list.append(SlackSpace(length, slack.addr, 0))
                 break
             else:
                 stream.write(input_file[pos:pos + slack.size])
-                if mirr_offset is not None:
+                if mirr_offset is not None and slack.addr < self.mft_start + self.mftmirr_size:
                     stream.seek(slack.addr+mirr_offset)
                     stream.write(input_file[pos:pos + slack.size])
-                hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr))
+                    hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr, slack.addr+mirr_offset))
+                else:
+                    hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr, 0))
                 pos += slack.size
                 length -= slack.size
         # stream.flush
