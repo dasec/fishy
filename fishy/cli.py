@@ -6,6 +6,7 @@ import traceback
 import argparse
 import logging
 import typing as typ
+from fishy.bad_cluster_wrapper import BadClusterWrapper
 from fishy.cluster_allocation import ClusterAllocation
 from fishy.fat.fat_filesystem.fat_wrapper import create_fat
 from fishy.fat.fat_filesystem.fattools import FATtools
@@ -209,6 +210,58 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.clear()
 
+def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    hanles badcluster subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        if args.password is None:
+            allocator = BadClusterWrapper(device, Metadata(), args.dev)
+        else:
+            allocator = BadClusterWrapper(device, Metadata(password=args.password), args.dev)
+        if not args.file:
+            # write from stdin into bad clusters
+            allocator.write(sys.stdin.buffer)
+        else:
+            # write from file into bad cluster
+            with open(args.file, 'rb') as fstream:
+                allocator.write(fstream,  args.file)
+        with open(args.metadata, 'wb+') as metadata_out:
+            allocator.metadata.write(metadata_out)
+    elif args.read:
+        # read bad cluster to stdout
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden data from bad cluster into outfile
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.read_into_file(args.outfile)
+    elif args.clear:
+        # clear bad cluster
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.clear()
+
+
 def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
     handles reserved_gdt_blocks subcommand execution
@@ -384,13 +437,23 @@ def build_parser() -> argparse.ArgumentParser:
     # Additional Cluster Allocation
     addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
     addcluster.set_defaults(which='addcluster')
-    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem')
     addcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
     addcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
     addcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
     addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
     addcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
     addcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
+
+    # Additional Cluster Allocation
+    badcluster = subparsers.add_parser('badcluster', help='Allocate more clusters for a file')
+    badcluster.set_defaults(which='badcluster')
+    badcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    badcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
+    badcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
+    badcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
+    badcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
+    badcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
 
     # Reserved GDT blocks
     reserved_gdt_blocks = subparsers.add_parser('reserved_gdt_blocks', help='hide data in reserved GDT blocks')
@@ -476,6 +539,10 @@ def main():
             # if 'addcluster' was chosen
             if args.which == 'addcluster':
                 do_addcluster(args, device)
+
+            # if 'badcluster' was chosen
+            if args.which == 'badcluster':
+                do_badcluster(args, device)
 
             # if 'reserved_gdt_blocks' was chosen
             if args.which == 'reserved_gdt_blocks':
