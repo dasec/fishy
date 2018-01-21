@@ -23,8 +23,8 @@ class TestWrite:
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader)
-                    assert result.addrs == [(16792, 102), (16896, 510),
-                                            (17752, 166), (17920, 62)]
+                    assert result.addrs == [(16792, 102, 0), (16896, 510, 0),
+                                            (17752, 166, 0), (17920, 62, 0)]
                     with pytest.raises(IOError):
                         mem.seek(0)
                         ntfs = MftSlack(img_path)
@@ -43,7 +43,7 @@ class TestWrite:
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader,36)
-                    assert result.addrs == [(18776, 28)]
+                    assert result.addrs == [(18776, 28, 0)]
 
 class TestRead:
     """ Test reading slackspace """
