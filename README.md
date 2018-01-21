@@ -65,6 +65,7 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`metadata`](#metadata) - Provides some information about data that is stored in a metadata file
 * [`fileslack`](#file-slack) - Exploitation of File Slack
 * [`addcluster`](#additional-cluster-allocation) - Allocate additional clusters for a file
+* [`badcluster`](#bad-cluster-allocation) - Allocate bad clusters
 
 ## FATtools
 
@@ -194,6 +195,28 @@ TOP SECRET
 # clean up additionally allocated clusters
 $ fishy -d testfs-fat12.dd addcluster -m metadata.json -c
 ```
+
+## Additional Cluster Allocation
+
+The `badcluster` subcommand provides methods to read, write and clean
+bad clusters, where data can be hidden.
+
+Available for these filesystem types:
+
+-  FAT
+
+```bash
+# Allocate bad clusters and hide data in it
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd badcluster -m metadata.json -w
+
+# read hidden data from bad clusters
+$ fishy -d testfs-fat12.dd badcluster -m metadata.json -r
+TOP SECRET
+
+# clean up bad clusters
+$ fishy -d testfs-fat12.dd badcluster -m metadata.json -c
+```
+
 
 # Development
 
