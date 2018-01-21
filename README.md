@@ -11,7 +11,7 @@ hiding.
 
 * FAT:
 	* File Slack [✓]
-	* Bad Cluster Allocation
+	* Bad Cluster Allocation [✓]
 	* Allocate More Clusters for a file [✓]
 
 * NTFS:
