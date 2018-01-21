@@ -21,6 +21,7 @@ Limitations
 -----------
 
 * Currently only Linux is supported and tested
+* Currently no support for storing multiple files
 
 See also
 --------

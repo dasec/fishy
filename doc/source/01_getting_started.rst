@@ -159,8 +159,8 @@ Available for these filesystem types:
     # clean up additionally allocated clusters
     $ fishy -d testfs-fat12.dd addcluster -m metadata.json -c
 
-Additional Cluster Allocation
-.............................
+Bad Cluster Allocation
+......................
 
 The ``badcluster`` subcommand provides methods to read, write and clean
 bad clusters, where data can be hidden.
