@@ -277,25 +277,25 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             # write from files into reserved GDT blocks
             with open(args.file, 'rb') as fstream:
                 reserve.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             reserve.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read_into_file(args.outfile)
     elif args.clear:
         # clear reserved GDT blocks
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
@@ -316,25 +316,25 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into superblock slack
             with open(args.file, 'rb') as fstream:
                 slack.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             slack.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read_into_file(args.outfile)
     elif args.clear:
         # clear superblock slack
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
@@ -356,25 +356,25 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into osd2 fields
             with open(args.file, 'rb') as fstream:
                 osd2.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             osd2.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read_into_file(args.outfile)
     elif args.clear:
         # clear osd2 fields
-        with open(args.metadata, 'r') as metadata_file:
+        with open(args.metadata, 'rb') as metadata_file:
             meta = Metadata()
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
