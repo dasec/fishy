@@ -269,7 +269,10 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
     :param device: stream of the filesystem
     """
     if args.write:
-        reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+        if args.password is None:
+            reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+        else:
+            reserve = ReservedGDTBlocks(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into reserved GDT blocks
             reserve.write(sys.stdin.buffer)
@@ -282,21 +285,30 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
     elif args.read:
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read_into_file(args.outfile)
     elif args.clear:
         # clear reserved GDT blocks
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.clear()
@@ -308,7 +320,10 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
-        slack = SuperblockSlack(device, Metadata(), args.dev)
+        if args.password is None:
+            slack = SuperblockSlack(device, Metadata(), args.dev)
+        else:
+            slack = SuperblockSlack(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into superblock slack
             slack.write(sys.stdin.buffer)
@@ -321,21 +336,30 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     elif args.read:
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read_into_file(args.outfile)
     elif args.clear:
         # clear superblock slack
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.clear()
@@ -348,7 +372,10 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
-        osd2 = OSD2(device, Metadata(), args.dev)
+        if args.password is None:
+            osd2 = OSD2(device, Metadata(), args.dev)
+        else:
+            osd2 = OSD2(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into osd2 fields
             osd2.write(sys.stdin.buffer)
@@ -361,21 +388,30 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     elif args.read:
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read_into_file(args.outfile)
     elif args.clear:
         # clear osd2 fields
         with open(args.metadata, 'rb') as metadata_file:
-            meta = Metadata()
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.clear()
