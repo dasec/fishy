@@ -23,7 +23,8 @@ MFTSlack
 * **Gained capacity**: Depending on the allocated MFT entry size as well as the
   actual size of data in each entry, that is used to hide data, this hiding
   technique can store *(allocated_size - actual_size) - 2 bytes per fixup value
-  in slack*.  Though the gained capacity is high.
+  in slack*.  Though the gained capacity is high (~300B per MFT entry using our
+  testfs-ntfs-stable2.dd image with a MFT entry size of 1024B).
 * **Detection probability**: With the --domirr option a check with chkdsk neither
   detected the hidden files, nor showed any other suspicious output. Without
   chkdsk detects an error in the $MFTMirr.
