@@ -5,7 +5,7 @@ clear the slackspace of a given file in NTFS filesystems
 Since RAM slack is filled with zeros when writing a file in NTFS
 this implementation will only hide data in the Drive slack of
 the given files. If the Filedata is resident in the MFT entry
-$Data attribute the MFT slack will be used to hide data.
+$Data attribute the File will be skiped.
 
 
 :Example:
@@ -30,7 +30,6 @@ to display info about the slack of given files:
 >>> fs.info(filenames)
 """
 
-import struct
 from pytsk3 import FS_Info, Img_Info, TSK_FS_NAME_TYPE_DIR, TSK_FS_NAME_TYPE_REG  # pylint: disable=no-name-in-module
 
 
@@ -97,7 +96,7 @@ class SlackSpace:  # pylint: disable=too-few-public-methods
 
 class SlackFile:  # pylint: disable=too-few-public-methods
     """ class to save info about hidden file """
-    def __init__(self, name, size, ):
+    def __init__(self, name, size):
         """
         :param name: name of file
         :param size: size of file
@@ -135,7 +134,7 @@ class NtfsSlack:
 
     def write(self, instream, filepath):
         """
-        creates list with slack space of given files (drive slack and mft slack if resident)
+        creates list with slack space of given files (drive slack)
         and writes from instream into slackspace.
 
         :param instream: stream to read from
@@ -147,15 +146,17 @@ class NtfsSlack:
         :return: FileSlackMetadata
         """
         #get mft record size
-        with open(self.stream, 'rb+') as mftstream:
-            mftstream.seek(4*16)
-            mftentry_size_b = mftstream.read(1)
-            mftentry_size_i = struct.unpack("<b", mftentry_size_b)[0]
-            if mftentry_size_i < 0:
-                self.mftentry_size = 2**(mftentry_size_i*-1)
-            else:
-                self.mftentry_size = mftentry_size_i * self.cluster_size
+#        with open(self.stream, 'rb+') as mftstream:
+#            mftstream.seek(4*16)
+#            mftentry_size_b = mftstream.read(1)
+#            mftentry_size_i = struct.unpack("<b", mftentry_size_b)[0]
+#            if mftentry_size_i < 0:
+#                self.mftentry_size = 2**(mftentry_size_i*-1)
+#            else:
+#                self.mftentry_size = mftentry_size_i * self.cluster_size
         self.instream = instream
+        if filepath is None:
+            filepath = ["/"]
         self.filepath = filepath
         # size of file to hide
         file_size = self.get_file_size()
@@ -214,53 +215,9 @@ class NtfsSlack:
             stream.seek(addr)
             stream.write(length * b'\x00')
 
-    def get_resident_slack(self, meta_addr):
-        """
-        calculate slack size of mft entry in case of resident $Data attribute,
-        saving slack spaces in slack_list
-
-        :param meta_addr: start of mft entry with resident $Data attribute
-        :return: size of slack found
-        """
-        if self.info:
-            print("\tFile is resident in MFT entry $Data attribute")
-        stream = open(self.stream, 'rb+')
-        #allocated size of mft entry
-        stream.seek(meta_addr+28)
-        mft_alloc_size = stream.read(4)
-        mftalloc_sizedec = struct.unpack("<L", mft_alloc_size)[0]
-        if self.info:
-            print("\tMFT entry allocated size: %s"%mftalloc_sizedec)
-        #get actual size of mft entry
-        stream.seek(meta_addr+24)
-        mft_entry_size = stream.read(4)
-        mftentry_sizedec = struct.unpack("<L", mft_entry_size)[0]
-        if self.info:
-            print("\tMFT entry used size: %s"%mftentry_sizedec)
-        #offset to slack in mft entry
-        mftslack_start = meta_addr+mftentry_sizedec
-        #write to mft entry after end of attributes
-        #-2 at end to avoid overwriting fixup values
-        mftslack_end = meta_addr+mftalloc_sizedec-2
-        if mftentry_sizedec >= 512:
-            mftslack_size = mftslack_end - mftslack_start
-            self.slack_list.append(SlackSpace(mftslack_size, mftslack_start))
-            if self.info:
-                print("\tMFT slack size(avoiding fixup value): %s"%mftslack_size)
-            return mftslack_size
-        mftslack_end1 = (mftslack_start + 512 - (mftslack_start % 512)) - 2
-        mftslack_size1 = mftslack_end1 - mftslack_start
-        self.slack_list.append(SlackSpace(mftslack_size1, mftslack_start))
-        mftslack_size2 = mftslack_end - (mftslack_end1 + 2)
-        self.slack_list.append(SlackSpace(mftslack_size2, mftslack_end1 + 2))
-        if self.info:
-            print("\tMFT slack size(avoiding fixup values): %s"
-                  %(mftslack_size1 + mftslack_size2))
-        return mftslack_size1 + mftslack_size2
-
     def get_slack(self, file):
         """
-        calculate drive slack size of file or slack size of mft entry in case
+        calculate drive slack size of file or skip in case
         of resident $Data attribute, saving slack spaces in slack_list
 
         :param file: pytsk3 file object to calculate slack for
@@ -279,12 +236,8 @@ class NtfsSlack:
         #if file.info.name.name.decode('utf-8').find("$") != -1:
         #    return 0
         resident = True
-        meta_block = file.info.meta.addr
-        mft_offset = 16
         # File size
         size = file.info.meta.size
-        # start of mft entry
-        meta_addr = (meta_block + mft_offset) * self.mftentry_size
         # get last block of file to check for slack
         for attr in file:
             for run in attr:
@@ -293,8 +246,9 @@ class NtfsSlack:
                 resident = False
         # File data resident in mft $Data entry
         if resident:
-            resident_slacksize = self.get_resident_slack(meta_addr)
-            return resident_slacksize
+            if self.info:
+                print("\tSkipping file residident in MFT $Data")
+            return 0
         # last block = start of last blocks + offset
         last_block = last_blocks_start + last_block_offset
         blocknoram = self.blocksize - self.sectorsize
@@ -314,6 +268,9 @@ class NtfsSlack:
             l_d_size += ramslack_size
         #skip file if data within last sector to avoid RAM slack
         if l_d_size == 0 or l_d_size >= blocknoram:
+            if self.info:
+                print("\tDrive Slack: 0")
+                print("\tFile Slack: %s"%ramslack_size)
             return 0
         # Slack space size
         s_size = self.blocksize - l_d_size
@@ -439,6 +396,8 @@ class NtfsSlack:
         :param filepaths: files to print slack info for
         :return: total size of slack found
         """
+        if filepaths is None:
+            filepaths = ["/"]
         self.filepath = filepaths
         self.info = True
         self.filesize_left = float('inf')

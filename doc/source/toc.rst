@@ -10,12 +10,15 @@ fishy - filesystem based data hiding techniques
    :maxdepth: 2
    :caption: Contents:
 
+   01_introduction
    01_getting_started
    01_options
    02_filesystem_datastructures
    02_hiding_techniques
    02_module_overview
    03_reference_api
+   04_evaluation
+   05_future_work
 
 Indices and tables
 ==================

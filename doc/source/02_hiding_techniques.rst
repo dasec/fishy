@@ -57,8 +57,14 @@ MFT entry is written to the disk the last two bytes of each sector are replaced 
 signature value. To avoid damaging the MFT it is important to not overwrite the last two
 bytes of each sector when hiding data in the MFT entry slack.
 
+NTFS stores a copy of at least the first four MFT entries ($MFT, $MFTMirr, $LogFile, $Volume)
+in a file called $MFTMirr (Brian Carrier, p.219) to be used during recovery. To avoid detecion
+by a simple chkdsk it is important to write a copy of the hidden data in $MFT to the corresponding
+entries in $MFTMirr. 
+
 The process of hiding data in the MFT entry slack:
 
 1. Find the MFT entry to hide data in
 2. Calculate the slack, using the information in the MFT entry header
 3. Write data and avoid the last two bytes of each sector
+4. If copies exit in $MFTMirr write the same data there

@@ -29,63 +29,28 @@ class TestWrite:
                         ntfs = FileSlack(img_path)
                         ntfs.write(reader, ['no_free_slack.txt'])
 
-    def test_write_file_mft(self, testfs_ntfs_stable2):
-        """" Test writing a file into mft slack of resident $data file """
+    def test_write_file_autoexpand_subdir(self, testfs_ntfs_stable2):  # pylint: disable=invalid-name
+        """ Test if autoexpansion for directories as input filepath works """
+        # if user supplies a directory instead of a file path, all files under
+        # this directory will recusively added
         for img_path in testfs_ntfs_stable2:
             # create FileSlack object
             ntfs = FileSlack(img_path)
             # setup raw stream and write testmessage
             with io.BytesIO() as mem:
-                teststring = "This is a simple write test."
-                mem.write(teststring.encode('utf-8'))
-                mem.seek(0)
-                # write testmessage to disk
-                with io.BufferedReader(mem) as reader:
-                    result = ntfs.write(reader, ['big_mft_file.txt'])
-                    assert result.addrs == [(84768, 28)]
-
-    def test_write_file_in_subdir(self, testfs_ntfs_stable1):
-        """ Test writing a file into a subdirectory """
-        for img_path in testfs_ntfs_stable1:
-            # create FileSlack object
-            ntfs = FileSlack(img_path)
-            # setup raw stream and write testmessage
-            with io.BytesIO() as mem:
-                teststring = "This is a simple write test."
-                mem.write(teststring.encode('utf-8'))
-                mem.seek(0)
-                # write testmessage to disk
-                with io.BufferedReader(mem) as reader:
-                    result = ntfs.write(reader,
-                                         ['onedirectory/afileinadirectory.txt'])
-                    assert result.addrs == [(87456, 28)]
-
-    def test_write_file_autoexpand_subdir(self, testfs_ntfs_stable1):  # pylint: disable=invalid-name
-        """ Test if autoexpansion for directories as input filepath works """
-        # if user supplies a directory instead of a file path, all files under
-        # this directory will recusively added
-        for img_path in testfs_ntfs_stable1:
-            # create FileSlack object
-            ntfs = FileSlack(img_path)
-            # setup raw stream and write testmessage
-            with io.BytesIO() as mem:
-                teststring = "This is a simple write test."*129
+                teststring = "This is a simple write test."*100
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 # write testmessage to disk
                 with io.BufferedReader(mem) as reader:
                     result = ntfs.write(reader, ['/'])
-                    assert sorted(result.addrs) == sorted([(82296, 134), 
-                                  (82432, 510), (83392, 62), (83456, 510), 
-                                  (87456, 94), (87552, 510), (88536, 38), 
-                                  (88576, 510), (90496, 126), (90624, 510), 
-                                  (91528, 118), (91648, 490)])
+                    assert sorted(result.addrs) == sorted([(1733632, 2800)])
 
 class TestRead:
     """ Test reading slackspace """
-    def test_read_slack(self, testfs_ntfs_stable1):
+    def test_read_slack(self, testfs_ntfs_stable2):
         """ Test if reading content of slackspace in a simple case works """
-        for img_path in testfs_ntfs_stable1:
+        for img_path in testfs_ntfs_stable2:
             # create FileSlack object
             ntfs = FileSlack(img_path)
             teststring = "This is a simple write test."
@@ -94,7 +59,7 @@ class TestRead:
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 with io.BufferedReader(mem) as reader:
-                    write_res = ntfs.write(reader, ['another'])
+                    write_res = ntfs.write(reader, ['other_file.txt'])
             # read content we wrote and compare result with
             # our initial test message
             ntfs = FileSlack(img_path)
@@ -105,18 +70,18 @@ class TestRead:
                 assert result.decode('utf-8') == teststring
 
 class TestInfo:
-    def test_info_slack(self, testfs_ntfs_stable1):
+    def test_info_slack(self, testfs_ntfs_stable2):
         """ Test if info works """
-        for img_path in testfs_ntfs_stable1:
+        for img_path in testfs_ntfs_stable2:
             # create FileSlack object
             ntfs = FileSlack(img_path)
             slack = ntfs.print_info(['/'])
-            assert slack == 3632
+            assert slack == 3072
             
 class TestClear:
-    def test_clear_slack(self, testfs_ntfs_stable1):
+    def test_clear_slack(self, testfs_ntfs_stable2):
         """ Test if clearing slackspace of a file works """
-        for img_path in testfs_ntfs_stable1:
+        for img_path in testfs_ntfs_stable2:
             # create FileSlack object
             ntfs = FileSlack(img_path)
             teststring = "This is a simple write test."
@@ -125,7 +90,7 @@ class TestClear:
                 mem.write(teststring.encode('utf-8'))
                 mem.seek(0)
                 with io.BufferedReader(mem) as reader:
-                    write_res = ntfs.write(reader, ['another'])
+                    write_res = ntfs.write(reader, ['other_file.txt'])
                 ntfs = FileSlack(img_path)
                 ntfs.clear(write_res)
                 ntfs = FileSlack(img_path)

@@ -51,6 +51,12 @@ Additional Cluster Allocation
 .. automodule:: fishy.fat.cluster_allocator
         :members:
 
+Bad Cluster Allocation
+......................
+
+.. automodule:: fishy.fat.bad_cluster
+        :members:
+
 NTFS
 ****
 

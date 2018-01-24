@@ -6,6 +6,7 @@ import traceback
 import argparse
 import logging
 import typing as typ
+from fishy.bad_cluster_wrapper import BadClusterWrapper
 from fishy.cluster_allocation import ClusterAllocation
 from fishy.fat.fat_filesystem.fat_wrapper import create_fat
 from fishy.fat.fat_filesystem.fattools import FATtools
@@ -114,9 +115,9 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         slacker.info(args.offset, args.limit)
     if args.write:
         if args.password is None:
-            slacker = MftSlack(device, Metadata(), args.dev)
+            slacker = MftSlack(device, Metadata(), args.dev, args.domirr)
         else:
-            slacker = MftSlack(device, Metadata(password=args.password), args.dev)
+            slacker = MftSlack(device, Metadata(password=args.password), args.dev, args.domirr)
         if not args.file:
             # write from stdin into mftslack
             slacker.write(sys.stdin.buffer, offset=args.offset)
@@ -209,6 +210,58 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.clear()
 
+def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    hanles badcluster subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        if args.password is None:
+            allocator = BadClusterWrapper(device, Metadata(), args.dev)
+        else:
+            allocator = BadClusterWrapper(device, Metadata(password=args.password), args.dev)
+        if not args.file:
+            # write from stdin into bad clusters
+            allocator.write(sys.stdin.buffer)
+        else:
+            # write from file into bad cluster
+            with open(args.file, 'rb') as fstream:
+                allocator.write(fstream,  args.file)
+        with open(args.metadata, 'wb+') as metadata_out:
+            allocator.metadata.write(metadata_out)
+    elif args.read:
+        # read bad cluster to stdout
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden data from bad cluster into outfile
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.read_into_file(args.outfile)
+    elif args.clear:
+        # clear bad cluster
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            allocator = BadClusterWrapper(device, meta, args.dev)
+            allocator.clear()
+
+
 def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
     handles reserved_gdt_blocks subcommand execution
@@ -216,7 +269,10 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
     :param device: stream of the filesystem
     """
     if args.write:
-        reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+        if args.password is None:
+            reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+        else:
+            reserve = ReservedGDTBlocks(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into reserved GDT blocks
             reserve.write(sys.stdin.buffer)
@@ -224,26 +280,35 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             # write from files into reserved GDT blocks
             with open(args.file, 'rb') as fstream:
                 reserve.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             reserve.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read_into_file(args.outfile)
     elif args.clear:
         # clear reserved GDT blocks
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.clear()
@@ -255,7 +320,10 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
-        slack = SuperblockSlack(device, Metadata(), args.dev)
+        if args.password is None:
+            slack = SuperblockSlack(device, Metadata(), args.dev)
+        else:
+            slack = SuperblockSlack(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into superblock slack
             slack.write(sys.stdin.buffer)
@@ -263,26 +331,35 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into superblock slack
             with open(args.file, 'rb') as fstream:
                 slack.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             slack.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read_into_file(args.outfile)
     elif args.clear:
         # clear superblock slack
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.clear()
@@ -295,7 +372,10 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
-        osd2 = OSD2(device, Metadata(), args.dev)
+        if args.password is None:
+            osd2 = OSD2(device, Metadata(), args.dev)
+        else:
+            osd2 = OSD2(device, Metadata(password=args.password), args.dev)
         if not args.file:
             # write from stdin into osd2 fields
             osd2.write(sys.stdin.buffer)
@@ -303,26 +383,35 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             # write from files into osd2 fields
             with open(args.file, 'rb') as fstream:
                 osd2.write(fstream, args.file)
-        with open(args.metadata, 'w+') as metadata_out:
+        with open(args.metadata, 'wb+') as metadata_out:
             osd2.metadata.write(metadata_out)
     elif args.read:
         # read hidden file to stdout
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read(sys.stdout.buffer)
     elif args.outfile:
         # read hidden file into outfile
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.read_into_file(args.outfile)
     elif args.clear:
         # clear osd2 fields
-        with open(args.metadata, 'r') as metadata_file:
-            meta = Metadata()
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.clear()
@@ -377,6 +466,7 @@ def build_parser() -> argparse.ArgumentParser:
     mftslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     mftslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
     mftslack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear slackspace')
+    mftslack.add_argument('-d', '--domirr', dest='domirr', action='store_true', help='write copy of data to $MFTMirr. Avoids detection with chkdsk')
     mftslack.add_argument('-i', '--info', dest='info', action='store_true', help='print mft slack information of entries in limit')
     mftslack.add_argument('-l', '--limit', dest='limit', default=-1, type=int, required=False, help='limit the amount of mft entries to print information for when using the "--info" switch')
     mftslack.add_argument('file', metavar='FILE', nargs='?', help="File to write into slack space, if nothing provided, use stdin")
@@ -384,13 +474,23 @@ def build_parser() -> argparse.ArgumentParser:
     # Additional Cluster Allocation
     addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
     addcluster.set_defaults(which='addcluster')
-    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem')
     addcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
     addcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
     addcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
     addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
     addcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
     addcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
+
+    # Additional Cluster Allocation
+    badcluster = subparsers.add_parser('badcluster', help='Allocate more clusters for a file')
+    badcluster.set_defaults(which='badcluster')
+    badcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    badcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
+    badcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
+    badcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
+    badcluster.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear allocated clusters')
+    badcluster.add_argument('file', metavar='FILE', nargs='?', help="File to write into additionally allocated clusters, if nothing provided, use stdin")
 
     # Reserved GDT blocks
     reserved_gdt_blocks = subparsers.add_parser('reserved_gdt_blocks', help='hide data in reserved GDT blocks')
@@ -476,6 +576,10 @@ def main():
             # if 'addcluster' was chosen
             if args.which == 'addcluster':
                 do_addcluster(args, device)
+
+            # if 'badcluster' was chosen
+            if args.which == 'badcluster':
+                do_badcluster(args, device)
 
             # if 'reserved_gdt_blocks' was chosen
             if args.which == 'reserved_gdt_blocks':

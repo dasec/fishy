@@ -334,7 +334,7 @@ class TestCliMftSlack(object):
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
                    + '{"uid": "0", "filename": ' \
                    + '"' + testfilename + '", "metadata": {"addrs": ' \
-                   + '[[41584, 18]]}}}, "module": "ntfs-mft-slack"}'))
+                   + '[[41584, 18, 0]]}}}, "module": "ntfs-mft-slack"}'))
         # create test file which we will hide
         with open(testfilepath, 'w+') as testfile:
             testfile.write(teststring)
@@ -361,7 +361,7 @@ class TestCliMftSlack(object):
         expected = json.dumps(json.loads('{"version": 2, "files": {"0": ' \
                    + '{"uid": "0", "filename": ' \
                    + '"0", "metadata": {"addrs": ' \
-                   + '[[16792, 18]]}}}, "module": "ntfs-mft-slack"}'))
+                   + '[[16792, 18, 0]]}}}, "module": "ntfs-mft-slack"}'))
         for img_path in testfs_ntfs_stable1:
             # write metadata
             args = ["fishy", "-d", img_path, "mftslack", "-w",
