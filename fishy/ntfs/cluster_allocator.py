@@ -4,6 +4,7 @@ data runs for a file to hide data in
 """
 
 import typing
+from math import ceil
 from .ntfs_filesystem.ntfs import NTFS
 from .ntfs_filesystem.attributes import DATA_ID
 from .ntfs_filesystem.attribute_header import ATTRIBUTE_HEADER
@@ -55,7 +56,7 @@ class ClusterAllocator:
         """
         metadata = AllocatorMetadata()
         size = instream.seek(0, 2)
-        runs = self.allocate_clusters(path, size/self.ntfs.cluster_size)
+        runs = self.allocate_clusters(path, ceil(size/self.ntfs.cluster_size))
         instream.seek(0)
         written = 0
         for run in runs:
@@ -95,9 +96,67 @@ class ClusterAllocator:
 
 
     def clear(self, metadata: AllocatorMetadata) -> None:
-        raise NotImplementedError
+        """
+        Clears the hidden data. Removes the runs from the file and deallocates the clusters.
+        :param metadata: The metadata for the hidden data
+        """
+        #Remove runs from file
+        #TODO Pay attention to attributes following the data attribute and record size
 
-    def allocate_clusters(self, path: str,  n: int) -> [{'lenght', 'offset'}]:
+        #Get record number of file
+        file_record_n = self.ntfs.get_record_of_file(metadata.file)
+        #File doesn't exist anymore -> Nothing to clear
+        #TODO Maybe need to deallocate additional clusters? Look into behavior on deletion of file
+        if file_record_n is None:
+            return
+
+        #Get record of file
+        file_record = self.ntfs.get_record(file_record_n)
+        #Get offset to data attribute
+        offset = self.ntfs.find_attribute(file_record, DATA_ID)
+        attribute_header = ATTRIBUTE_HEADER.parse(file_record[offset:])
+
+        #Overwrite hidden data
+        for run in metadata.new_runs:
+            self.ntfs.stream.seek(self.ntfs.start_offset + \
+                    self.ntfs.cluster_size * run['offset'])
+            length = run['length'] * self.ntfs.cluster_size
+
+            self.ntfs.stream.write(b'0'*length)
+
+        #Iterate through runs and remove ones that were added
+        offset += attribute_header.datarun_offset
+        run_offset = 0
+        byte = file_record[offset]
+        while byte != 0:
+            run_offset_len = byte >> 4
+            run_length_len = byte & 0x0F
+
+            offset += 1 + run_length_len
+            run_length = int.from_bytes(file_record[offset-run_length_len:offset], 'little')
+            offset += run_offset_len
+            run_offset += int.from_bytes(file_record[offset-run_offset_len:offset], 'little')
+            if {'length':run_length, 'offset':run_offset} in metadata.new_runs:
+                file_record[offset-run_offset_len-run_length_len-1:offset] = b'0'
+            byte = file_record[offset]
+
+        #Deallocate clusters in $Bitmap file
+        #TODO
+        bitmap_run = self.ntfs.get_data_runs(self.ntfs.get_record(6))[0]
+        self.ntfs.stream.seek(self.ntfs.start_offset + bitmap_run['offset'])
+        for data_run in metadata.new_runs:
+            self.ntfs.stream.seek(int(data_run['offset']/8), 1)
+            byte = int.from_bytes(self.ntfs.stream.read(1), 'little')
+            byte = byte & ( 0xFF ^ (1 << (7 - data_run['offset']%8)))
+            byte = bytes([byte])    #TODO check if works properly
+            self.ntfs.stream.seek(-1, 1)
+            self.ntfs.stream.write(byte)
+            self.ntfs.stream.seek(-1, 1)
+
+        # self.ntfs.stream.seek(self.ntfs.start_offset + self.ntfs.mft_offset + \
+                # self.ntfs.record_size * 6)
+
+    def allocate_clusters(self, path: str,  n: int) -> [{'length', 'offset'}]:
         """
         Find n unallocated clusters and allocate them to the given file
         :param path: The path to the file to allocate the clusters to
@@ -141,17 +200,20 @@ class ClusterAllocator:
 
             cluster_pos += 8
 
-        assert len(clusters_found) == n, "Not enough free clusters found"
+        assert len(clusters_found) == n,\
+         "Not enough free clusters found (" + str(len(clusters_found)) + " out of " + str(n) + ")"
         self._write_cluster_allocation(clusters_found)
 
+        #Add the runs to the file
+        #TODO Pay attention to attributes following the data attribute and record size
         offset += attribute_header.datarun_offset
         run_offset = 0
-        byte = record[offset]
+        byte = file_record[offset]
         while byte != 0:
             run_offset_len = byte >> 4
             offset += 1 + (byte & 0x0F) + run_offset_len
-            run_offset += int.from_bytes(record[offset-run_offset_len:offset], 'little')
-            byte = record[offset]
+            run_offset += int.from_bytes(file_record[offset-run_offset_len:offset], 'little')
+            byte = file_record[offset]
 
         #TODO Multiple clusters to one run when possible
         new_run_data = bytearray()
@@ -160,14 +222,14 @@ class ClusterAllocator:
             run_offset += relative_run_offset
             new_runs.append({'length': 1, 'offset': run_offset})
             relative_run_offset = relative_run_offset.to_bytes(\
-                    (relative_run_offset.bit_length+7) // 8, byteorder='little', signed=True)
+                    (relative_run_offset.bit_length()+7) // 8, byteorder='little', signed=True)
             run_len = (1).to_bytes(1, 'little')
-            byte = (len(relative_run_offset) << 4) & 1
-            new_run_data.append(byte)
-            new_run_data.append(run_len)
-            new_run_data.append(relative_run_offset)
+            byte = bytes([(len(relative_run_offset) << 4) & 1])
+            new_run_data.extend(byte)
+            new_run_data.extend(run_len)
+            new_run_data.extend(relative_run_offset)
 
-        new_run_data.append(b'0')
+        new_run_data.extend(b'0')
         self.ntfs.stream.seek(self.ntfs.start_offset + self.ntfs.mft_offset + \
                 self.ntfs.record_size * file_record_n + offset)
         self.ntfs.stream.write(new_run_data)
@@ -184,8 +246,8 @@ class ClusterAllocator:
             position = int(cluster/8)
 
             self.stream.seek(offset + position)
-            old_value = self.stream.read(1)
+            old_value = int.from_bytes(self.stream.read(1), byteorder='big')
             new_value = old_value | (1 << (cluster % 8))
             self.stream.seek(-1, 1)
-            self.stream.write(new_value)
+            self.stream.write(bytes([new_value]))
 
