@@ -120,15 +120,13 @@ class NtfsBadCluster:
         else:
             hidden_data = []
             for cluster in clusters:
-                data = self.write_file_to_cluster(instream, cluster)
+                data = self.write_file_to_cluster(instream, int(cluster * self.cluster_size))
                 with open(self.stream, 'rb+') as mftstream:
                     # do not overwrite header
                     mftstream.seek(self.mft_badclus + 7)
                     # write cluster into $badclus
                     mftstream.write(cluster.to_bytes(1, byteorder='big'))
                     mftstream.seek(self.mft_badclus)
-                    p = mftstream.read(10)
-                    print(p)
                     # set used in $bitmap
                     mftstream.seek(self.mft_bitmap + cluster)
                     mftstream.write(b'\x01')
@@ -148,7 +146,7 @@ class NtfsBadCluster:
         length = len(input_file)
         # open image
         stream = open(self.stream, 'rb+')
-        stream.seek(int(offset * self.cluster_size))
+        stream.seek(offset)
         # write file to cluster, save position and size to var
         stream.write(input_file)
         hidden_data = BadCluster(length, offset)
@@ -177,7 +175,7 @@ class NtfsBadCluster:
         meta = BadClusterMetadata()
         for cluster in hidden_data:
             meta.add_addr(cluster.size, cluster.addr)
-            print("\thid %sb of data at cluster %s"%(cluster.size, cluster.addr))
+            print("\thid %sb of data starting at address %s"%(cluster.size, cluster.addr))
         return meta
 
     def read(self, outstream, meta):
@@ -189,7 +187,7 @@ class NtfsBadCluster:
         """
         stream = open(self.stream, 'rb+')
         for length, addr in meta.get_addr():
-            stream.seek(int(addr * self.cluster_size))
+            stream.seek(addr)
             bufferv = stream.read(length)
             outstream.write(bufferv)
 
@@ -202,11 +200,11 @@ class NtfsBadCluster:
         """
         stream = open(self.stream, 'rb+')
         for length, addr in meta.get_addr():
-            stream.seek(int(addr * self.cluster_size))
+            stream.seek(addr)
             stream.write(length * b'\x00')
             with open(self.stream, 'rb+') as mftstream:
                 it = 0
-                bitmap = mftstream.seek(self.mft_bitmap + addr)
+                bitmap = mftstream.seek(self.mft_bitmap + int(addr / self.cluster_size))
                 mftstream.write(b'\x00')
                 while it < self.mftentry_size:
                     mftstream.seek(self.mft_badclus + it)
