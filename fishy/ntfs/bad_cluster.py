@@ -1,9 +1,9 @@
 import struct
-import os
+import typing
 from pytsk3 import FS_Info, Img_Info 
 
 class BadClusterMetadata:
-""" meta data class for ntfs bad cluster """
+    """ meta data class for ntfs bad cluster """
     def __init__(self, d: dict = None):
         """
         :param d: dict, dictionary representation of a MftClusterMetadata
@@ -33,9 +33,9 @@ class BadClusterMetadata:
             yield addr[0], addr[1]
 
 
-class BadCluster:  # pylint: disable=too-few-public-methods
+class BadCluster:  
     """ class to save bad cluster space start and size"""
-    def __init__(self, size, addr):
+    def __init__(self, size, addr = 0):
         """
         :param size: size of bad cluster
         :param addr: start of bad cluster
@@ -44,7 +44,7 @@ class BadCluster:  # pylint: disable=too-few-public-methods
         self.addr = addr
 
 class NtfsBadCluster:
-""" class for ntfs mft cluster operations """
+    """ class for ntfs mft cluster operations """
     def __init__(self, stream):
         """
         :param stream: path to NTFS filesystem
@@ -61,26 +61,23 @@ class NtfsBadCluster:
         self.sectorsize = self.fs_inf.info.dev_bsize  # 512
         # get cluster size
         self.cluster_size = self.blocksize / self.sectorsize  # 8
-        self.fs_size = os.stat(self.stream).st_size
-        #only default. actual value will be read from boot record later
+        #default values, will be updated from boot record later
         self.mftentry_size = 1024
-        #only default. actual value will be read from boot record later
         self.mft_start = 4 * self.blocksize
-        #position of $badclus, $bitmap metadata file
-        self.mft_badclus = -1
-        self.mft_bitmap = -1
+        self.mft_badclus = 32768 
+        self.mft_bitmap = 24576
 
-    def write(self, instream, offset=0):
+    def write(self, instream):
         """
         find next free cluster in instream and write into it
 
         :param instream: stream to read from
-        :param offset: offset to write to
 
         :raise IOError: Raises IOError if the file was too big or no input was provided.
 
         :return: BadClusterMetadata
         """
+        self.instream = instream
         #get mft record size
         with open(self.stream, 'rb+') as mftstream:
             mftstream.seek(4*16)
@@ -96,54 +93,66 @@ class NtfsBadCluster:
             mft_cluster_b = mftstream.read(8)
             mft_cluster = struct.unpack("<q", mft_cluster_b)[0]
             self.mft_start = mft_cluster * self.blocksize
-            # todo: figure out position of $bitmap and $badclus location
-            self.mft_badclus = mft_start + self.blocksize * 8
-            self.mft_bitmap = mft_start + self.blocksize * 6
-        self.instream = instream
+            # figure out position of $bitmap and $badclus location
+            self.mft_badclus = self.mft_start + self.blocksize * 8
+            self.mft_bitmap = self.mft_start + self.blocksize * 6
         # size of file to hide
         file_size = self.get_file_size()
         if file_size < 0:
             raise IOError("No Input")
 
+        # determine clusters needed 
+        cluster_count = int((file_size / self.sectorsize))
         # find position of next available cluster
-        offset = -1
+        clusters = []
         with open(self.stream, 'rb+') as mftstream:
-            it = 0
-            cluster = mftstream.seek(mft_bitmap + it)
-            if (cluster == b'\x00')
-                offset = cluster
-                break
-            it = it + 1
-        if offset != -1:
-            # todo: write data into cluster
-            hiddenfile = self.write_file_to_cluster(offset * self.clustersize)
-            print("File hidden")
-            # todo: write cluster into $badclus
-            mftstream.seek(self.mft_badclus)
-            mftstream.write(b'\x00')
-            # todo: set cluster in $bitmap to used
-            mftstream.seek(mft)
-            mftstream.write(b'\x01')
-            meta = self.create_metadata(hiddenfile)
+            # start after mft
+            it = 17
+            while cluster_count > -1:
+                mftstream.seek(self.mft_bitmap + it)
+                cluster = mftstream.read(1)
+                if (cluster == b'\x00'):
+                    clusters.append(it)
+                    cluster_count = cluster_count - 1
+                it = it + 1
+        if (len(clusters) < cluster_count):
+            print("not enough free cluster found.")
+        else:
+            hidden_data = []
+            for cluster in clusters:
+                data = self.write_file_to_cluster(instream, cluster)
+                with open(self.stream, 'rb+') as mftstream:
+                    # do not overwrite header
+                    mftstream.seek(self.mft_badclus + 7)
+                    # write cluster into $badclus
+                    mftstream.write(cluster.to_bytes(1, byteorder='big'))
+                    mftstream.seek(self.mft_badclus)
+                    p = mftstream.read(10)
+                    print(p)
+                    # set used in $bitmap
+                    mftstream.seek(self.mft_bitmap + cluster)
+                    mftstream.write(b'\x01')
+                print("data hidden")
+                hidden_data.append(data)
+                meta = self.create_metadata(hidden_data)
             return meta
-        print("no free cluster found.")
 
-    def write_file_to_cluster(self, offset):
+    def write_file_to_cluster(self, instream, offset):
         """
         write a file into position of offset
 
-        :return: BadClusterFile to generate metadata with
+        :return: BadCluster object to generate metadata with
         """
         # read file
         input_file = self.input
         length = len(input_file)
         # open image
         stream = open(self.stream, 'rb+')
-        stream.seek(offset)
-        # write file to cluster, save position and size to data
-        stream.write(input_file[length])
-        hidden_file = BadCluster(offset, length)
-        return hidden_file
+        stream.seek(int(offset * self.cluster_size))
+        # write file to cluster, save position and size to var
+        stream.write(input_file)
+        hidden_data = BadCluster(length, offset)
+        return hidden_data
 
     def get_file_size(self):
         """
@@ -157,20 +166,18 @@ class NtfsBadCluster:
             return length
         return -1
 
-    def create_metadata(self, hiddenfile):
+    def create_metadata(self, hidden_data):
         """
-        create metadata object from BadCluster object returned from write_file_to_cluster()
+        create metadata object from BadCluster objects returned from write_file_to_cluster()
 
-        :param hiddenfile: BadCluster object returned from write_file_to_cluster()
+        :param hiddenfile: BadCluster objects returned from write_file_to_cluster()
         :return: BadClusterMetadata object
         """
-        if self.info:
-            print("Creating metadata:")
+        print("Creating metadata:")
         meta = BadClusterMetadata()
-        for file in hiddenfile:
-            if self.info:
-                print("\thid %sb of data at offset %s"%(self.size, self.addr))
-                meta.add_addr(loc.addr, loc.size)
+        for cluster in hidden_data:
+            meta.add_addr(cluster.size, cluster.addr)
+            print("\thid %sb of data at cluster %s"%(cluster.size, cluster.addr))
         return meta
 
     def read(self, outstream, meta):
@@ -181,30 +188,32 @@ class NtfsBadCluster:
         :param meta: BadClusterMetadata object
         """
         stream = open(self.stream, 'rb+')
-        for addr, length in meta.get_addr():
-            stream.seek(addr)
+        for length, addr in meta.get_addr():
+            stream.seek(int(addr * self.cluster_size))
             bufferv = stream.read(length)
             outstream.write(bufferv)
 
-    def clear(self, meta):
+
+    def clear(self, meta: BadClusterMetadata):
         """
         clears the bad clusters specified by metadata, removes entries in $badclus and frees space in $bitmap
 
         :param meta: BadClusterMetadata object
         """
         stream = open(self.stream, 'rb+')
-        for addr, length in meta.get_addr():
-            stream.seek(addr)
+        for length, addr in meta.get_addr():
+            stream.seek(int(addr * self.cluster_size))
             stream.write(length * b'\x00')
-        with open(self.stream, 'rb+') as mftstream:
-            it = 0
-            for addr in meta.get_addr():
+            with open(self.stream, 'rb+') as mftstream:
+                it = 0
                 bitmap = mftstream.seek(self.mft_bitmap + addr)
                 mftstream.write(b'\x00')
-                while it < mftentry_size:
-                    badclus = mftstream.seek(self.mft_badclus + it)
-                    if badclus == addr:
+                while it < self.mftentry_size:
+                    mftstream.seek(self.mft_badclus + it)
+                    badclus = mftstream.read(1)
+                    if badclus == addr.to_bytes(1, byteorder='big'):
                         mftstream.write(b'\x00')
+                        print("removed hidden data")
                         break;
-                    it = it + 1
+                    it = it + 1         
 

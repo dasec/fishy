@@ -6,6 +6,8 @@ import typing as typ
 from os import path
 from .fat.bad_cluster import BadCluster as FATBadCluster
 from .fat.bad_cluster import BadClusterMetadata as FATBadClusterMetadata
+from .ntfs.bad_cluster import NtfsBadCluster as NTFSBadCluster
+from .ntfs.bad_cluster import BadClusterMetadata as NTFSBadClusterMetadata
 from .filesystem_detector import get_filesystem_type
 from .metadata import Metadata
 
@@ -44,7 +46,8 @@ class BadClusterWrapper:
             self.metadata.set_module("fat-bad-cluster")
             self.fs = FATBadCluster(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            self.metadata.set_module("ntfs-bad-cluster")
+            self.fs = NTFSBadCluster(dev)
         else:
             raise NotImplementedError()
 
@@ -65,7 +68,8 @@ class BadClusterWrapper:
             bad_cluster_metadata = self.fs.write(instream)
             self.metadata.add_file(filename, bad_cluster_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            bad_cluster_metadata = self.fs.write(instream)
+            self.metadata.add_file(filename, bad_cluster_metadata)
         else:
             raise NotImplementedError()
 
@@ -81,7 +85,8 @@ class BadClusterWrapper:
             bad_cluster_metadata = FATBadClusterMetadata(file_metadata)
             self.fs.read(outstream, bad_cluster_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            bad_cluster_metadata = NTFSBadClusterMetadata(file_metadata)
+            self.fs.read(outstream, bad_cluster_metadata)
         else:
             raise NotImplementedError()
 
@@ -94,6 +99,9 @@ class BadClusterWrapper:
                             restored into
         """
         if self.fs_type == 'FAT':
+            with open(outfilepath, 'wb+') as outfile:
+                self.read(outfile)
+        elif self.fs_type == 'NTFS':
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         else:
@@ -112,6 +120,9 @@ class BadClusterWrapper:
                 file_metadata = FATBadClusterMetadata(file_metadata)
                 self.fs.clear(file_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            for file_entry in self.metadata.get_files():
+                file_metadata = file_entry['metadata']
+                file_metadata = NTFSBadClusterMetadata(file_metadata)
+                self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()
