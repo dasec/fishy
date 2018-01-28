@@ -45,7 +45,7 @@ class MftSlack:
         self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'NTFS':
-            self.fs = NTFSMftSlack(dev)
+            self.fs = NTFSMftSlack(dev, fs_stream)
             self.fs.domirr = domirr
             self.metadata.set_module("ntfs-mft-slack")
         else:

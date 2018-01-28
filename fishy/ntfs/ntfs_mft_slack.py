@@ -99,14 +99,15 @@ class SlackFile:  # pylint: disable=too-few-public-methods
 
 class NtfsMftSlack:
     """ class for ntfs mft slack operations """
-    def __init__(self, stream):
+    def __init__(self, path, stream):
         """
-        :param stream: path to NTFS filesystem
+        :param path: path to NTFS filesystem
+        :param stream: opened stream of NTFS filesystem
         """
         self.stream = stream
         self.instream = None
         # Open img file
-        self.img = Img_Info(stream)
+        self.img = Img_Info(path)
         # Open the filesystem
         self.fs_inf = FS_Info(self.img, offset=0)
         # Get the blocksize
@@ -147,20 +148,18 @@ class NtfsMftSlack:
         :return: MftSlackMetadata
         """
         #get mft record size
-        with open(self.stream, 'rb+') as mftstream:
-            mftstream.seek(4*16)
-            mftentry_size_b = mftstream.read(1)
-            mftentry_size_i = struct.unpack("<b", mftentry_size_b)[0]
-            if mftentry_size_i < 0:
-                self.mftentry_size = 2**(mftentry_size_i*-1)
-            else:
-                self.mftentry_size = mftentry_size_i * self.cluster_size
+        self.stream.seek(4*16)
+        mftentry_size_b = self.stream.read(1)
+        mftentry_size_i = struct.unpack("<b", mftentry_size_b)[0]
+        if mftentry_size_i < 0:
+            self.mftentry_size = 2**(mftentry_size_i*-1)
+        else:
+            self.mftentry_size = mftentry_size_i * self.cluster_size
         #get mft cluster
-        with open(self.stream, 'rb+') as mftstream:
-            mftstream.seek(3*16)
-            mft_cluster_b = mftstream.read(8)
-            mft_cluster = struct.unpack("<q", mft_cluster_b)[0]
-            self.mft_start = mft_cluster * self.blocksize
+        self.stream.seek(3*16)
+        mft_cluster_b = self.stream.read(8)
+        mft_cluster = struct.unpack("<q", mft_cluster_b)[0]
+        self.mft_start = mft_cluster * self.blocksize
         self.instream = instream
         # size of file to hide
         file_size = self.get_file_size()
@@ -197,22 +196,21 @@ class NtfsMftSlack:
                 mftmirr_start = self.mftmirr_data[num][0]
                 mftmirr_offset = mftmirr_start - mft_cursor
             num += 1
-            with open(self.stream, 'rb+') as mft_stream:
-                while mft_cursor < mft_end:
-                    if self.filesize_left > 0:
-                        slack_size, mft_cursor = self.get_mft_slack(mft_cursor, mft_stream, mftmirr_offset)
-                        if slack_size < 0:
-                            return
-                        self.total_slacksize += slack_size
-                        # subtract slacksize to stop if enough space was found
-                        self.filesize_left -= slack_size
-                    else:
-                        print("Next position: %s"%int(mft_cursor/self.sectorsize))
+            while mft_cursor < mft_end:
+                if self.filesize_left > 0:
+                    slack_size, mft_cursor = self.get_mft_slack(mft_cursor, self.stream, mftmirr_offset)
+                    if slack_size < 0:
                         return
-                    if mft_limit > 0:
-                        mft_limit = mft_limit - 1
-                        if mft_limit == 0:
-                            return
+                    self.total_slacksize += slack_size
+                    # subtract slacksize to stop if enough space was found
+                    self.filesize_left -= slack_size
+                else:
+                    print("Next position: %s"%int(mft_cursor/self.sectorsize))
+                    return
+                if mft_limit > 0:
+                    mft_limit = mft_limit - 1
+                    if mft_limit == 0:
+                        return
 
     def get_mft_info(self, mft_cursor=0, mirr = False):
         """
@@ -336,10 +334,9 @@ class NtfsMftSlack:
 
         :param meta: MftSlackMetadata object
         """
-        stream = open(self.stream, 'rb+')
         for addr, length, mirr in meta.get_addr():
-            stream.seek(addr)
-            bufferv = stream.read(length)
+            self.stream.seek(addr)
+            bufferv = self.stream.read(length)
             outstream.write(bufferv)
 
     def clear(self, meta):
@@ -348,13 +345,12 @@ class NtfsMftSlack:
 
         :param meta: MftSlackMetadata object
         """
-        stream = open(self.stream, 'rb+')
         for addr, length, mirr in meta.get_addr():
-            stream.seek(addr)
-            stream.write(length * b'\x00')
+            self.stream.seek(addr)
+            self.stream.write(length * b'\x00')
             if mirr > 0:
-                stream.seek(mirr)
-                stream.write(length * b'\x00')
+                self.stream.seek(mirr)
+                self.stream.write(length * b'\x00')
 
     def write_file_to_slack(self):
         """
@@ -373,28 +369,27 @@ class NtfsMftSlack:
         # create hidden file object with id and length
         hidden_file = SlackFile(file_id, length)
         # open image
-        stream = open(self.stream, 'rb+')
         # iterate over list of slackspace
         for slack in self.slack_list:
             # go to address of free slack
-            stream.seek(slack.addr)
+            self.stream.seek(slack.addr)
             mirr_offset = slack.mirr
             # write file to slack space, set position and
             # add a location to the hidden files location list
             if slack.size >= length:
-                stream.write(input_file[pos:pos + length])
+                self.stream.write(input_file[pos:pos + length])
                 if mirr_offset is not None and slack.addr < self.mft_start + self.mftmirr_size:
-                    stream.seek(slack.addr+mirr_offset)
-                    stream.write(input_file[pos:pos + length])
+                    self.stream.seek(slack.addr+mirr_offset)
+                    self.stream.write(input_file[pos:pos + length])
                     hidden_file.loc_list.append(SlackSpace(length, slack.addr, slack.addr+mirr_offset))
                 else:
                     hidden_file.loc_list.append(SlackSpace(length, slack.addr, 0))
                 break
             else:
-                stream.write(input_file[pos:pos + slack.size])
+                self.stream.write(input_file[pos:pos + slack.size])
                 if mirr_offset is not None and slack.addr < self.mft_start + self.mftmirr_size:
-                    stream.seek(slack.addr+mirr_offset)
-                    stream.write(input_file[pos:pos + slack.size])
+                    self.stream.seek(slack.addr+mirr_offset)
+                    self.stream.write(input_file[pos:pos + slack.size])
                     hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr, slack.addr+mirr_offset))
                 else:
                     hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr, 0))
