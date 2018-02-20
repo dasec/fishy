@@ -47,7 +47,7 @@ class FileSlack:
             self.metadata.set_module("fat-file-slack")
             self.fs = FATFileSlack(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
-            self.fs = NTFSFileSlack(dev)
+            self.fs = NTFSFileSlack(dev, fs_stream)
             self.metadata.set_module("ntfs-slack")
         else:
             raise NotImplementedError()

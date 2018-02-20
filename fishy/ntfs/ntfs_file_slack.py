@@ -108,14 +108,15 @@ class SlackFile:  # pylint: disable=too-few-public-methods
 
 class NtfsSlack:
     """ class for ntfs slack operations """
-    def __init__(self, stream):
+    def __init__(self, path, stream):
         """
-        :param stream: path to NTFS filesystem
+        :param path: path to NTFS filesystem
+        :param stream: opened stream of NTFS filesystem
         """
         self.stream = stream
         self.instream = None
         # Open img file
-        self.img = Img_Info(stream)
+        self.img = Img_Info(path)
         # Open the filesystem
         self.fs_inf = FS_Info(self.img, offset=0)
         # Get the blocksize
@@ -198,10 +199,9 @@ class NtfsSlack:
 
         :param meta: FileSlackMetadata object
         """
-        stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
-            stream.seek(addr)
-            bufferv = stream.read(length)
+            self.stream.seek(addr)
+            bufferv = self.stream.read(length)
             outstream.write(bufferv)
 
     def clear(self, meta):
@@ -210,10 +210,9 @@ class NtfsSlack:
 
         :param meta: FileSlackMetadata object
         """
-        stream = open(self.stream, 'rb+')
         for addr, length in meta.get_addr():
-            stream.seek(addr)
-            stream.write(length * b'\x00')
+            self.stream.seek(addr)
+            self.stream.write(length * b'\x00')
 
     def get_slack(self, file):
         """
@@ -338,19 +337,18 @@ class NtfsSlack:
         # create hidden file object with id and length
         hidden_file = SlackFile(file_id, length)
         # open image
-        stream = open(self.stream, 'rb+')
         # iterate over list of slackspace
         for slack in self.slack_list:
             # go to address of free slack
-            stream.seek(slack.addr)
+            self.stream.seek(slack.addr)
             # write file to slack space, set position and
             # add a location to the hidden files location list
             if slack.size >= length:
-                stream.write(input_file[pos:pos + length])
+                self.stream.write(input_file[pos:pos + length])
                 hidden_file.loc_list.append(SlackSpace(length, slack.addr))
                 break
             else:
-                stream.write(input_file[pos:pos + slack.size])
+                self.stream.write(input_file[pos:pos + slack.size])
                 hidden_file.loc_list.append(SlackSpace(slack.size, slack.addr))
                 pos += slack.size
                 length -= slack.size

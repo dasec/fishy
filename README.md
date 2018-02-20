@@ -155,7 +155,7 @@ File: myfile.txt
 
 ## MFT Slack
 
-The `mftslack` subcommand provides functionality to read, write and clean the mft slack of files in a filesystem.
+The `mftslack` subcommand provides functionality to read, write and clean the slack of mft entries in a filesystem.
 
 Available for these filesystem types:
 
