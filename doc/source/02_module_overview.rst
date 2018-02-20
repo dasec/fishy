@@ -1,5 +1,5 @@
-Modules Overview
-================
+Architecture Overview
+=====================
 
 General module structure
 ------------------------
