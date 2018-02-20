@@ -53,9 +53,7 @@ $ python setup.py doc
 To generate the documentation as pdf:
 ```bash
 $ cd doc
-$ make latex
-$ cd build/latex
-% make
+$ make latexpdf
 ```
 
 # Usage
