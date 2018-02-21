@@ -14,6 +14,7 @@ from fishy.file_slack import FileSlack
 from fishy.metadata import Metadata
 from fishy.mft_slack import MftSlack
 from fishy.osd2 import OSD2
+from fishy.obso_faddr import FADDR
 from fishy.reserved_gdt_blocks import ReservedGDTBlocks
 from fishy.superblock_slack import SuperblockSlack
 
@@ -416,6 +417,57 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             osd2 = OSD2(device, meta, args.dev)
             osd2.clear()
 
+def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
+    """
+    handles obso_faddr subcommand execution
+    :param args: argparse.Namespace
+    :param device: stream of the filesystem
+    """
+    if args.write:
+        if args.password is None:
+            faddr = FADDR(device, Metadata(), args.dev)
+        else:
+            faddr = FADDR(device, Metadata(password=args.password), args.dev)
+        if not args.file:
+            # write from stdin into faddr fields
+            faddr.write(sys.stdin.buffer)
+        else:
+            # write from files into faddr fields
+            with open(args.file, 'rb') as fstream:
+                faddr.write(fstream, args.file)
+        with open(args.metadata, 'wb+') as metadata_out:
+            faddr.metadata.write(metadata_out)
+    elif args.read:
+        # read hidden file to stdout
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            faddr = FADDR(device, meta, args.dev)
+            faddr.read(sys.stdout.buffer)
+    elif args.outfile:
+        # read hidden file into outfile
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            faddr = FADDR(device, meta, args.dev)
+            faddr.read_into_file(args.outfile)
+    elif args.clear:
+        # clear faddr fields
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            faddr = FADDR(device, meta, args.dev)
+            faddr.clear()
+
 
 def build_parser() -> argparse.ArgumentParser:
     """
@@ -522,6 +574,18 @@ def build_parser() -> argparse.ArgumentParser:
     osd2.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear osd2 fields')
     osd2.add_argument('file', metavar='FILE', nargs='?', help="File to write into osd2 fields, if nothing provided, use stdin")
 
+    # obso_faddr
+    obso_faddr = subparsers.add_parser('obso_faddr', help='hide data in obso_faddr fields of inodes')
+    obso_faddr.set_defaults(which='obso_faddr')
+    obso_faddr.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    obso_faddr.add_argument('-r', '--read', dest='read', action='store_true',
+                      help='read hidden data from obso_faddr fields to stdout')
+    obso_faddr.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE',
+                      help='read hidden data from obso_faddr fields to OUTFILE')
+    obso_faddr.add_argument('-w', '--write', dest='write', action='store_true', help='write to obso_faddr fields')
+    obso_faddr.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear obso_faddr fields')
+    obso_faddr.add_argument('file', metavar='FILE', nargs='?',
+                      help="File to write into obso_faddr fields, if nothing provided, use stdin")
     return parser
 
 
@@ -588,6 +652,10 @@ def main():
             # if 'osd2' was chosen
             if args.which == "osd2":
                 do_osd2(args, device)
+
+            # if 'obso_faddr' was chosen
+            if args.which == "obso_faddr":
+                do_obso_faddr(args, device)
 
             # if 'superblock_slack' was chosen
             if args.which == 'superblock_slack':
