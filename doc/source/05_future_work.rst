@@ -8,3 +8,4 @@ Future Work
 * Add option to encrypt hidden data before writing.
 * Hide Metadata files itself
 * Hide multiple files
+* more reliable filesystem autodetection (FAT and NTFS detection only check for an ASCII string in bootsector)
