@@ -57,3 +57,43 @@ Additional Cluster Allocation
   will be overwritten or partially truncated. So, this technique should be used
   preferably with non-changing filesystems or files that don't change.
 
+* **Gained capacity**: 
+* **Detection probability**: 
+* **Stability**: High Medium Low
+  
+Reserved Group Descriptor Tables
+--------------------------------
+
+* **Gained capacity**: This hiding technique can hide up to `reseved_gdt_blocks * block_groups * block_size` bytes.
+* **Detection probability**: High. Detection tools as well as the bare eye will detect written data here.
+* **Stability**: Medium. As long as the filesystem is not expanded, your files are save.
+
+File Slack
+----------
+
+* **Gained capacity**: WIP
+* **Detection probability**: WIP
+* **Stability**: High Medium Low WIP
+
+Superblock Slack
+----------------
+
+* **Gained capacity**: `block_size - 2048 bytes + superblock_copies * (block_size - 1024 bytes)`
+* **Detection probability**: High. Detection tools as well as the bare eye will detect written data here.
+* **Stability**: High. This will not get overwritten.
+
+Inode
+-----
+osd2
+****
+
+* **Gained capacity**: `number of inodes * 2 bytes`
+* **Detection probability**: fsck notices wrong checksums, therefore it is quite easy to detect.
+* **Stability**: High. These fields are unused.
+
+obso_faddr
+**********
+
+* **Gained capacity**: `number of inodes * 4 bytes`
+* **Detection probability**: fsck notices wrong checksums, therefore it is quite easy to detect.
+* **Stability**: High. These fields are obsolete, therefore unused.

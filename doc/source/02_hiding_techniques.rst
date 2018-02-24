@@ -68,3 +68,73 @@ The process of hiding data in the MFT entry slack:
 2. Calculate the slack, using the information in the MFT entry header
 3. Write data and avoid the last two bytes of each sector
 4. If copies exit in $MFTMirr write the same data there
+
+Reserved Group Descriptor Tables
+--------------------------------
+
+As described in the filesystem chapter above, the reserved GDT blocks are not used until the filesystem 
+is expanded and group descriptors are written to them. The reserved GDT blocks are located behind the 
+group descriptors in each block group, their number can read from the superblock at 0xCE.
+This hiding technique can hide up to `number of reseved GDT blocks * number of block groups with copies * block size` 
+bytes. The number of copies varies depending on the sparse_super flag, which limits the copies of the reserved
+GDT blocks to group numbers with numbers of either 0 or to the power of 3,5 or 7, as described earlier.
+On a 512Mb image you can expect to hide about 64 * 2 * 4096 = 524288 Bytes.
+
+However, this hiding method is quite obvious and might be one of the first places to look at in case you
+check a ext4 filesystem for hidden data.
+
+Process-wise the hiding technique firstly calculates the ids of reserved GDT blocks, using the 
+available information from the superblock, such as total block count, blocks per group and the 
+filesystem's architecture (32 or 64bit) as well as the total number of reserved GDT blocks and considering
+the sparse_super flag. 
+Each block group's reserved GDT block ids get written to an array of block ids and data can be written.
+
+Advantages of this technique are the size of possible hidden data, on the other hand hidden data would be
+overwritten in case of a filesystem expansion and its quite easy to find.
+
+File Slack
+----------
+
+Superblock Slack
+----------------
+
+Depending on the block size, there is an acceptable amount of slack space following each copy of the superblock
+in each block group. This is not applicable in case the block size is 1024 due to the superblock's size of 1024
+byte, using all of its block alone. For the superblock's copies the sparse_super flag applies, too, which means 
+less hiding space if the flag is set.
+Size-wise we speak in dimensions of several Kb, each copy adding block_size - 1024 bytes of hiding space.
+The first superblock makes an exception here, due to the bootsector using another 1024 bytes, leaving 
+`block_size - 2048 bytes` to hide data.
+
+The hiding technique collects all block ids of the superblock copies from each block group,
+taking the sparse_super flag under account. The data then gets written to the slack space of each of 
+these blocks, considering the filesystem's block size.
+
+This hiding technique benefits from the superblock's characteristics, resulting in a safe storage because the
+superblock slack space does not get overwritten. But like all slack space hiding methods this is easy to find,
+too.
+
+Inode
+-----
+osd2
+****
+
+The osd2 hiding technique uses the last two bytes of the 12 byte osd2 field, which is located at 0x74 in each inode.
+This field only uses 10 bytes at max, depending on the tag being whether 'linux2', 'hurd2' or 'masix2'.
+This results in number of inodes * 2 bytes hiding space, which is not much, but might be enough for small amounts
+of valuable data, because its not easy to find. "Unfortunately" ext4 introduced a lot of checksums for all
+kinds of metadata, which leads to invalid inode checksums. 
+In an ~235Mb image with 60.000 inodes this technique could hide 120.000 bytes.
+
+To hide data, the method writes data directly to the two bytes in the osd2 field in each inode, which address is
+taken from the inode table, until there is either no inode or no data left. The method is currently limited to 4Mb.
+
+obso_faddr
+**********
+
+The obso_faddr field in each inode at 0x70 is an obsolete fragment address field of 32bit length. 
+This technique works accordingly to the osd2 technique, but can hide twice the data. 
+Taking the 235Mb example from above, this method could hide 240.000 bytes.
+Besides that it has the same flaws and advantages.
+
+

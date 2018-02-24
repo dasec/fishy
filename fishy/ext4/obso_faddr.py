@@ -109,7 +109,7 @@ class EXT4FADDR:
         total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
         # print(total_obso_faddr_offset)
         self.stream.seek(total_obso_faddr_offset)
-        if self.stream.read(2) == b'\x00\x00':      #\x00\x00\x00\x00
+        if self.stream.read(2) == b'\x00\x00\x00\x00':      #\x00\x00
             self.stream.seek(total_obso_faddr_offset)
             # print(self.stream.read(12))
             self.stream.write(instream_chunk)
@@ -120,7 +120,7 @@ class EXT4FADDR:
     def _clear_obso_faddr(self, inode_nr: int):
         total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
         self.stream.seek(total_obso_faddr_offset)
-        self.stream.write(b"\x00\x00")   #\x00\x00\x00\x00
+        self.stream.write(b"\x00\x00\x00\x00")   #\x00\x00
 
     def _read_from_obso_faddr(self, inode_nr: int):
         self.stream.seek(0)

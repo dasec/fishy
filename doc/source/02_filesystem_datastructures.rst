@@ -101,3 +101,85 @@ A directory entry stores information about a file or subdirectory:
 
 Subdirectory entries use the `start cluster` field to point to a cluster
 that then again holds a series of directory entries.
+
+EXT4
+---
+
+The fourth extended filesystem is ext3s successor in linux's journaling filesystems, 
+firstly published in 2006 by Andrew Morton. It still supports ext3, but uses 48bit for
+block numbers instead of 32bit. This results in bigger partitions up to 1 EiB. Furthermore it 
+is now possible to use extends, which unite serveral contigunous blocks, improving 
+handling of large files and performance. Moreover ext4 introduces better timestamps on a 
+nanosecond basis, checksums for its journal and metadata, online defragmentation, flex groups and 
+other improvements.
+
+The standard block size for ext4 is 4096 byte, but 1024 and 2048 are possible, too. These 
+interfere with the 'superblock-slack' hiding technique shown later. 
+The filesystem itself consists of a bootsector and flex groups, holding block groups.
+
+.. image:: _static/ext4_structure.png
+
+Flex Groups
+...........
+
+Superblock
+**********
+
+The superblock contains general information about the filesystem bock counts and sizes, 
+states, versions, timestamps and others. It is located at byte 1024 of the filesystem and 
+uses 1024 byte of its block, creating a superblock-slack (depending on the block size).
+Redundant copies of the superblock are stored in each block group, unless the sparse_super 
+feature flag is set, which will store these redundant copies in block groups 0 and to the 
+power of 3, 5 and 7 instead.
+Entries are amongst other information:
+
+* total block and inode count
+* blocks per block group
+* unused block count
+* first unused inode
+* reserved GDT block count
+
+GDT
+***
+
+The Group Descriptor Table is located behind the superblock in the filesystem and 
+gets stored accordingly. It holds group descriptor entries for each block group, containing:
+
+* address of block bitmap
+* address of inode bitmap
+* address of inode table
+* unused block, inode and directory count
+* flags
+* checksums
+
+Inodes
+******
+
+An inode stores metadata of a file, such as:
+
+* timestamps
+* user/group permissions
+* data references
+
+The size varries, default is 256 Byte. An inode table holds a list of all inodes of its block group.
+
+Inode Extends
+*************
+
+The extents replace ext3s indirect addressing and reduce data fragmentation. An inode can store 4 extents,
+further extents can be stored in a tree structure, each mapping up to 128MiB of contiguous blocks.
+
+.. image:: _static/ext4_extents.png
+
+Reserved GDT Blocks
+*******************
+
+These blocks are reserved for expansion of the filesystem, which creates larger group descriptor tables.
+Therefore it is usable for datahiding as long as the filesystem does not get expanded.
+
+Journal
+*******
+
+The journal guarantees a successful write operation, after a commited data transaction is written to the disk,
+it is saved to a 128MiB big section on the disk, the journal. From there it gets written to its final 
+destination and can be restored in case of a power outage or data corruption during the write operation.
