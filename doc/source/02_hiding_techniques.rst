@@ -68,3 +68,17 @@ The process of hiding data in the MFT entry slack:
 2. Calculate the slack, using the information in the MFT entry header
 3. Write data and avoid the last two bytes of each sector
 4. If copies exit in $MFTMirr write the same data there
+
+Bad Cluster
+==========================
+
+If a sector or a cluster of sectors is damaged, it is not possible to read nor write data from it. The file system then marks the affected area as bad and saves the address for future reference. Affected areas are saved in a MFT file entry called $BadClus, the entries in this file will be ignored. As these addresses will be ignored by the file system, it is a very easy way to hide data in it. 
+
+To hide data in a bad cluster: 
+
+1. Calculate size of data to hide
+2. Find and save free clusters (Note: instead of scanning the entire system it is easier to check the MFT entry $Bitmap for allocated and unallocated clusters)
+3. Write data into the clusters
+4. Add address of the used clusters to $BadClus, mark their positions in $Bitmap as allocated
+
+
