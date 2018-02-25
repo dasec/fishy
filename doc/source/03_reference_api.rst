@@ -78,7 +78,7 @@ ext4
 reseved GDT blocks
 ..................
 
-.. automodule:: fishy.ext4.reseved_gdt_blocks
+.. automodule:: fishy.ext4.reserved_gdt_blocks
         :members:
 
 superblock slack
