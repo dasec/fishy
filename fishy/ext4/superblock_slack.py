@@ -1,7 +1,10 @@
+import logging
 import math
 import typing as typ
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
+
+LOGGER = logging.getLogger("ext4-superblock_slack")
 
 class EXT4SuperblockSlackMetadata:
     """
@@ -134,6 +137,24 @@ class EXT4SuperblockSlack:
             self.stream.seek(offset)
             self.stream.write(slackspace * b'\x00')
 
+    def info(self, metadata: EXT4SuperblockSlackMetadata = None) -> None:
+        """
+        shows info about the superblock slack and data hiding space
+        :param metadata: EXT4SuperblockSlackMetadata object
+        """
+        total_block_count = self.ext4fs.superblock.data['total_block_count']
+        blocks_per_group = self.ext4fs.superblock.data['blocks_per_group']
+        if self._check_if_sparse_super_is_set():
+            block_ids = self._get_block_ids_for_sparse_super(total_block_count, blocks_per_group)
+        else:
+            block_ids = self._get_block_ids_for_non_sparse_super(total_block_count, blocks_per_group)
+
+        total_space = self._calculate_slack_space(len(block_ids))
+
+        LOGGER.info("Block size: " + str(self.ext4fs.blocksize))
+        LOGGER.info("Total hiding space in superblock slack space: " + str(total_space) + " Bytes")
+        if metadata != None:
+            LOGGER.info('Used: ' + str(metadata.get_length()) + ' Bytes')
 
     def _check_if_sparse_super_is_set(self) \
             -> bool:

@@ -507,7 +507,7 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
                 meta = Metadata(password=args.password)
             meta.read(metadata_file)
             faddr = FADDR(device, meta, args.dev)
-            faddr.info(sys.stdout.buffer)
+            faddr.info()
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -598,7 +598,7 @@ def build_parser() -> argparse.ArgumentParser:
     reserved_gdt_blocks.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from reserved GDT blocks to OUTFILE')
     reserved_gdt_blocks.add_argument('-w', '--write', dest='write', action='store_true', help='write to reserved GDT blocks')
     reserved_gdt_blocks.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear reserved GDT blocks')
-    reserved_gdt_blocks.add_argument('-i', '--info', dest='info', action='store_true', help='show information about reserved gdt')
+    reserved_gdt_blocks.add_argument('-i', '--info', dest='info', action='store_true', help='show infor1mation about reserved gdt')
     reserved_gdt_blocks.add_argument('file', metavar='FILE', nargs='?', help="File to write into reserved GDT blocks, if nothing provided, use stdin")
 
     # Superblock slack

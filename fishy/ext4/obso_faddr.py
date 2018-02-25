@@ -4,7 +4,7 @@ import typing as typ
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
 
-LOGGER = logging.getLogger("ext4-reserved-gdt-blocks")
+LOGGER = logging.getLogger("ext4-obso_faddr")
 
 
 class EXT4FADDRMetadata:
@@ -97,11 +97,22 @@ class EXT4FADDR:
     def clear(self, metadata: EXT4FADDRMetadata) -> None:
         """
         clears the obso_faddr field in which data has been hidden
-        :param metadata: EXT4ReservedGDTBlocksMetadata object
+        :param metadata: EXT4FADDRMetadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
             self._clear_obso_faddr(nr)
+
+    def info(self, metadata: EXT4FADDRMetadata = None) -> None:
+        """
+        shows info about inode obso_faddr fields and data hiding space
+        :param metadata: EXT4FADDRMetadata object
+        """
+        LOGGER.info("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
+        LOGGER.info("Total hiding space in obso_faddr fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 4) + " Bytes")
+        if metadata != None:
+            filled_inode_numbers = metadata.get_inode_numbers()
+            LOGGER.info('Used: ' + str(len(filled_inode_numbers) * 4) + ' Bytes')
 
     def _write_to_obso_faddr(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)
@@ -137,7 +148,7 @@ class EXT4FADDR:
         return self.inode_table.inodes[inode_nr].offset + 0x70
 
     def _check_if_supported(self, instream) -> bool:
-        if len(instream) >= 4000:
+        if len(instream) >= ((self.ext4fs.superblock.data["inode_count"]) * 4):
             return False
         else:
             return True

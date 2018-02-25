@@ -82,7 +82,7 @@ class SuperblockSlack:
 
     def clear(self):
         """
-        clears reserved GDT blocks in which data has been hidden
+        clears superblock slack in which data has been hidden
         :param metadata: Metadata, object where metadata is stored in
         :raises: IOError
         """
@@ -91,5 +91,22 @@ class SuperblockSlack:
                 file_metadata = file_entry['metadata']
                 file_metadata = EXT4SuperblockSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)
+        else:
+            raise NotImplementedError()
+
+    def info(self):
+        """
+        shows info about superblock slack and data hiding space
+        :param metadata: Metadata, object where metadata is stored in
+        :raises: NotImplementedError
+        """
+        if self.fs_type == 'EXT4':
+            if self.metadata.get_files():
+                for file_entry in self.metadata.get_files():
+                    file_metadata = file_entry['metadata']
+                    file_metadata = EXT4SuperblockSlackMetadata(file_metadata)
+                    self.fs.info(file_metadata)
+            else:
+                self.fs.info()
         else:
             raise NotImplementedError()

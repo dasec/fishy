@@ -93,3 +93,20 @@ class ReservedGDTBlocks:
                 self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()
+
+    def info(self):
+        """
+        shows info about reserved GDT blocks and data hiding space
+        :param metadata: Metadata, object where metadata is stored in
+        :raises: NotImplementedError
+        """
+        if self.fs_type == 'EXT4':
+            if self.metadata.get_files():
+                for file_entry in self.metadata.get_files():
+                    file_metadata = file_entry['metadata']
+                    file_metadata = EXT4ReservedGDTBlocksMetadata(file_metadata)
+                    self.fs.info(file_metadata)
+            else:
+                self.fs.info()
+        else:
+            raise NotImplementedError()

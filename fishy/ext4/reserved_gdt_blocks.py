@@ -134,6 +134,26 @@ class EXT4ReservedGDTBlocks:
             self.stream.seek(offset)
             self.stream.write(block_size * b'\x00')
 
+    def info(self, metadata: EXT4ReservedGDTBlocksMetadata = None) -> None:
+        """
+        shows info about the reserved GDT blocks and data hiding space
+        :param metadata: EXT4ReservedGDTBlocksMetadata object
+        """
+        total_block_count = self.ext4fs.superblock.data['total_block_count']
+        blocks_per_group = self.ext4fs.superblock.data['blocks_per_group']
+        if self._check_if_sparse_super_is_set():
+            block_ids = self._get_block_ids_for_sparse_super(total_block_count, blocks_per_group)
+        else:
+            block_ids = self._get_block_ids_for_non_sparse_super(total_block_count, blocks_per_group)
+
+        total_space = self._calculate_reserved_space(len(block_ids))
+
+        LOGGER.info("Block size: " + str(self.ext4fs.blocksize))
+        LOGGER.info("Total hiding space in reserved GDT blocks: " + str(total_space) + " Bytes")
+        if metadata != None:
+            filled_gdt_blocks = metadata.get_blocks()
+            LOGGER.info('Used: ' + str(self._calculate_reserved_space(len(filled_gdt_blocks))) + ' Bytes')
+
     def _write_to_reserved_gdt_block(self, instream, block_id):
         block_size = self.ext4fs.blocksize
         offset = (block_size * block_id)

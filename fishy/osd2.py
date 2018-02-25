@@ -84,7 +84,7 @@ class OSD2:
         """
         clears inodes' osd2 field in which data has been hidden
         :param metadata: Metadata, object where metadata is stored in
-        :raises: IOError
+        :raises: NotImplementedError
         """
         if self.fs_type == 'EXT4':
             for file_entry in self.metadata.get_files():
@@ -98,10 +98,10 @@ class OSD2:
         """
         shows info about inode osd2 fields and data hiding space
         :param metadata: Metadata, object where metadata is stored in
-        :raises: IOError
+        :raises: NotImplementedError
         """
         if self.fs_type == 'EXT4':
-            if len(self.metadata.get_files()) >= 0:
+            if self.metadata.get_files():
                 for file_entry in self.metadata.get_files():
                     file_metadata = file_entry['metadata']
                     file_metadata = EXT4OSD2Metadata(file_metadata)

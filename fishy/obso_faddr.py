@@ -1,5 +1,5 @@
 """
-Wrapper for filesystem specific implementations of hiding data inside reserved GDT blocks
+Wrapper for filesystem specific implementations of hiding data inside inodes' obso_faddr fields
 """
 import logging
 import typing as typ
@@ -9,7 +9,7 @@ from fishy.metadata import Metadata
 from fishy.ext4.obso_faddr import EXT4FADDR
 from fishy.ext4.obso_faddr import EXT4FADDRMetadata
 
-LOGGER = logging.getLogger("ReservedGDTBlocks")
+LOGGER = logging.getLogger("obso_faddr")
 
 class FADDR:
     """
@@ -35,11 +35,11 @@ class FADDR:
     def write(self, instream: typ.BinaryIO,
               filename: str = None) -> None:
         """
-        writes data from instream into reserved GDT blocks. Metadata of
+        writes data from instream into obso_faddr fields. Metadata of
         those files will be stored in Metadata object
 
         :param instream: stream to read data from
-        :param filename: name that will be used, when file gets written into reserved GDT blocks.
+        :param filename: name that will be used, when file gets written into obso_faddr fields.
                          If none, a random name will be generated.
         :raises: IOError
         """
@@ -55,7 +55,7 @@ class FADDR:
 
     def read(self, outstream: typ.BinaryIO):
         """
-        writes hidden data from reserved GDT blocks into stream.
+        writes hidden data from obso_faddr fields into stream.
 
         :param outstream: stream to write hidden data into
         :raises: IOError
@@ -69,7 +69,7 @@ class FADDR:
 
     def read_into_file(self, outfilepath: str):
         """
-        reads hidden data from reserved GDT blocks into files
+        reads hidden data from obso_faddr fields into files
         :note: If provided filepath already exists, this file will be
                overwritten without a warning.
         :param outfilepath: filepath to file, where hidden data will be
@@ -83,7 +83,7 @@ class FADDR:
 
     def clear(self):
         """
-        clears reserved GDT blocks in which data has been hidden
+        clears obso_faddr fields in which data has been hidden
         :param metadata: Metadata, object where metadata is stored in
         :raises: IOError
         """
@@ -92,5 +92,22 @@ class FADDR:
                 file_metadata = file_entry['metadata']
                 file_metadata = EXT4FADDRMetadata(file_metadata)
                 self.fs.clear(file_metadata)
+        else:
+            raise NotImplementedError()
+
+    def info(self):
+        """
+        shows info about inode obso_faddr fields and data hiding space
+        :param metadata: Metadata, object where metadata is stored in
+        :raises: NotImplementedError
+        """
+        if self.fs_type == 'EXT4':
+            if self.metadata.get_files():
+                for file_entry in self.metadata.get_files():
+                    file_metadata = file_entry['metadata']
+                    file_metadata = EXT4FADDRMetadata(file_metadata)
+                    self.fs.info(file_metadata)
+            else:
+                self.fs.info()
         else:
             raise NotImplementedError()

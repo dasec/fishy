@@ -4,7 +4,7 @@ import typing as typ
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
 
-LOGGER = logging.getLogger("ext4-reserved-gdt-blocks")
+LOGGER = logging.getLogger("ext4-osd2")
 
 
 class EXT4OSD2Metadata:
@@ -97,7 +97,7 @@ class EXT4OSD2:
     def clear(self, metadata: EXT4OSD2Metadata) -> None:
         """
         clears the osd2 field in which data has been hidden
-        :param metadata: EXT4ReservedGDTBlocksMetadata object
+        :param metadata: EXT4OSD2Metadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
@@ -106,9 +106,10 @@ class EXT4OSD2:
     def info(self, metadata: EXT4OSD2Metadata = None) -> None:
         """
         shows info about inode osd2 fields and data hiding space
-        :param metadata: EXT4ReservedGDTBlocksMetadata object
+        :param metadata: EXT4OSD2Metadata object
         """
-        LOGGER.info("Total hiding space in osd2 fields: " + str(len(EXT4OSD2Metadata().inode_numbers) * 2) + " Bytes")
+        LOGGER.info("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
+        LOGGER.info("Total hiding space in osd2 fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 2) + " Bytes")
         if metadata != None:
             filled_inode_numbers = metadata.get_inode_numbers()
             LOGGER.info('Used: ' + str(len(filled_inode_numbers) * 2) + ' Bytes')
@@ -147,7 +148,7 @@ class EXT4OSD2:
         return self.inode_table.inodes[inode_nr].offset + 0x74 + 0xA
 
     def _check_if_supported(self, instream) -> bool:
-        if len(instream) >= 4000:
+        if len(instream) >= ((self.ext4fs.superblock.data["inode_count"]) * 2):
             return False
         else:
             return True
