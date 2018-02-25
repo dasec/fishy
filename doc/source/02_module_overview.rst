@@ -7,7 +7,7 @@ General module structure
 The following flowchart diagram represents the logical procedure of using a
 hiding technique.
 
-.. graphviz:: resources/module_flowchart.dot
+.. image:: _static/module_flowchart.png
 
 The `CLI` evaluates the command line parameters and calls the appropriate `hiding
 technique wrapper`.

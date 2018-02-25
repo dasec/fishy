@@ -11,6 +11,8 @@ from .filesystem_detector import get_filesystem_type
 from .metadata import Metadata
 from .ntfs.ntfs_file_slack import NtfsSlack as NTFSFileSlack
 from .ntfs.ntfs_file_slack import FileSlackMetadata as NTFSFileSlackMetadata
+from .ext4.ext4_file_slack import Ext4FileSlackMetadata as Ext4FileSlackMetadata
+from .ext4.ext4_file_slack import EXT4FileSlack as EXT4FileSlack
 
 LOGGER = logging.getLogger("FileSlack")
 
@@ -49,6 +51,9 @@ class FileSlack:
         elif self.fs_type == 'NTFS':
             self.fs = NTFSFileSlack(dev, fs_stream)
             self.metadata.set_module("ntfs-slack")
+        elif self.fs_type == 'EXT4':
+            self.metadata.set_module("ext4-file-slack")
+            self.fs = EXT4FileSlack(fs_stream, dev)
         else:
             raise NotImplementedError()
 
@@ -76,6 +81,9 @@ class FileSlack:
             LOGGER.info("Write into ntfs")
             slack_metadata = self.fs.write(instream, filepaths)
             self.metadata.add_file(filename, slack_metadata)
+        elif self.fs_type == 'EXT4':
+            slack_metadata = self.fs.write(instream, filepaths)
+            self.metadata.add_file(filename, slack_metadata)
         else:
             raise NotImplementedError()
 
@@ -94,6 +102,9 @@ class FileSlack:
         elif self.fs_type == 'NTFS':
             slack_metadata = NTFSFileSlackMetadata(file_metadata)
             self.fs.read(outstream, slack_metadata)
+        elif self.fs_type == 'EXT4':
+            slack_metadata = Ext4FileSlackMetadata(file_metadata)
+            self.fs.read(outstream, slack_metadata)
         else:
             raise NotImplementedError()
 
@@ -105,7 +116,7 @@ class FileSlack:
         :param outfilepath: filepath to file, where hidden data will be
                             restored into
         """
-        if self.fs_type == 'FAT' or self.fs_type == 'NTFS':
+        if self.fs_type == 'FAT' or self.fs_type == 'NTFS'or self.fs_type == 'EXT4':
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         else:
@@ -127,6 +138,11 @@ class FileSlack:
             for file_entry in self.metadata.get_files():
                 file_metadata = file_entry['metadata']
                 file_metadata = NTFSFileSlackMetadata(file_metadata)
+                self.fs.clear(file_metadata)
+        elif self.fs_type == 'EXT4':
+            for file_entry in self.metadata.get_files():
+                file_metadata = file_entry['metadata']
+                file_metadata = Ext4FileSlackMetadata(file_metadata)
                 self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()
@@ -158,5 +174,7 @@ class FileSlack:
                     self._print_file_info(dir_entry)
         elif self.fs_type == 'NTFS':
             self.fs.print_info(filepaths)
+        elif self.fs_type == 'EXT4':
+            self.fs.info(filepaths)
         else:
             raise NotImplementedError()
