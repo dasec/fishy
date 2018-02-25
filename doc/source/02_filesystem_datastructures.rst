@@ -103,7 +103,7 @@ Subdirectory entries use the `start cluster` field to point to a cluster
 that then again holds a series of directory entries.
 
 EXT4
----
+----
 
 The fourth extended filesystem is ext3s successor in linux's journaling filesystems, 
 firstly published in 2006 by Andrew Morton. It still supports ext3, but uses 48bit for
@@ -125,12 +125,12 @@ Flex Groups
 Superblock
 **********
 
-The superblock contains general information about the filesystem bock counts and sizes, 
+The superblock contains general information about the filesystem bock counts, sizes,
 states, versions, timestamps and others. It is located at byte 1024 of the filesystem and 
 uses 1024 byte of its block, creating a superblock-slack (depending on the block size).
-Redundant copies of the superblock are stored in each block group, unless the sparse_super 
-feature flag is set, which will store these redundant copies in block groups 0 and to the 
-power of 3, 5 and 7 instead.
+Redundant copies of the superblock are stored in block groups with numbers 0 and to the
+power of 3, 5 and 7, unless the sparse_super feature flag is not set, which will store these
+redundant copies in each block group.
 Entries are amongst other information:
 
 * total block and inode count
@@ -180,6 +180,6 @@ Therefore it is usable for datahiding as long as the filesystem does not get exp
 Journal
 *******
 
-The journal guarantees a successful write operation, after a commited data transaction is written to the disk,
+The journal guarantees a successful write operation, after a committed data transaction is written to the disk,
 it is saved to a 128MiB big section on the disk, the journal. From there it gets written to its final 
 destination and can be restored in case of a power outage or data corruption during the write operation.

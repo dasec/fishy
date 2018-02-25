@@ -313,6 +313,17 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             meta.read(metadata_file)
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.clear()
+    elif args.info:
+        # show info
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            reserve = ReservedGDTBlocks(device, meta, args.dev)
+            reserve.info()
+
 
 def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
@@ -364,6 +375,16 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             slack = SuperblockSlack(device, meta, args.dev)
             slack.clear()
+    elif args.info:
+        # show info
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            slack = SuperblockSlack(device, meta, args.dev)
+            slack.info()
 
 
 def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
@@ -416,6 +437,16 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
             osd2.clear()
+    elif args.info:
+        # show info
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            osd2 = OSD2(device, meta, args.dev)
+            osd2.info(sys.stdout.buffer)
 
 def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
@@ -467,6 +498,16 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             faddr = FADDR(device, meta, args.dev)
             faddr.clear()
+    elif args.info:
+        # show info
+        with open(args.metadata, 'rb') as metadata_file:
+            if args.password is None:
+                meta = Metadata()
+            else:
+                meta = Metadata(password=args.password)
+            meta.read(metadata_file)
+            faddr = FADDR(device, meta, args.dev)
+            faddr.info(sys.stdout.buffer)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -491,6 +532,11 @@ def build_parser() -> argparse.ArgumentParser:
     fatt.add_argument('-l', '--ls', dest='list', type=int, metavar='CLUSTER_ID', help='List files under cluster id. Use 0 for root directory')
     fatt.add_argument('-f', '--fat', dest='fat', action='store_true', help='List content of FAT')
     fatt.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
+
+    # Info switch
+    info = subparsers.add_parser('info', help='List statistics about hiding methods')
+    info.set_defaults(which='info')
+    info.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
 
     # Metadata info
     metadata = subparsers.add_parser('metadata', help='list information about a metadata file')
@@ -552,6 +598,7 @@ def build_parser() -> argparse.ArgumentParser:
     reserved_gdt_blocks.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from reserved GDT blocks to OUTFILE')
     reserved_gdt_blocks.add_argument('-w', '--write', dest='write', action='store_true', help='write to reserved GDT blocks')
     reserved_gdt_blocks.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear reserved GDT blocks')
+    reserved_gdt_blocks.add_argument('-i', '--info', dest='info', action='store_true', help='show information about reserved gdt')
     reserved_gdt_blocks.add_argument('file', metavar='FILE', nargs='?', help="File to write into reserved GDT blocks, if nothing provided, use stdin")
 
     # Superblock slack
@@ -562,6 +609,7 @@ def build_parser() -> argparse.ArgumentParser:
     superblock_slack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from superblock slack to OUTFILE')
     superblock_slack.add_argument('-w', '--write', dest='write', action='store_true', help='write to superblock slack')
     superblock_slack.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear superblock slack')
+    superblock_slack.add_argument('-i', '--info', dest='info', action='store_true', help='show information about superblock')
     superblock_slack.add_argument('file', metavar='FILE', nargs='?', help="File to write into superblock slack, if nothing provided, use stdin")
 
     # OSD2
@@ -572,20 +620,20 @@ def build_parser() -> argparse.ArgumentParser:
     osd2.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from osd2 fields to OUTFILE')
     osd2.add_argument('-w', '--write', dest='write', action='store_true', help='write to osd2 fields')
     osd2.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear osd2 fields')
+    osd2.add_argument('-i', '--info', dest='info', action='store_true', help='show information about osd2')
     osd2.add_argument('file', metavar='FILE', nargs='?', help="File to write into osd2 fields, if nothing provided, use stdin")
 
     # obso_faddr
     obso_faddr = subparsers.add_parser('obso_faddr', help='hide data in obso_faddr fields of inodes')
     obso_faddr.set_defaults(which='obso_faddr')
     obso_faddr.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
-    obso_faddr.add_argument('-r', '--read', dest='read', action='store_true',
-                      help='read hidden data from obso_faddr fields to stdout')
-    obso_faddr.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE',
-                      help='read hidden data from obso_faddr fields to OUTFILE')
+    obso_faddr.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from obso_faddr fields to stdout')
+    obso_faddr.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from obso_faddr fields to OUTFILE')
     obso_faddr.add_argument('-w', '--write', dest='write', action='store_true', help='write to obso_faddr fields')
     obso_faddr.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear obso_faddr fields')
-    obso_faddr.add_argument('file', metavar='FILE', nargs='?',
-                      help="File to write into obso_faddr fields, if nothing provided, use stdin")
+    obso_faddr.add_argument('-i', '--info', dest='info', action='store_true', help='show information about obso_faddr')
+    obso_faddr.add_argument('file', metavar='FILE', nargs='?', help="File to write into obso_faddr fields, if nothing provided, use stdin")
+
     return parser
 
 
@@ -628,6 +676,10 @@ def main():
             # if 'fattools' was chosen
             if args.which == "fattools":
                 do_fattools(args, device)
+
+            # if 'info' was chosen
+            if args.which == "info":
+                do_info(args, device)
 
             # if 'fileslack' was chosen
             if args.which == 'fileslack':

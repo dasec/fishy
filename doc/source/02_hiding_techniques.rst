@@ -74,14 +74,15 @@ Reserved Group Descriptor Tables
 
 As described in the filesystem chapter above, the reserved GDT blocks are not used until the filesystem 
 is expanded and group descriptors are written to them. The reserved GDT blocks are located behind the 
-group descriptors in each block group, their number can read from the superblock at 0xCE.
+group descriptors and in each of its copies, their number can read from the superblock at 0xCE.
 This hiding technique can hide up to `number of reseved GDT blocks * number of block groups with copies * block size` 
 bytes. The number of copies varies depending on the sparse_super flag, which limits the copies of the reserved
 GDT blocks to group numbers with numbers of either 0 or to the power of 3,5 or 7, as described earlier.
-On a 512Mb image you can expect to hide about 64 * 2 * 4096 = 524288 Bytes.
+On a 512Mb image with block size of 4096 bytes you can expect to hide about 64 * 2 * 4096 = 524288 Bytes.
 
 However, this hiding method is quite obvious and might be one of the first places to look at in case you
-check a ext4 filesystem for hidden data.
+check a ext4 filesystem for hidden data. Therefore this technique skips the original gdt and its first
+copy before writing data. This prevents the file checker from noticing these flaws in the filesystem.
 
 Process-wise the hiding technique firstly calculates the ids of reserved GDT blocks, using the 
 available information from the superblock, such as total block count, blocks per group and the 
@@ -104,7 +105,7 @@ byte, using all of its block alone. For the superblock's copies the sparse_super
 less hiding space if the flag is set.
 Size-wise we speak in dimensions of several Kb, each copy adding block_size - 1024 bytes of hiding space.
 The first superblock makes an exception here, due to the bootsector using another 1024 bytes, leaving 
-`block_size - 2048 bytes` to hide data.
+`block_size - 2048 bytes` to hide data with block size 4096.
 
 The hiding technique collects all block ids of the superblock copies from each block group,
 taking the sparse_super flag under account. The data then gets written to the slack space of each of 
@@ -120,8 +121,8 @@ osd2
 ****
 
 The osd2 hiding technique uses the last two bytes of the 12 byte osd2 field, which is located at 0x74 in each inode.
-This field only uses 10 bytes at max, depending on the tag being whether 'linux2', 'hurd2' or 'masix2'.
-This results in number of inodes * 2 bytes hiding space, which is not much, but might be enough for small amounts
+This field only uses 10 bytes at max, depending on the tag being whether `linux2`, `hurd2` or `masix2`.
+This results in `number of inodes * 2 bytes` hiding space, which is not much, but might be enough for small amounts
 of valuable data, because its not easy to find. "Unfortunately" ext4 introduced a lot of checksums for all
 kinds of metadata, which leads to invalid inode checksums. 
 In an ~235Mb image with 60.000 inodes this technique could hide 120.000 bytes.
