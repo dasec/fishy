@@ -94,7 +94,7 @@ class OSD2:
         else:
             raise NotImplementedError()
 
-    def info(self, outstream: typ.BinaryIO):
+    def info(self):
         """
         shows info about inode osd2 fields and data hiding space
         :param metadata: Metadata, object where metadata is stored in
@@ -105,8 +105,8 @@ class OSD2:
                 for file_entry in self.metadata.get_files():
                     file_metadata = file_entry['metadata']
                     file_metadata = EXT4OSD2Metadata(file_metadata)
-                    self.fs.info(outstream, file_metadata)
+                    self.fs.info(file_metadata)
             else:
-                self.fs.info(outstream)
+                self.fs.info()
         else:
             raise NotImplementedError()

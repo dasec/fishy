@@ -446,7 +446,7 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
                 meta = Metadata(password=args.password)
             meta.read(metadata_file)
             osd2 = OSD2(device, meta, args.dev)
-            osd2.info(sys.stdout.buffer)
+            osd2.info()
 
 def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """

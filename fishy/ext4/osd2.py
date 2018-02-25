@@ -103,16 +103,15 @@ class EXT4OSD2:
         for nr in inode_numbers:
             self._clear_osd2(nr)
 
-    def info(self, outstream: typ.BinaryIO, metadata: EXT4OSD2Metadata = None) -> None:
+    def info(self, metadata: EXT4OSD2Metadata = None) -> None:
         """
         shows info about inode osd2 fields and data hiding space
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
-        outstream.write('Total hiding space in osd2 fields: ' + (EXT4OSD2Metadata().inode_numbers.length() * 2) + ' Bytes')
-
+        LOGGER.info("Total hiding space in osd2 fields: " + str(len(EXT4OSD2Metadata().inode_numbers) * 2) + " Bytes")
         if metadata != None:
             filled_inode_numbers = metadata.get_inode_numbers()
-            outstream.write('Used: ' + (filled_inode_numbers.length() * 2) + ' Bytes')
+            LOGGER.info('Used: ' + str(len(filled_inode_numbers) * 2) + ' Bytes')
 
     def _write_to_osd2(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)
