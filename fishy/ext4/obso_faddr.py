@@ -66,7 +66,7 @@ class EXT4FADDR:
             raise IOError("The hiding data size is currently not supported")
 
 
-        instream_chunks = [instream[i:i+2] for i in range(0, len(instream), 2)]
+        instream_chunks = [instream[i:i+4] for i in range(0, len(instream), 4)]
         # print(instream_chunks)
         inode_number = 1
         hidden_chunks = 0
@@ -109,7 +109,7 @@ class EXT4FADDR:
         total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
         # print(total_obso_faddr_offset)
         self.stream.seek(total_obso_faddr_offset)
-        if self.stream.read(2) == b'\x00\x00\x00\x00':      #\x00\x00
+        if self.stream.read(4) == b'\x00\x00\x00\x00':      #\x00\x00
             self.stream.seek(total_obso_faddr_offset)
             # print(self.stream.read(12))
             self.stream.write(instream_chunk)
@@ -126,7 +126,7 @@ class EXT4FADDR:
         self.stream.seek(0)
         total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
         self.stream.seek(total_obso_faddr_offset)
-        data = self.stream.read(2)
+        data = self.stream.read(4)
         # print(data)
         return data
 
