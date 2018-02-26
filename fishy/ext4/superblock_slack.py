@@ -151,10 +151,10 @@ class EXT4SuperblockSlack:
 
         total_space = self._calculate_slack_space(len(block_ids))
 
-        LOGGER.info("Block size: " + str(self.ext4fs.blocksize))
-        LOGGER.info("Total hiding space in superblock slack space: " + str(total_space) + " Bytes")
+        print("Block size: " + str(self.ext4fs.blocksize))
+        print("Total hiding space in superblock slack space: " + str(total_space) + " Bytes")
         if metadata != None:
-            LOGGER.info('Used: ' + str(metadata.get_length()) + ' Bytes')
+            print('Used: ' + str(metadata.get_length()) + ' Bytes')
 
     def _check_if_sparse_super_is_set(self) \
             -> bool:

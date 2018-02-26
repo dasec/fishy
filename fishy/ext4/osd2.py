@@ -108,11 +108,11 @@ class EXT4OSD2:
         shows info about inode osd2 fields and data hiding space
         :param metadata: EXT4OSD2Metadata object
         """
-        LOGGER.info("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
-        LOGGER.info("Total hiding space in osd2 fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 2) + " Bytes")
+        print("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
+        print("Total hiding space in osd2 fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 2) + " Bytes")
         if metadata != None:
             filled_inode_numbers = metadata.get_inode_numbers()
-            LOGGER.info('Used: ' + str(len(filled_inode_numbers) * 2) + ' Bytes')
+            print('Used: ' + str(len(filled_inode_numbers) * 2) + ' Bytes')
 
     def _write_to_osd2(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)

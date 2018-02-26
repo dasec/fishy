@@ -108,11 +108,11 @@ class EXT4FADDR:
         shows info about inode obso_faddr fields and data hiding space
         :param metadata: EXT4FADDRMetadata object
         """
-        LOGGER.info("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
-        LOGGER.info("Total hiding space in obso_faddr fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 4) + " Bytes")
+        print("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
+        print("Total hiding space in obso_faddr fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 4) + " Bytes")
         if metadata != None:
             filled_inode_numbers = metadata.get_inode_numbers()
-            LOGGER.info('Used: ' + str(len(filled_inode_numbers) * 4) + ' Bytes')
+            print('Used: ' + str(len(filled_inode_numbers) * 4) + ' Bytes')
 
     def _write_to_obso_faddr(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)

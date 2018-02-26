@@ -148,11 +148,11 @@ class EXT4ReservedGDTBlocks:
 
         total_space = self._calculate_reserved_space(len(block_ids))
 
-        LOGGER.info("Block size: " + str(self.ext4fs.blocksize))
-        LOGGER.info("Total hiding space in reserved GDT blocks: " + str(total_space) + " Bytes")
+        print("Block size: " + str(self.ext4fs.blocksize))
+        print("Total hiding space in reserved GDT blocks: " + str(total_space) + " Bytes")
         if metadata != None:
             filled_gdt_blocks = metadata.get_blocks()
-            LOGGER.info('Used: ' + str(self._calculate_reserved_space(len(filled_gdt_blocks))) + ' Bytes')
+            print('Used: ' + str(self._calculate_reserved_space(len(filled_gdt_blocks))) + ' Bytes')
 
     def _write_to_reserved_gdt_block(self, instream, block_id):
         block_size = self.ext4fs.blocksize
