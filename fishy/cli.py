@@ -533,11 +533,6 @@ def build_parser() -> argparse.ArgumentParser:
     fatt.add_argument('-f', '--fat', dest='fat', action='store_true', help='List content of FAT')
     fatt.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
 
-    # Info switch
-    info = subparsers.add_parser('info', help='List statistics about hiding methods')
-    info.set_defaults(which='info')
-    info.add_argument('-i', '--info', dest='info', action='store_true', help='Show some information about the filesystem')
-
     # Metadata info
     metadata = subparsers.add_parser('metadata', help='list information about a metadata file')
     metadata.set_defaults(which='metadata')

@@ -72,19 +72,25 @@ MFT Slack
 .. automodule:: fishy.ntfs.ntfs_mft_slack
         :members:
 
-ext4
+Ext4
 ****
 
-reseved GDT blocks
+Reseved GDT Blocks
 ..................
 
 .. automodule:: fishy.ext4.reserved_gdt_blocks
         :members:
 
-superblock slack
+Superblock Slack
 ................
 
 .. automodule:: fishy.ext4.superblock_slack
+        :members:
+
+File Slack
+..........
+
+.. automodule:: fishy.ext4.ext4_file_slack
         :members:
 
 osd2

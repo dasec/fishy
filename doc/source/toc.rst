@@ -13,13 +13,14 @@ fishy - filesystem based data hiding techniques
    01_introduction
    01_getting_started
    01_options
+   01_overview
    02_filesystem_datastructures
    02_hiding_techniques
    02_module_overview
    03_reference_api
    04_evaluation
    05_future_work
-   06_development
+   07_appendix
 
 Indices and tables
 ==================

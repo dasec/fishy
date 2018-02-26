@@ -8,3 +8,4 @@ Future Work
 * Add option to encrypt hidden data before writing.
 * Hide Metadata files itself
 * Hide multiple files
+* Add multiple metadata file support to ext4's info switch
