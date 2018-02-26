@@ -56,6 +56,12 @@ $ cd doc
 $ make latexpdf
 ```
 
+You may have to install some extra latex dependencies:
+```bash
+$ sudo apt-get install latexmk
+$ sudo apt-get install texlive-formats-extra
+```
+
 # Usage
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
