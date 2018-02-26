@@ -17,10 +17,17 @@ hiding.
 * NTFS:
 	* File Slack [✓]
 	* MFT Slack [✓]
-	* Allocate More Clusters for File
-	* Mark clusters as 'bad', but write data into them
+	* Allocate More Clusters for File [✓]
+	* Mark clusters as 'bad', but write data into them [✓]
 	* Add data attribute to directories
 	* Alternate Data Streams
+* Ext4:
+	* Superblock Slack [✓]
+	* reserved GDT blocks [✓]
+	* File Slack [✓]
+	* inode:
+		* osd2 [✓]
+		* obso_faddr [✓]
 	
 # Requirements
 
@@ -70,6 +77,11 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`fileslack`](#file-slack) - Exploitation of File Slack
 * [`addcluster`](#additional-cluster-allocation) - Allocate additional clusters for a file
 * [`badcluster`](#bad-cluster-allocation) - Allocate bad clusters
+* `superblock_slack` - Exploitation of Superblock Slack
+* `reserved_gdt_blocks` - Exploitation of reserved GDT blocks
+* `ext4_file_slack` - Exploitation of File Slack
+* `osd2` - Exploitation of inode's osd2 field
+* `obso_faddr` - Exploitation of inode's obso_faddr field
 
 ## FATtools
 
@@ -207,7 +219,8 @@ bad clusters, where data can be hidden.
 
 Available for these filesystem types:
 
--  FAT
+* FAT
+* NTFS
 
 ```bash
 # Allocate bad clusters and hide data in it
