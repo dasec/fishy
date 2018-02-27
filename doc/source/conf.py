@@ -142,7 +142,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'fishy.tex', 'fishy Documentation',
-     'Deniz Celik, Tim Christen, Matthias Greune, Christian Hecht, Adrian Kailus, Dustin Kern, Patrick Naili, Chau Nguyen, Yannick Mau', 'manual'),
+     'Deniz Celik, Tim Christen, Matthias Greune, \\\\\n Christian Hecht, Adrian Kailus, Dustin Kern, \\\\\n Patrick Naili, Chau Nguyen, Yannick Mau', 'manual'),
 ]
 
 

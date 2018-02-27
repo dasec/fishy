@@ -164,7 +164,8 @@ additional clusters for a file where data can be hidden.
 
 Available for these filesystem types:
 
--  FAT
+- FAT
+- NTFS
 
 .. code:: bash
 
@@ -186,7 +187,8 @@ bad clusters, where data can be hidden.
 
 Available for these filesystem types:
 
--  FAT
+- FAT
+- NTFS
 
 .. code:: bash
 

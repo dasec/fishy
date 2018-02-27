@@ -18,7 +18,7 @@ hiding.
 	* File Slack [✓]
 	* MFT Slack [✓]
 	* Allocate More Clusters for File [✓]
-	* Mark clusters as 'bad', but write data into them [✓]
+	* Bad Cluster Allocation [✓]
 	* Add data attribute to directories
 	* Alternate Data Streams
 * Ext4:
@@ -199,6 +199,7 @@ The `addcluster` subcommand provides methods to read, write and clean additional
 Available for these filesystem types:
 
 * FAT
+* NTFS
 
 ```bash
 # Allocate additional clusters for a file and hide data in it
