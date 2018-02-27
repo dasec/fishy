@@ -191,7 +191,7 @@ Following sections give a brief overview about each implemented hiding technique
 File Slack
 ..........
 
-The smallest unit in the data area of a filesystem is called "cluster".
+The smallest unit in the data area of a filesystem is called "cluster", or "block" in the case of ext4.
 This unit is a fixed size value, that can often be configured at creation time
 of the filesystem.
 It is calculated from the `sector size * sectors per cluster`.
@@ -217,6 +217,14 @@ the File Slack.
 1. Find the last cluster of a file, which File Slack shall be exploited
 2. Calculate the start of the Drive Slack
 3. Write data until no data is left or the end of the cluster is reached
+
+In case of ext4 filesystems, most implementations pad the complete File Slack with zeros,
+making the distinction between RAM and Drive Slack unnecessary but also making the detection
+of hidden data more likely.
+
+Our implementation for ext4 therefore calculates the end of a file on the filesystem
+and writes data into the following File Slack until no data is left or the end of the current
+block is reached
 
 MFT Entry Slack
 ...............

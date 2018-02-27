@@ -12,7 +12,8 @@ FileSlack
   technique can store *(cluster_size - block_size) x stored_files*. Though the
   gained capacity is very high.
 * **Detection probability**: A check with fsck.fat neither detected the hidden files,
-  nor showed any other suspicious output.  Same for chkdsk on NTFS.
+  nor showed any other suspicious output.  Same for chkdsk on NTFS and fsck.ext4 on ext4.
+  It is easier to detect on ext4 filesystems, as the Slack would normally be filled with zeros there.
 * **Stability**: Low. If the original file changes in size, the hidden data
   might be overwritten by further writes. So, this technique should be used
   preferably with non-changing filesystems or files that don't change.
@@ -67,13 +68,6 @@ Reserved Group Descriptor Tables
 * **Gained capacity**: This hiding technique can hide up to `reseved_gdt_blocks * block_groups * block_size` bytes.
 * **Detection probability**: High. Detection tools as well as the bare eye will detect written data here.
 * **Stability**: Medium. As long as the filesystem is not expanded, your files are save.
-
-File Slack
-----------
-
-* **Gained capacity**: WIP
-* **Detection probability**: WIP
-* **Stability**: High Medium Low WIP
 
 Superblock Slack
 ----------------
