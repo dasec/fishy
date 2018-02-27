@@ -4,12 +4,12 @@ BadCluster wrapper for filesystem specific implementations
 import logging
 import typing as typ
 from os import path
-from .fat.bad_cluster import BadCluster as FATBadCluster
-from .fat.bad_cluster import BadClusterMetadata as FATBadClusterMetadata
-from .ntfs.bad_cluster import NtfsBadCluster as NTFSBadCluster
-from .ntfs.bad_cluster import BadClusterMetadata as NTFSBadClusterMetadata
-from .filesystem_detector import get_filesystem_type
-from .metadata import Metadata
+from ..fat.bad_cluster import BadCluster as FATBadCluster
+from ..fat.bad_cluster import BadClusterMetadata as FATBadClusterMetadata
+from ..ntfs.bad_cluster import NtfsBadCluster as NTFSBadCluster
+from ..ntfs.bad_cluster import BadClusterMetadata as NTFSBadClusterMetadata
+from ..filesystem_detector import get_filesystem_type
+from ..metadata import Metadata
 
 LOGGER = logging.getLogger("ClusterAllocation")
 

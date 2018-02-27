@@ -6,17 +6,17 @@ import traceback
 import argparse
 import logging
 import typing as typ
-from fishy.bad_cluster_wrapper import BadClusterWrapper
-from fishy.cluster_allocation import ClusterAllocation
+from fishy.wrapper.bad_cluster import BadClusterWrapper
+from fishy.wrapper.cluster_allocation import ClusterAllocation
 from fishy.fat.fat_filesystem.fat_wrapper import create_fat
 from fishy.fat.fat_filesystem.fattools import FATtools
-from fishy.file_slack import FileSlack
+from fishy.wrapper.file_slack import FileSlack
 from fishy.metadata import Metadata
-from fishy.mft_slack import MftSlack
-from fishy.osd2 import OSD2
-from fishy.obso_faddr import FADDR
-from fishy.reserved_gdt_blocks import ReservedGDTBlocks
-from fishy.superblock_slack import SuperblockSlack
+from fishy.wrapper.mft_slack import MftSlack
+from fishy.wrapper.osd2 import OSD2
+from fishy.wrapper.obso_faddr import FADDR
+from fishy.wrapper.reserved_gdt_blocks import ReservedGDTBlocks
+from fishy.wrapper.superblock_slack import SuperblockSlack
 
 
 LOGGER = logging.getLogger("cli")

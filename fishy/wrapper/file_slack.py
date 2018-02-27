@@ -4,15 +4,15 @@ FileSlack os a wrapper for filesystem specific file slack implementations
 import logging
 import typing as typ
 from os import path
-from .fat.fat_filesystem.dir_entry import DirEntry
-from .fat.file_slack import FileSlack as FATFileSlack
-from .fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
-from .filesystem_detector import get_filesystem_type
-from .metadata import Metadata
-from .ntfs.ntfs_file_slack import NtfsSlack as NTFSFileSlack
-from .ntfs.ntfs_file_slack import FileSlackMetadata as NTFSFileSlackMetadata
-from .ext4.ext4_file_slack import Ext4FileSlackMetadata as Ext4FileSlackMetadata
-from .ext4.ext4_file_slack import EXT4FileSlack as EXT4FileSlack
+from ..fat.fat_filesystem.dir_entry import DirEntry
+from ..fat.file_slack import FileSlack as FATFileSlack
+from ..fat.file_slack import FileSlackMetadata as FATFileSlackMetadata
+from ..filesystem_detector import get_filesystem_type
+from ..metadata import Metadata
+from ..ntfs.ntfs_file_slack import NtfsSlack as NTFSFileSlack
+from ..ntfs.ntfs_file_slack import FileSlackMetadata as NTFSFileSlackMetadata
+from ..ext4.ext4_file_slack import Ext4FileSlackMetadata as Ext4FileSlackMetadata
+from ..ext4.ext4_file_slack import EXT4FileSlack as EXT4FileSlack
 
 LOGGER = logging.getLogger("FileSlack")
 
