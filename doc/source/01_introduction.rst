@@ -7,7 +7,7 @@ Why fishy
 ---------
 
 In our research regarding existing tools for filesystem based data hinding
-techniques we only came up with a hand full of tool. Nnone of these provide a
+techniques we only came up with a hand full of tool. None of these provide a
 consistent interface for multiple filesystems and various hiding techniques.
 For most of them it seemed, that development has been stopped.
 
@@ -20,11 +20,35 @@ useful for all security researchers, which are concerned with data hiding.
 Limitations
 -----------
 
-* Currently only Linux is supported and tested
-* Currently no support for storing multiple files
+`fishy` is currently only tested to run under linux. Other operating systems may
+provide different functions to access low level devices.
+
+Although it is possible to hide multiple different files on the filesystem,
+`fishy` is currently not capable of managing them. So, it is up to the user to avoid
+overwritten data.
+
+`fishy` does not encrypt the data it hides. If the user needs encryption, it is
+up to him to apply the encryption before he hides the data with this tool. The same
+applies to data integrity functionality.
+
 
 See also
 --------
 
 * `slacker.exe <http://www.bishopfox.com/resources/tools/other-free-tools/mafia/>`_ - windows tool for hiding data in ntfs slack space 
-* `bmap <http://www.gupiaoya.com/Soft/Soft_6823.htm>`_ - linux tool for hiding data in ntfs slack space 
+* `bmap <http://www.gupiaoya.com/Soft/Soft_6823.htm>`_ - linux tool for hiding data in ntfs slack space
+
+Documentation Overview
+----------------------
+
+This paragraph will provide a brief overview of this documentation, giving a short summary of its structure.
+You will be introduced to the paper by its abstract and introductory sections.
+The `getting started` section gives beginners a fast start with the tool.
+After this basic introduction on how this toolkit can be used, we give some background
+information about `filesystem datastructures` and a brief explanation of each implemented `hiding technique`.
+The following `architecture overview` gives an introduction to fishies core design principles and structures.
+The `module reference` documents the most important modules and classes, which you
+might use, if you want to integrate fishy into your own projects.
+In the `evaluation` section, all implemented hiding techniques are shortly rated for
+their gained capacity, stability and their propability of detection.
+The `future work` section ends this documentation.

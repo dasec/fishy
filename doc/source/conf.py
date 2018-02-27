@@ -145,6 +145,9 @@ latex_documents = [
      'Deniz Celik, Tim Christen, Matthias Greune, \\\\\n Christian Hecht, Adrian Kailus, Dustin Kern, \\\\\n Patrick Naili, Chau Nguyen, Yannick Mau', 'manual'),
 ]
 
+latex_elements = {
+  'classoptions': ',openany,oneside' # remove blank pages between chapters
+}
 
 # -- Options for manual page output ---------------------------------------
 

@@ -54,14 +54,28 @@ Usage
 -----
 
 The cli interface groups all hiding techniques (and others) into
-subcommands. Currently available subcommands are: 
+subcommands. Following table gives an overview over the all implemented hiding techniques:
 
++------------------+------------------+-----------------------------------------+ 
+| Hiding technique |  Filesystem      |     Description                         |
+| (Subcommand)     |                  |                                         |
++------------------+----+------+------+-----------------------------------------+
+|                  |FAT | NTFS | Ext4 |                                         |
++------------------+----+------+------+-----------------------------------------+
+| fileslack        | ✓  |  ✓   |  ✓   | Exploitation of File Slack              |
++------------------+----+------+------+-----------------------------------------+
+| addcluster       | ✓  |  ✓   |      | Allocate additional clusters for a file |
++------------------+----+------+------+-----------------------------------------+
+| badcluster       | ✓  |  ✓   |      | Bad Cluster Allocation                  |
++------------------+----+------+------+-----------------------------------------+
 
-* `fattools <#fattools>`_ - Provides some information about a FAT filesystem 
-* `metadata <#metadata>`_ - Provides some information about data that is stored in a metadata file 
-* `fileslack <#file-slack>`__ - Exploitation of File Slack 
-* `addcluster <#additional-cluster-allocation>`__ - Allocate additional clusters for a file
-* `badcluster <#bad-cluster-allocation>`__ - Allocate bad clusters
+Additionally to the hiding techniques above, there are following informational
+subcommands available:
+
+* fattools - Provides some information about a FAT filesystem 
+* metadata - Provides some information about data that is stored in a metadata file 
+
+The following sections will give brief examples on how to use the `fishy` cli tool with each subcommand.
 
 FATtools
 ........
@@ -183,7 +197,7 @@ Bad Cluster Allocation
 ......................
 
 The ``badcluster`` subcommand provides methods to read, write and clean
-bad clusters, where data can be hidden.
+bad clusters, where data can be hidden into.
 
 Available for these filesystem types:
 

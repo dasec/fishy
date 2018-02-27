@@ -1,5 +1,5 @@
-Module Documentation
-====================
+Module Reference
+================
 
 Filesystem Implementations
 --------------------------
