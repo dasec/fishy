@@ -18,11 +18,3 @@ fishy - filesystem based data hiding techniques
    03_reference_api
    04_evaluation
    05_future_work
-   07_appendix
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

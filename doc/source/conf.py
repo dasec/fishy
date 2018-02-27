@@ -149,6 +149,8 @@ latex_elements = {
   'classoptions': ',openany,oneside' # remove blank pages between chapters
 }
 
+latex_appendices = ['07_appendix']
+
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
