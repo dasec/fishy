@@ -1,9 +1,13 @@
 Create test images with `create_testfs.sh`
-==========================================
+------------------------------------------
 
+FAT and NTFS
+............
 
 With `create_testfs.sh` you can create prepared filesystem images. These
 already include files, which get copied from `utils/fs-files/`.
+These file systems are intended to be used by unit tests and for developing
+a new hiding technique.
 
 The script requires:
 
@@ -55,3 +59,16 @@ These files are currently included in the stable1 branch:
     test parsing files in nested sub dirs        │   └── nested_directory
     test parsing files in nested sub dirs        │       └── royce.txt
     test if recursive directory parsing works    └── testfile.txt
+
+Ext4
+....
+
+Currently, you have to generate the ext4 filesystem by hand.
+
+.. code::
+
+    dd if=/dev/zero of=file.img bs=4M count=250
+    mkfs ext4 -F file.img
+    sudo mkdir -p /tmp/mount_tmp/ && sudo mount -o loop,rw,sync file.img /tmp/mount_tmp
+    sudo chmod -R ug+rw /tmp/mount_tmp
+    sudo mv <files> /tmp/mount_tmp/

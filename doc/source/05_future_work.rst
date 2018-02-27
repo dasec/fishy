@@ -9,3 +9,4 @@ Future Work
 * Hide Metadata files itself
 * Hide multiple files
 * more reliable filesystem autodetection (FAT and NTFS detection only check for an ASCII string in bootsector)
+* Add multiple metadata file support to ext4's info switch

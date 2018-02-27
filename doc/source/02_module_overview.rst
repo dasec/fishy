@@ -96,7 +96,7 @@ and pass it to the read and clear methods.
 
 If a write method failes, already written data must be cleared before exiting.
 
-Hiding techniques may implement furter methods.
+Hiding techniques may implement further methods.
 
 Filesystem detector
 -------------------

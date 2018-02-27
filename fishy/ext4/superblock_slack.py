@@ -1,7 +1,10 @@
+import logging
 import math
 import typing as typ
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
+
+LOGGER = logging.getLogger("ext4-superblock_slack")
 
 class EXT4SuperblockSlackMetadata:
     """
@@ -134,9 +137,31 @@ class EXT4SuperblockSlack:
             self.stream.seek(offset)
             self.stream.write(slackspace * b'\x00')
 
+    def info(self, metadata: EXT4SuperblockSlackMetadata = None) -> None:
+        """
+        shows info about the superblock slack and data hiding space
+        :param metadata: EXT4SuperblockSlackMetadata object
+        """
+        total_block_count = self.ext4fs.superblock.data['total_block_count']
+        blocks_per_group = self.ext4fs.superblock.data['blocks_per_group']
+        if self._check_if_sparse_super_is_set():
+            block_ids = self._get_block_ids_for_sparse_super(total_block_count, blocks_per_group)
+        else:
+            block_ids = self._get_block_ids_for_non_sparse_super(total_block_count, blocks_per_group)
+
+        total_space = self._calculate_slack_space(len(block_ids))
+
+        print("Block size: " + str(self.ext4fs.blocksize))
+        print("Total hiding space in superblock slack space: " + str(total_space) + " Bytes")
+        if metadata != None:
+            print('Used: ' + str(metadata.get_length()) + ' Bytes')
 
     def _check_if_sparse_super_is_set(self) \
             -> bool:
+        """
+        checks if the sparse superblock flag is set
+        :return:bool
+        """
         if (int(self.ext4fs.superblock.data['feature_ro_compat'], 0) & 0x1) == 0x1:
             return True
         else:
@@ -144,6 +169,13 @@ class EXT4SuperblockSlack:
 
     def _get_block_ids_for_sparse_super(self, total_block_count, blocks_per_group) \
             -> []:
+        """
+        calculates the blockid for the superblock copies
+        assuming the sparse superblock flag is set
+        :param total_block_count:
+        :param blocks_per_group:
+        :return: list containing the blockids
+        """
         block_ids = []
         total_block_group_count = int(math.ceil(total_block_count / blocks_per_group))
 
@@ -178,6 +210,13 @@ class EXT4SuperblockSlack:
 
     def _get_block_ids_for_non_sparse_super(self, total_block_count, blocks_per_group) \
             -> []:
+        """
+        calculates the blockid for the superblock copies
+        assuming the sparse superblock flag is not set
+        :param total_block_count:
+        :param blocks_per_group:
+        :return: list containing the blockids
+        """
         block_ids = []
         block_group_id = 1
         total_block_group_count = int(math.ceil(total_block_count / blocks_per_group))
@@ -191,11 +230,21 @@ class EXT4SuperblockSlack:
 
     def _calculate_slack_space(self, num_of_block_ids) \
             -> int:
+        """
+        calculates avaible slackspace
+        :param num_of_block_ids: number of superblock copies
+        :return: total slackspace
+        """
         total_space = (self.ext4fs.blocksize-1024) * num_of_block_ids
         total_space = total_space + (self.ext4fs.blocksize-2048)
         return total_space
 
     def _write_to_superblock(self, instream)->int:
+        """
+        writes from instream into Slackspace of primary superblock
+        :param instream: stream to read data from
+        :return: number of bytes written
+        """
         block_size = self.ext4fs.blocksize
         slackspace=block_size-2048
         buf=instream.read(slackspace)
@@ -204,6 +253,13 @@ class EXT4SuperblockSlack:
         return len(buf)
 
     def _write_to_backup_superblock(self, instream, block_id,blocks_per_group)->int:
+        """
+        writes from instream into slackspace of superblock copy
+        :param instream: instream: stream to read data from
+        :param block_id: blockid of superblockcopy to write to
+        :param blocks_per_group:
+        :return: number of bytes written
+        """
         block_size=self.ext4fs.blocksize
         slackspace=block_size-1024
         buf=instream.read(slackspace)

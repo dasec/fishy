@@ -4,16 +4,16 @@ import typing as typ
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
 
-LOGGER = logging.getLogger("ext4-osd2")
+LOGGER = logging.getLogger("ext4-obso_faddr")
 
 
-class EXT4OSD2Metadata:
+class EXT4FADDRMetadata:
     """
     holds inode numbers which hold the hidden data in.
     """
     def __init__(self, d: dict = None):
         """
-        :param d: dict, dictionary representation of a EXT4OSD2Metadata
+        :param d: dict, dictionary representation of a EXT4FADDRMetadata
                   object
         """
         if d is None:
@@ -38,9 +38,9 @@ class EXT4OSD2Metadata:
         """
         return self.inode_numbers
 
-class EXT4OSD2:
+class EXT4FADDR:
     """
-        Hides data in osd2 field of inodes in the first inode_table.
+        Hides data in obso_faddr field of inodes in the first inode_table.
     """
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
@@ -52,21 +52,21 @@ class EXT4OSD2:
         self.ext4fs = EXT4(stream, dev)
         self.inode_table = self.ext4fs.inode_tables[0]
 
-    def write(self, instream: typ.BinaryIO) -> EXT4OSD2Metadata:
+    def write(self, instream: typ.BinaryIO) -> EXT4FADDRMetadata:
         """
-        writes from instream into the last two bytes of inodes osd2 field.
+        writes from instream into the last two bytes of inodes obso_faddr field.
         This method currently supports only data sizes less than 4000 bytes.
         :param instream: stream to read from
-        :return: EXT4OSD2Metadata
+        :return: EXT4FADDRMetadata
         """
-        metadata = EXT4OSD2Metadata()
+        metadata = EXT4FADDRMetadata()
         instream = instream.read()
 
         if not self._check_if_supported(instream):
             raise IOError("The hiding data size is currently not supported")
 
 
-        instream_chunks = [instream[i:i+2] for i in range(0, len(instream), 2)]
+        instream_chunks = [instream[i:i+4] for i in range(0, len(instream), 4)]
         # print(instream_chunks)
         inode_number = 1
         hidden_chunks = 0
@@ -74,7 +74,7 @@ class EXT4OSD2:
         while hidden_chunks < len(instream_chunks):
             chunk = instream_chunks[hidden_chunks]
 
-            if self._write_to_osd2(chunk, inode_number):
+            if self._write_to_obso_faddr(chunk, inode_number):
                 metadata.add_inode_number(inode_number)
                 hidden_chunks += 1
 
@@ -82,73 +82,73 @@ class EXT4OSD2:
 
         return metadata
 
-    def read(self, outstream: typ.BinaryIO, metadata: EXT4OSD2Metadata) \
+    def read(self, outstream: typ.BinaryIO, metadata: EXT4FADDRMetadata) \
             -> None:
         """
-        writes data hidden in osd2 blocks into outstream
+        writes data hidden in obso_faddr blocks into outstream
         :param outstream: stream to write into
-        :param metadata: EXT4OSD2Metadata object
+        :param metadata: EXT4FADDRMetadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         # print(inode_numbers)
         for nr in inode_numbers:
-            outstream.write(self._read_from_osd2(nr))
+            outstream.write(self._read_from_obso_faddr(nr))
 
-    def clear(self, metadata: EXT4OSD2Metadata) -> None:
+    def clear(self, metadata: EXT4FADDRMetadata) -> None:
         """
-        clears the osd2 field in which data has been hidden
-        :param metadata: EXT4OSD2Metadata object
+        clears the obso_faddr field in which data has been hidden
+        :param metadata: EXT4FADDRMetadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
-            self._clear_osd2(nr)
+            self._clear_obso_faddr(nr)
 
-    def info(self, metadata: EXT4OSD2Metadata = None) -> None:
+    def info(self, metadata: EXT4FADDRMetadata = None) -> None:
         """
-        shows info about inode osd2 fields and data hiding space
-        :param metadata: EXT4OSD2Metadata object
+        shows info about inode obso_faddr fields and data hiding space
+        :param metadata: EXT4FADDRMetadata object
         """
         print("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
-        print("Total hiding space in osd2 fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 2) + " Bytes")
+        print("Total hiding space in obso_faddr fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 4) + " Bytes")
         if metadata != None:
             filled_inode_numbers = metadata.get_inode_numbers()
-            print('Used: ' + str(len(filled_inode_numbers) * 2) + ' Bytes')
+            print('Used: ' + str(len(filled_inode_numbers) * 4) + ' Bytes')
 
-    def _write_to_osd2(self, instream_chunk, inode_nr) -> bool:
+    def _write_to_obso_faddr(self, instream_chunk, inode_nr) -> bool:
         # print(instream_chunk)
         self.stream.seek(0)
-        total_osd2_offset = self._get_total_osd2_offset(inode_nr)
-        # print(total_osd2_offset)
-        self.stream.seek(total_osd2_offset)
-        if self.stream.read(2) == b'\x00\x00':
-            self.stream.seek(total_osd2_offset)
+        total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
+        # print(total_obso_faddr_offset)
+        self.stream.seek(total_obso_faddr_offset)
+        if self.stream.read(4) == b'\x00\x00\x00\x00':      #\x00\x00
+            self.stream.seek(total_obso_faddr_offset)
             # print(self.stream.read(12))
             self.stream.write(instream_chunk)
             return True
         else:
             return False
 
-    def _clear_osd2(self, inode_nr: int):
-        total_osd2_offset = self._get_total_osd2_offset(inode_nr)
-        self.stream.seek(total_osd2_offset)
-        self.stream.write(b"\x00\x00")
+    def _clear_obso_faddr(self, inode_nr: int):
+        total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
+        self.stream.seek(total_obso_faddr_offset)
+        self.stream.write(b"\x00\x00\x00\x00")   #\x00\x00
 
-    def _read_from_osd2(self, inode_nr: int):
+    def _read_from_obso_faddr(self, inode_nr: int):
         self.stream.seek(0)
-        total_osd2_offset = self._get_total_osd2_offset(inode_nr)
-        self.stream.seek(total_osd2_offset)
-        data = self.stream.read(2)
+        total_obso_faddr_offset = self._get_total_obso_faddr_offset(inode_nr)
+        self.stream.seek(total_obso_faddr_offset)
+        data = self.stream.read(4)
         # print(data)
         return data
 
-    def _get_total_osd2_offset(self, inode_nr: int) -> int:
+    def _get_total_obso_faddr_offset(self, inode_nr: int) -> int:
         inode_size = self.ext4fs.superblock.data["inode_size"]
         # print("table start", self.inode_table.table_start)
 
-        return self.inode_table.inodes[inode_nr].offset + 0x74 + 0xA
+        return self.inode_table.inodes[inode_nr].offset + 0x70
 
     def _check_if_supported(self, instream) -> bool:
-        if len(instream) >= ((self.ext4fs.superblock.data["inode_count"]) * 2):
+        if len(instream) >= ((self.ext4fs.superblock.data["inode_count"]) * 4):
             return False
         else:
             return True

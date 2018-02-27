@@ -31,6 +31,25 @@ Installation
     $ pip install sphinx spinx-argparse
     $ python setup.py doc
 
+To generate the documentation as pdf:
+
+.. code:: shell
+
+    $ cd doc
+    $ make latexpdf
+
+
+You may have to install some extra latex dependencies:
+
+.. code:: shell
+
+    $ sudo apt-get install latexmk
+    $ sudo apt-get install texlive-formats-extra
+
+Test Filesystem
+---------------
+To generate a filesystem for a quick test of fishy, take a look at the appendix 1 `create_testfs.sh`
+
 Usage
 -----
 

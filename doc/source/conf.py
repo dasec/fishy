@@ -48,8 +48,8 @@ master_doc = 'toc'
 
 # General information about the project.
 project = 'fishy'
-copyright = '2017, Some people from Hochschule Darmstadt'
-author = 'Some people from Hochschule Darmstadt'
+copyright = '2018, Deniz Celik, Tim Christen, Matthias Greune, Christian Hecht, Adrian Kailus, Dustin Kern, Patrick Naili, Chau Nguyen, Yannick Mau'
+author = 'Deniz Celik, Tim Christen, Matthias Greune, Christian Hecht, Adrian Kailus, Dustin Kern, Patrick Naili, Chau Nguyen, Yannick Mau'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -142,7 +142,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'fishy.tex', 'fishy Documentation',
-     'Some people from Hochschule Darmstadt', 'manual'),
+     'Deniz Celik, Tim Christen, Matthias Greune, Christian Hecht, Adrian Kailus, Dustin Kern, Patrick Naili, Chau Nguyen, Yannick Mau', 'manual'),
 ]
 
 
