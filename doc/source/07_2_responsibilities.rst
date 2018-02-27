@@ -26,6 +26,7 @@ The People who worked on this tool:
     * obso_faddr hiding technique for Ext4
     * info switch for all Ext4 techniques
     * Ext4 filesystem parser
+    * Documentation Overview and various other
 * Dustin Kern:
     * NTFS MFT Slack technique and documentation
     * NTFS File Slack technique and documentation
