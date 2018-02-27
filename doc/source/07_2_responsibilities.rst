@@ -4,8 +4,9 @@ Resposibilities
 The People who worked on this tool:
 
 * Deniz Celik:
-    * Reserved GDT hinding technique
-    * Ext4 filesystem parser
+    * ext4: reserved GDT blocks hiding technique
+    * ext4: filesystem parser
+    * ext4: filesystem detector
 * Tim Christen:
 * Matthias Greune:
     * Architecture, overall tool design
