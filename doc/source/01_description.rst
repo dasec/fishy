@@ -1,6 +1,1 @@
-`fishy` is a toolkit for filesystem based data hiding techniques, implemented
-in Python. It collects various common exploitation methods, that make use of
-existing datastructures on the filesystem layer, for hiding data from
-conventional file access methods. This toolkit is intended to introduce people
-to the concept of established anti-forensic methods associated with data
-hiding.
+fishy is a toolkit for filesystem based data hiding techniques, implemented in Python. It collects various common exploitation methods, that make use of existing datastructures on the filesystem layer, for hiding data from conventional file access methods. Furthermore, it brings a variety of  hiding technics which may be detected by some filecheckers and or forensic tools. Inside the documentation are all information with the explicit details. It supports the Filesystems FAT, NTFS and ext4. The main goal of the toolkit is to only hide data and needs encrypted Data as input if the user wants a further obfuscation.  This toolkit is intended to introduce people to the concept of established anti-forensic methods associated with data hiding. 
