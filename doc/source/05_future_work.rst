@@ -1,15 +1,12 @@
-Future Work
-===========
+The current state of the project offers enough functionality to hide data in our chosen filesystems. However there is still room for improvement of some features. This section lists a brief overview of some potential key points. 
 
-// TODO: Form into full text  
+The filesystem auto detection for FAT and NTFS needs improvement. It is currently performed by checking an ASCII string in the boot sector. In order to increase the reliability of fishy, it should be improved. 
 
-The following list describes a few features that might be implemented in the future to
-expand and improve the overall functionality.
+Likewise, at present the clearing technique used for hiding techniques -c option is kept rather simple. A more secure clearing technique would be preferred. 
 
-* Use a more secure clearing technique for hiding techniques -c option
-* Implement a fuse filesystem, which uses multiple hiding techniques to store data
-* **Hidden data encryption**:  Currently the encryption of the data that is hidden is not provided by **fishy** but it's up to the user. Therfore it could be useful to provide an option to encrypt the data by **fishy** itself.
-* **Hide Metadata**: It might be useful to provide a feature that will hide the generated metadata itself in the filesystem. One possible way to implement that feature would be to use a hiding technique exclusivly for metadata.
-* **Hide multiple files**: In order to provide an easier usage it would be senseful to expand the hiding feature with the 
-* **Improve filesystem autodetection**: Currently the FAT and NTFS detection is only based on a check for an ASCII string in the bootsector. So these implementations should be improved to provide a higher reliability.
-* Add multiple metadata file support to ext4's info switch
+Related to it is the (lack of) hidden data encryption. At the current state it is not provided by fishy but left to the user. It would be useful to provide an option that enables fishy to encrypt the data by itself. 
+
+Another potential feature is the hiding of metadata itself in the filesystem. One possible implementation of this feature is a hiding technique exclusively 
+for metadata. 
+
+Lastly, the implementation of multiple data support would be a welcome addition. This includes but is not limited to the implementation of a fuse filesystem, which can use multiple hiding techniques to store data, the option to enable hiding techniques to hide multiple files, to provide an easier usage, or the addition of multiple metadata file support to ext4's info switch.
