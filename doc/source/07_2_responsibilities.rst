@@ -8,16 +8,19 @@ The People who worked on this tool:
     * ext4: filesystem parser
     * ext4: filesystem detector
 * Tim Christen:
+    * NTFS filesystem parser
 * Matthias Greune:
     * Architecture, overall tool design
-    * FAT filesystem parser
-    * FAT Hiding Technique FileSlack
-    * FAT Hiding Technique Bad Cluster
-    * FAT Hiding Technique Additional Cluster Allocation
+    * FAT filesystem parser and corresponding Tests
+    * FAT and NTFS filesystem detector
+    * FAT Hiding Technique FileSlack and corresponding Tests
+    * FAT Hiding Technique Bad Cluster  and corresponding Tests
+    * FAT Hiding Technique Additional Cluster Allocation  and corresponding Tests
     * Documentation for
         * Introduction Stuff
-        * FAT Filesystem explanation
-        * Module Overview
+        * FAT filesystem explanation
+        * Fileslack explanation
+        * Architecture overview
 * Christian Hecht:
     * Reserved GDT hinding technique
     * Ext4 filesystem parser
