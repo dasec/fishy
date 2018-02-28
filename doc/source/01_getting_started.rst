@@ -170,6 +170,29 @@ Available for these filesystem types:
       Ram Slack: 508
       File Slack: 1536
 
+MFT Slack
+.........
+
+The ``mftslack`` subcommand provides functionality to read, write and clean the slack of mft entries in a filesystem.
+
+Available for these filesystem types:
+
+- NTFS
+
+.. code:: bash
+
+    # write into slack space
+    $ echo "TOP SECRET" | fishy -d testfs-ntfs.dd mftslack -m metadata.json -w
+
+    # read from slack space
+    $ fishy -d testfs-ntfs.dd mftslack -m metadata.json -r
+    TOP SECRET
+
+    # wipe slack space
+    $ fishy -d testfs-ntfs.dd mftslack -m metadata.json -c
+
+
+
 Additional Cluster Allocation
 .............................
 
