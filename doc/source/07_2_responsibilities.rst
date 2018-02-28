@@ -34,6 +34,7 @@ The People who worked on this tool:
     * NTFS MFT Slack technique and documentation
     * NTFS File Slack technique and documentation
     * Metadata encryption
+    * NTFS Documentation
 * Patrick Naili:
     * Ext4 File Slack
     * Ext4 Superblock Slack
