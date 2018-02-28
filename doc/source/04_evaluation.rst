@@ -60,15 +60,12 @@ Additional Cluster Allocation
   clusters* that are available on the filesystem.
 * **Detection probability**: fsck.fat detects cluster chains, that are longer than the
   size value of directory entries. So this check would show, that something
-  suspicious is going on there.
+  suspicious is going on there. For NTFS chkdsk doesn't detect the additional clusters
+  if the allocated size attribute of the file is changed to the correct value.
 * **Stability**: Low. If the original file changes in size, the hidden data
   will be overwritten or partially truncated. So, this technique should be used
   preferably with non-changing filesystems or files that don't change.
 
-* **Gained capacity**: 
-* **Detection probability**: 
-* **Stability**: High Medium Low
-  
 Reserved Group Descriptor Tables
 --------------------------------
 
