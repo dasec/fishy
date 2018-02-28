@@ -18,6 +18,11 @@ based data hinding techniques, other than fishy. As fishy aimes to provide an
 easy to use framework for creating new hiding techniques, this project might be
 useful for all security researchers, which are concerned with data hiding.
 
+This toolkit provides a cli interface for hiding data via the command line. Also
+the implemented hiding techniques can be used in other projects by importing
+fishy as a library. Besides that, fishy can also act as a framework to easily
+implement custom hiding techniques.
+
 Limitations
 -----------
 
@@ -55,7 +60,7 @@ You will be introduced to the paper by its abstract and introductory sections.
 The `getting started` section gives beginners a fast start with the tool.
 After this basic introduction on how this toolkit can be used, we give some background
 information about `filesystem datastructures` and a brief explanation of each implemented `hiding technique`.
-The following `architecture overview` gives an introduction to fishies core design principles and structures.
+The following `architecture overview` gives an introduction to fishy's core design principles and structures.
 The `module reference` documents the most important modules and classes, which you
 might use, if you want to integrate fishy into your own projects.
 In the `evaluation` section, all implemented hiding techniques are shortly rated for
