@@ -4,6 +4,8 @@ ClusterAllocator wrapper for filesystem specific implementations
 import logging
 import typing as typ
 from os import path
+from ..ntfs.cluster_allocator import ClusterAllocator as NTFSAllocator
+from ..ntfs.cluster_allocator import AllocatorMetadata as NTFSAllocatorMeta
 from ..fat.cluster_allocator import ClusterAllocator as FATAllocator
 from ..fat.cluster_allocator import AllocatorMetadata as FATAllocatorMeta
 from ..filesystem_detector import get_filesystem_type
@@ -45,7 +47,8 @@ class ClusterAllocation:
             self.metadata.set_module("fat-cluster-allocator")
             self.fs = FATAllocator(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            self.metadata.set_module("ntfs-cluster-allocator")
+            self.fs = NTFSAllocator(fs_stream)  # pylint: disable=invalid-name
         else:
             raise NotImplementedError()
 
@@ -69,7 +72,8 @@ class ClusterAllocation:
             allocator_metadata = self.fs.write(instream, filepath)
             self.metadata.add_file(filename, allocator_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            allocator_metadata = self.fs.write(instream, filepath)
+            self.metadata.add_file(filename, allocator_metadata)
         else:
             raise NotImplementedError()
 
@@ -86,7 +90,8 @@ class ClusterAllocation:
             allocator_metadata = FATAllocatorMeta(file_metadata)
             self.fs.read(outstream, allocator_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            allocator_metadata = NTFSAllocatorMeta(file_metadata)
+            self.fs.read(outstream, allocator_metadata)
         else:
             raise NotImplementedError()
 
@@ -99,6 +104,9 @@ class ClusterAllocation:
                             restored into
         """
         if self.fs_type == 'FAT':
+            with open(outfilepath, 'wb+') as outfile:
+                self.read(outfile)
+        elif self.fs_type == 'NTFS':
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
         else:
@@ -117,6 +125,9 @@ class ClusterAllocation:
                 file_metadata = FATAllocatorMeta(file_metadata)
                 self.fs.clear(file_metadata)
         elif self.fs_type == 'NTFS':
-            raise NotImplementedError()
+            for file_entry in self.metadata.get_files():
+                file_metadata = file_entry['metadata']
+                file_metadata = NTFSAllocatorMeta(file_metadata)
+                self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()
