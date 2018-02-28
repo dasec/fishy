@@ -235,7 +235,7 @@ TOP SECRET
 $ fishy -d testfs-fat12.dd badcluster -m metadata.json -c
 ```
 
-##Reserved GDT Blocks
+## Reserved GDT Blocks
 
 The `reserved_gdt_blocks` subcommand provides methods to read, write and clean
 the space reserved for the expansion of the GDT.
@@ -256,7 +256,7 @@ TOP SECRET
 $ fishy -d testfs-ext4.dd reserved_gdt_blocks -m metadata.json -c
 ```
 
-##Superblock Slack
+## Superblock Slack
 
 The `superblock_slack` subcommand provides methods to read, write and clean
 the slack of superblocks in an ext4 filesystem
@@ -277,7 +277,7 @@ TOP SECRET
 $ fishy -d testfs-ext4.dd superblock_slack -m metadata.json -c
 ```
 	
-##OSD2
+## OSD2
 
 The `osd2` subcommand provides methods to read, write and clean
 the unused last two bytes of the inode field osd2
@@ -298,7 +298,7 @@ TOP SECRET
 $ fishy -d testfs-ext4.dd osd2 -m metadata.json -c	
 ```
 	
-##obso_faddr
+## obso_faddr
 
 The `obso_faddr` subcommand provides methods to read, write and clean
 the unused inode field obso_faddr
