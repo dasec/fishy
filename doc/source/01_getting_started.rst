@@ -64,6 +64,8 @@ subcommands. Following table gives an overview over the all implemented hiding t
 +------------------+----+------+------+-----------------------------------------+
 | fileslack        | ✓  |  ✓   |  ✓   | Exploitation of File Slack              |
 +------------------+----+------+------+-----------------------------------------+
+| mftslack         |    |  ✓   |      | Exploitation of MFT entry Slack         |
++------------------+----+------+------+-----------------------------------------+
 | addcluster       | ✓  |  ✓   |      | Allocate additional clusters for a file |
 +------------------+----+------+------+-----------------------------------------+
 | badcluster       | ✓  |  ✓   |      | Bad Cluster Allocation                  |
