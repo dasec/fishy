@@ -104,6 +104,66 @@ A directory entry stores information about a file or subdirectory:
 Subdirectory entries use the `start cluster` field to point to a cluster
 that then again holds a series of directory entries.
 
+NTFS
+....
+
+The New Technologies File System (NTFS) was designed by Microsoft and is the standard file system of Microsoft operating systems
+starting from Windows NT/2000. NTFS is a significantly more complex file system than FAT with many features to enhance reliability,
+security and scalability. Unfortunately, there is no official published specification for NTFS from Microsoft and low-level details
+can only be found in unofficial descriptions.
+
+Everything is a File
+********************
+
+"Everything is a File" is the most important concept in the design of NTFS. Each byte of an NTFS file system belongs to a file and
+the entire file system is considered a data area. Even system data and meta data, which are usually hidden by other file systems,
+are allocated to files and could be located anywhere in the volume. Consequently, NTFS file systems do not have a specific layout
+apart from the first sectors of the volume containing the boot sector and initial program loader.
+
+Master File Table
+*****************
+
+The Master File Table (MFT) contains an entry for every file and directory stored in a NTFS partition. It contains the necessary
+metadata such as the file name, -size, and the location of the stored data. MFT entries allocate a fixed size, usually 1024 bytes,
+but only the first 42 bytes have a defined purpose (MFT Entry Header). The remaining bytes store attributes, which contain the
+metadata for a file (e.g.: $STANDARD_INFORMATION, $FILE_NAME, $DATA).
+
+
+File System Metadata Files
+**************************
+
+NTFS stores its administrative Data in metadata files, which contain central information about the NTFS file system. Their names
+start with dollar character $ and the first letter is capitalized (except for ’.’). Microsoft reserves the first 16 MFT entries
+for file system metadata files. The following table contains the standard NTFS file system metadata files (Brian Carrier, p.202):
+
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Entry | File Name | Description                                                                                                                                            |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 0     | $MFT      | TheThe entry for the MFT itself.                                                                                                                       |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 1     | $MFTMirr  | Contains a backup of the first entries in the MFT.                                                                                                     |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 2     | $LogFile  | Contains the journal that records the metadata transactions.                                                                                           |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 3     | $Volume   | Contains the volume information such as the label, identifier, and version.                                                                            |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 4     | $AttrDef  | Contains the attribute information, such as the identifier values, name, and sizes                                                                     |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 5     | .         | Contains the root directory of the file system.                                                                                                        |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 6     | $Bitmap   | Contains the allocation status of each cluster in the file system                                                                                      |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 7     | $Boot     | Contains the boot sector and boot code for the file system.                                                                                            |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 8     | $BadClus  | Contains the clusters that have bad sectors                                                                                                            |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 9     | $Secure   | Contains information about the security and access control for the files                                                                               |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 10    | $Upcase   | Contains the uppercase version of every Unicode character.                                                                                             |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+| 11    | $Extend   | A directory that contains files for optional extensions. Microsoft does not typically place the files in this directory into the reserved MFT entries. |
++-------+-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+
 EXT4
 ....
 
@@ -229,19 +289,15 @@ block is reached
 MFT Entry Slack
 ...............
 
-The Master File Table (MFT) contains an entry for every file and directory stored in
-a NTFS partition. It contains the necessary metadata such as the file name, -size, and
-the location of the stored data. MFT entries allocate a fixed size, usually 1024 bytes,
-but only the first 42 bytes have a defined purpose (MFT Entry Header). The remaining bytes
-store attributes, which contain the metadata for a file (e.g.: $STANDARD_INFORMATION,
-$FILE_NAME, $DATA). An MFT entry does not have to fill up all of its allocated bytes, which
-often leads to some unused space at the end of an entry.
+The Master File Table (MFT) contains contains the necessary metadata for every file and directory
+stored in a NTFS partition (see section 'Filesystem Data Structures'). An MFT entry does not have
+to fill up all of its allocated bytes, which often leads to some unused space at the end of an entry.
 
 .. image:: _static/mft_entry.png
 
-This unused space, the MFT entry slack, can still contain data of an old MFT entry,
-which was previously stored in the same location. This makes the MFT entry slack an
-ideal place to hide data inconspicuously.
+In most implementations this unused space, the MFT entry slack, can still contain data of an old MFT entry,
+which was previously stored in the same location (was not the case with ntfs-3g 2013.1.1.13AR.1 driver).
+This makes the MFT entry slack an suitable place to hide data inconspicuously.
 
 NTFS uses a concept called Fixup (Brian Carrier, p.253) for its important data structures,
 such as the MFT, in order to detect damaged sectors and corrupt data structures. When an
