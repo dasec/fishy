@@ -9,6 +9,7 @@ The People who worked on this tool:
     * ext4: filesystem detector
 * Tim Christen:
     * NTFS filesystem parser
+    * Additional Cluster Allocation Documentation
 * Matthias Greune:
     * Architecture, overall tool design
     * `create_testfs.sh` script
