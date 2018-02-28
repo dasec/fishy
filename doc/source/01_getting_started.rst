@@ -215,3 +215,24 @@ Available for these filesystem types:
 
     # clean up bad clusters
     $ fishy -d testfs-fat12.dd badcluster -m metadata.json -c
+
+Encryption and Checksumming
+...........................
+
+Currently, fishy does not provide on the fly encryption and does not apply any
+data integrity methods to the hidden data. Thus its left to the user, to add
+those extra functionality before hiding the data. The following listing gives
+two examples, on how to use pipes to easily get these features.
+
+To encrypt data with a password, one can use gnupg:
+
+.. code:: bash
+
+    $ echo "TOP SECRET" | gpg2 --symmetric - | fishy -d testfs-fat12.dd badcluster -m metadata.json -w
+
+To detect corruption of the hidden data, there exist many possibilities and tools.
+The following code listing gives an easy example on how to use zip for this purpose.
+
+.. code:: bash
+
+    $ echo "TOP SECRET" | gzip | fishy -d testfs-fat12.dd badcluster -m metadata.json -w
