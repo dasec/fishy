@@ -76,7 +76,7 @@ Reserved Group Descriptor Tables
 Superblock Slack
 ----------------
 
-* **Gained capacity**: `block_size - 2048 bytes + superblock_copies * (block_size - 1024 bytes)`
+* **Gained capacity**: `block_size - 2048 + superblock_copies * (block_size - 1024) bytes`
 * **Detection probability**: High. Detection tools as well as the bare eye will detect written data here.
 * **Stability**: High. This will not get overwritten.
 
@@ -87,11 +87,15 @@ osd2
 
 * **Gained capacity**: `number of inodes * 2 bytes`
 * **Detection probability**: fsck notices wrong checksums, therefore it is quite easy to detect.
-* **Stability**: High. These fields are unused.
+  If you manage to get around the checksum-problem (recreate checksums) this might be one of the
+  most inconspicuous hiding techniques
+* **Stability**: High. These fields are unused and wil not get overwritten.
 
 obso_faddr
 **********
 
 * **Gained capacity**: `number of inodes * 4 bytes`
 * **Detection probability**: fsck notices wrong checksums, therefore it is quite easy to detect.
-* **Stability**: High. These fields are obsolete, therefore unused.
+  If you manage to get around the checksum-problem (recreate checksums) this might be one of the
+  most inconspicuous hiding techniques
+* **Stability**: High. These fields are obsolete, therefore unused and wil not get overwritten.

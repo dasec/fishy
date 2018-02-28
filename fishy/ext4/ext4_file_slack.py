@@ -1,12 +1,14 @@
 import typing as typ
-from pytsk3 import FS_Info, Img_Info,TSK_FS_META_TYPE_DIR,TSK_FS_META_TYPE_REG
+from pytsk3 import FS_Info, Img_Info, TSK_FS_META_TYPE_DIR, TSK_FS_META_TYPE_REG
 
 from fishy.ext4.ext4_filesystem.EXT4 import EXT4
+
 
 class Ext4FileSlackMetadata:
     """
     meta data class for ext4 Fileslack, holds addresses and length of saved data
     """
+
     def __init__(self, d: dict = None):
         """
         :param d: dict, dictionary representation of a FileSlackMetadata
@@ -36,8 +38,10 @@ class Ext4FileSlackMetadata:
         for addr in self.addrs:
             yield addr[0], addr[1]
 
+
 class EXT4FileSlack:
     """ class for ext4 fileslack operqations"""
+
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
@@ -54,21 +58,20 @@ class EXT4FileSlack:
         """
         writes from instream into Fileslack of files passed in filepaths
         :param instream: stream to read from
-        :param filepaths: list of strings, path to files which slackspace will be used or
-                          directories containing such files
+        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
         :return: Ext4FileSlackMetadata
         """
-        meta=Ext4FileSlackMetadata()
+        meta = Ext4FileSlackMetadata()
         if filepaths is None:
             filepaths = ["/"]
-        slackspace=self.get_Slackspace_list(filepaths)
+        slackspace = self.get_Slackspace_list(filepaths)
         for address in slackspace:
             if instream.peek():
-                space=address[1]
-                buf=instream.read(space)
+                space = address[1]
+                buf = instream.read(space)
                 self.stream.seek(address[0])
                 self.stream.write(buf)
-                meta.add_addr(address[0],len(buf))
+                meta.add_addr(address[0], len(buf))
             else:
                 break;
         if instream.peek():
@@ -83,46 +86,43 @@ class EXT4FileSlack:
         :param outstream: stream to write into
         :param metadata: Ext4FileSlackMetadata object
         """
-        for address,length in metadata.get_addr():
+        for address, length in metadata.get_addr():
             self.stream.seek(address)
-            buf=self.stream.read(length)
+            buf = self.stream.read(length)
             outstream.write(buf)
 
-    def clear(self,metadata: Ext4FileSlackMetadata)->None:
+    def clear(self, metadata: Ext4FileSlackMetadata) -> None:
         """
         clears fileslack in which data has been hidden
         :param metadata: Ext4FileSlackMetadata object
         """
-        for address,length in metadata.get_addr():
+        for address, length in metadata.get_addr():
             self.stream.seek(address)
-            self.stream.write(length*b'\x00')
+            self.stream.write(length * b'\x00')
 
-    def info(self,filepaths):
+    def info(self, filepaths):
         """
         prints avaible slackspace
-        :param filepaths: list of strings, path to files which slackspace will be used or
-                          directories containing such files
+        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
         :return: amount of slackspace
         """
         if filepaths is None:
             filepaths = ["/"]
         slackspace = self.get_Slackspace_list(filepaths)
-        space=0
+        space = 0
         for address in slackspace:
-            space+=address[1]
-        print("Total slackspace:%s Bytes"%space)
+            space += address[1]
+        print("Total slackspace:%s Bytes" % space)
 
-
-    def get_Slackspace_list(self,filepaths):
+    def get_Slackspace_list(self, filepaths):
         """
         creates a list of the location of slackspace
-        :param filepaths: list of strings, path to files which slackspace will be used or
-                          directories containing such files
+        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
         :return: list containing physical addresses and length of slackspace
         """
         filelist = list()
-        slackspace=list()
-        #create a list of files that are passed by the user or located in directories passed by the user
+        slackspace = list()
+        # create a list of files that are passed by the user or located in directories passed by the user
         for path in filepaths:
             try:
                 file = self.fs_inf.open(path)
@@ -131,8 +131,8 @@ class EXT4FileSlack:
                 elif file.info.meta.type == TSK_FS_META_TYPE_REG:
                     filelist.append(file)
             except OSError:
-                print("Cant open "+path)
-        #locate slackspace for every file in the list
+                print("Cant open " + path)
+        # locate slackspace for every file in the list
         for file in filelist:
             size = file.info.meta.size
             for attr in file:
@@ -140,24 +140,23 @@ class EXT4FileSlack:
                     if run.len * self.ext4fs.blocksize > size:
                         slackstart = run.addr * self.ext4fs.blocksize + size
                         slackend = (run.addr + run.len) * self.ext4fs.blocksize - 1
-                        length=slackend-slackstart+1
-                        #check for duplicates
-                        if [slackstart,length] not in slackspace:
-                            slackspace.append([slackstart,length])
+                        length = slackend - slackstart + 1
+                        # check for duplicates
+                        if [slackstart, length] not in slackspace:
+                            slackspace.append([slackstart, length])
         return slackspace
 
-    def get_dir_content(self,dir):
+    def get_dir_content(self, dir):
         """
         lists all files contained in a given directory, recursively entering subdirectories
         :param dir: pytsk3 directory object
         :return: list of pytsk3 file objects
         """
-        filelist=[]
+        filelist = []
         for file in dir:
             if file.info.name.name != b'.' and file.info.name.name != b'..':
-                if file.info.meta.type == TSK_FS_META_TYPE_DIR: #directory
-                    filelist=filelist+(self.get_dir_content(file.as_directory()))
-                elif file.info.meta.type == TSK_FS_META_TYPE_REG: #regular file
+                if file.info.meta.type == TSK_FS_META_TYPE_DIR:  # directory
+                    filelist = filelist + (self.get_dir_content(file.as_directory()))
+                elif file.info.meta.type == TSK_FS_META_TYPE_REG:  # regular file
                     filelist.append(file)
         return filelist
-

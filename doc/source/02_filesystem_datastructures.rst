@@ -239,7 +239,7 @@ Therefore it is usable for datahiding as long as the filesystem does not get exp
 Journal
 *******
 
-The journal guarantees a successful write operation, after a committed data transaction is written to the disk,
+The journal guarantees a successful write operation. After a committed data transaction is written to the disk,
 it is saved to a 128MiB big section on the disk, the journal. From there it gets written to its final 
 destination and can be restored in case of a power outage or data corruption during the write operation.
 

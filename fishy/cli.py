@@ -520,6 +520,7 @@ def build_parser() -> argparse.ArgumentParser:
     # TODO: Maybe this option should be required for hiding technique
     #       subcommand but not for metadata.... needs more thoughs than I
     #       currently have
+    parser.set_defaults(which='no_arguments')
     parser.add_argument('-d', '--device', dest='dev', required=False, help='Path to filesystem')
     parser.add_argument('-p', '--password', dest='password', required=False, help='Password for encryption of metadata')
     # TODO Maybe we should provide a more fine grained option to choose between different log levels
@@ -664,17 +665,15 @@ def main():
 
 
     # if 'metadata' was chosen
-    if args.which == 'metadata':
+    if args.which == 'no_arguments':
+        parser.print_help()
+    elif args.which == 'metadata':
         do_metadata(args)
     else:
         with open(args.dev, 'rb+') as device:
             # if 'fattools' was chosen
             if args.which == "fattools":
                 do_fattools(args, device)
-
-            # if 'info' was chosen
-            if args.which == "info":
-                do_info(args, device)
 
             # if 'fileslack' was chosen
             if args.which == 'fileslack':

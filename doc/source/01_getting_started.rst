@@ -48,7 +48,7 @@ You may have to install some extra latex dependencies:
 
 Test Filesystem
 ---------------
-To generate a filesystem for a quick test of fishy, take a look at the appendix 1 `create_testfs.sh`
+To generate a filesystem for a quick test of `fishy`, take a look at the appendix 1 `create_testfs.sh`
 
 Usage
 -----

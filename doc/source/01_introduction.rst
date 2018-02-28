@@ -1,7 +1,7 @@
 Introduction
 ============
 
-fishy is a toolkit for filesystem based data hiding techniques implemented in
+`fishy` is a toolkit for filesystem based data hiding techniques implemented in
 Python. It collects various common exploitation methods that make use of
 existing data structures on the filesystem layer, for hiding data from
 conventional file access methods. This toolkit is intended to introduce people
@@ -9,18 +9,18 @@ to the concept of established anti-forensic methods associated with data
 hiding.
 
 In our research regarding existing tools for filesystem based data hinding
-techniques we only came up with a hand full of tool. None of these provide a
+techniques we only came up with a hand full of tools. None of these provide a
 consistent interface for multiple filesystems and various hiding techniques.
-For most of them it seemed, that development has been stopped.
+For most of them it seemed that development has been stopped.
 
 With this background, there is no currently active framework for filesystem
-based data hinding techniques, other than fishy. As fishy aimes to provide an
+based data hinding techniques, other than `fishy`. As `fishy` aimes to provide an
 easy to use framework for creating new hiding techniques, this project might be
 useful for all security researchers, which are concerned with data hiding.
 
 This toolkit provides a cli interface for hiding data via the command line. Also
 the implemented hiding techniques can be used in other projects by importing
-fishy as a library. Besides that, fishy can also act as a framework to easily
+`fishy` as a library. Besides that, `fishy` can also act as a framework to easily
 implement custom hiding techniques.
 
 Limitations
