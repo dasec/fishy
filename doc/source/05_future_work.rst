@@ -1,3 +1,6 @@
+Future Work
+===========
+
 The current state of the project offers enough functionality to hide data in
 our chosen filesystems. However there is still room for improvement of some
 features. This section gives a brief overview of some potential key points.

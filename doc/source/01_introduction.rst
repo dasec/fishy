@@ -32,12 +32,20 @@ overwritten data.
 up to him to apply the encryption before he hides the data with this tool. The same
 applies to data integrity functionality.
 
-
 See also
 --------
 
-* `slacker.exe <http://www.bishopfox.com/resources/tools/other-free-tools/mafia/>`_ - windows tool for hiding data in ntfs slack space 
-* `bmap <http://www.gupiaoya.com/Soft/Soft_6823.htm>`_ - linux tool for hiding data in ntfs slack space
+During our research we mainly found two tools that implement filesystem based
+data hiding techniques and that seemed to be in a broader use. First there is
+`bmap <http://www.gupiaoya.com/Soft/Soft_6823.htm>`_, a linux tool for hiding
+data in ntfs slack space. This project seems to have no active website and
+downloads of this tool can only found on some shady tool collection sites.
+
+The second tool we found was `slacker.exe
+<http://www.bishopfox.com/resources/tools/other-free-tools/mafia/>`_, a windows
+tool for hiding data in ntfs slack space. This tool was developed by Bishop Fox
+and seems to be included into the metasploit framework, at some time. The actual
+download on their website is disabled.
 
 Documentation Overview
 ----------------------
