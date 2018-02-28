@@ -4,10 +4,10 @@ MftSlack a wrapper to comply with README - How to implement a hiding technique
 import logging
 import typing as typ
 from os import path
-from .filesystem_detector import get_filesystem_type
-from .metadata import Metadata
-from .ntfs.ntfs_mft_slack import NtfsMftSlack as NTFSMftSlack
-from .ntfs.ntfs_mft_slack import MftSlackMetadata as NTFSMftSlackMetadata
+from ..filesystem_detector import get_filesystem_type
+from ..metadata import Metadata
+from ..ntfs.ntfs_mft_slack import NtfsMftSlack as NTFSMftSlack
+from ..ntfs.ntfs_mft_slack import MftSlackMetadata as NTFSMftSlackMetadata
 
 LOGGER = logging.getLogger("MftSlack")
 
@@ -45,7 +45,7 @@ class MftSlack:
         self.metadata = metadata
         self.fs_type = get_filesystem_type(fs_stream)
         if self.fs_type == 'NTFS':
-            self.fs = NTFSMftSlack(dev)
+            self.fs = NTFSMftSlack(dev, fs_stream)
             self.fs.domirr = domirr
             self.metadata.set_module("ntfs-mft-slack")
         else:

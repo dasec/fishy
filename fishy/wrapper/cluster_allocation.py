@@ -4,12 +4,12 @@ ClusterAllocator wrapper for filesystem specific implementations
 import logging
 import typing as typ
 from os import path
-from .fat.cluster_allocator import ClusterAllocator as FATAllocator
-from .fat.cluster_allocator import AllocatorMetadata as FATAllocatorMeta
-from .ntfs.cluster_allocator import ClusterAllocator as NTFSAllocator
-from .ntfs.cluster_allocator import AllocatorMetadata as NTFSAllocatorMeta
-from .filesystem_detector import get_filesystem_type
-from .metadata import Metadata
+from ..ntfs.cluster_allocator import ClusterAllocator as NTFSAllocator
+from ..ntfs.cluster_allocator import AllocatorMetadata as NTFSAllocatorMeta
+from ..fat.cluster_allocator import ClusterAllocator as FATAllocator
+from ..fat.cluster_allocator import AllocatorMetadata as FATAllocatorMeta
+from ..filesystem_detector import get_filesystem_type
+from ..metadata import Metadata
 
 LOGGER = logging.getLogger("ClusterAllocation")
 

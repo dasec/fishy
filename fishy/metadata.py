@@ -39,9 +39,8 @@ Sub-Metadata class and can vary, depending on the hiding technique)
 :Example:
 
 first we create a Sub-Metadata class. It should be defined in each hiding
-technique and specifies which data a hiding technique will store. In this
-example we use the FileSlackMetadata class, because it is currently the only
-one that exists.
+technique and specifies which data a hiding technique it will store. In this
+example we use the FileSlackMetadata class.
 
 >>> from fishy.fat.file_slack import FileSlackMetadata
 >>> subm = FileSlackMetadata()

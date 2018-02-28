@@ -1,5 +1,5 @@
-Module Documentation
-====================
+Module Reference
+================
 
 Filesystem Implementations
 --------------------------
@@ -71,3 +71,45 @@ MFT Slack
 
 .. automodule:: fishy.ntfs.ntfs_mft_slack
         :members:
+
+Bad Cluster Allocation
+......................
+
+.. automodule:: fishy.ntfs.bad_cluster
+        :members:
+
+Ext4
+****
+
+Reseved GDT Blocks
+..................
+
+.. automodule:: fishy.ext4.reserved_gdt_blocks
+        :members:
+
+Superblock Slack
+................
+
+.. automodule:: fishy.ext4.superblock_slack
+        :members:
+
+File Slack
+..........
+
+.. automodule:: fishy.ext4.ext4_file_slack
+        :members:
+
+osd2
+....
+
+.. automodule:: fishy.ext4.osd2
+        :members:
+
+obso_faddr
+..........
+
+.. automodule:: fishy.ext4.obso_faddr
+        :members:
+
+			
+			

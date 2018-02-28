@@ -115,7 +115,7 @@ class ClusterAllocator:
     def write(self, instream: typ.BinaryIO, filepath: str) \
             -> AllocatorMetadata:
         """
-        writes from instream into slackspace of filename
+        writes from instream into additional allocated clusters of filename
 
         :param instream: stream to read from
         :param filepath: string, path to file, for which additional clusters
@@ -185,7 +185,7 @@ class ClusterAllocator:
         cluster_size = self.fatfs.pre.sector_size \
                        * self.fatfs.pre.sectors_per_cluster
         # read what to write. ensure that we only read the amount of data,
-        # that fits into slack
+        # that fits into cluster
         bufferv = instream.read(cluster_size)
         LOGGER.info("%d bytes read from instream", len(bufferv))
         # find position where we can start writing data
@@ -198,7 +198,8 @@ class ClusterAllocator:
     def read(self, outstream: typ.BinaryIO, metadata: AllocatorMetadata) \
             -> None:
         """
-        writes slackspace of files into outstream
+        writes content of additionally allocated clusters of a file into
+        outstream.
 
         :param outstream: stream to write into
         :param metadata: AllocatorMetadata object

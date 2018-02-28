@@ -17,10 +17,17 @@ hiding.
 * NTFS:
 	* File Slack [✓]
 	* MFT Slack [✓]
-	* Allocate More Clusters for File
-	* Mark clusters as 'bad', but write data into them
+	* Allocate More Clusters for File [✓]
+	* Bad Cluster Allocation [✓]
 	* Add data attribute to directories
 	* Alternate Data Streams
+* Ext4:
+	* Superblock Slack [✓]
+	* reserved GDT blocks [✓]
+	* File Slack [✓]
+	* inode:
+		* osd2 [✓]
+		* obso_faddr [✓]
 	
 # Requirements
 
@@ -53,9 +60,13 @@ $ python setup.py doc
 To generate the documentation as pdf:
 ```bash
 $ cd doc
-$ make latex
-$ cd build/latex
-% make
+$ make latexpdf
+```
+
+You may have to install some extra latex dependencies:
+```bash
+$ sudo apt-get install latexmk
+$ sudo apt-get install texlive-formats-extra
 ```
 
 # Usage
@@ -66,6 +77,10 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`fileslack`](#file-slack) - Exploitation of File Slack
 * [`addcluster`](#additional-cluster-allocation) - Allocate additional clusters for a file
 * [`badcluster`](#bad-cluster-allocation) - Allocate bad clusters
+* [`superblock_slack`](#superblock-slack) - Exploitation of Superblock Slack
+* [`reserved_gdt_blocks`](#reserved-gdt-blocks) - Exploitation of reserved GDT blocks
+* [`osd2`](#osd2) - Exploitation of inode's osd2 field
+* [`obso_faddr`](#obso_faddr) - Exploitation of inode's obso_faddr field
 
 ## FATtools
 
@@ -135,6 +150,7 @@ Available for these filesystem types:
 
 * FAT
 * NTFS
+* EXT4
 
 ```bash
 # write into slack space
@@ -157,7 +173,7 @@ File: myfile.txt
 
 ## MFT Slack
 
-The `mftslack` subcommand provides functionality to read, write and clean the mft slack of files in a filesystem.
+The `mftslack` subcommand provides functionality to read, write and clean the slack of mft entries in a filesystem.
 
 Available for these filesystem types:
 
@@ -183,6 +199,7 @@ The `addcluster` subcommand provides methods to read, write and clean additional
 Available for these filesystem types:
 
 * FAT
+* NTFS
 
 ```bash
 # Allocate additional clusters for a file and hide data in it
@@ -203,7 +220,8 @@ bad clusters, where data can be hidden.
 
 Available for these filesystem types:
 
--  FAT
+* FAT
+* NTFS
 
 ```bash
 # Allocate bad clusters and hide data in it
@@ -215,6 +233,110 @@ TOP SECRET
 
 # clean up bad clusters
 $ fishy -d testfs-fat12.dd badcluster -m metadata.json -c
+```
+
+## Reserved GDT Blocks
+
+The `reserved_gdt_blocks` subcommand provides methods to read, write and clean
+the space reserved for the expansion of the GDT.
+
+Available for these filesystem types:
+
+* EXT4
+
+```bash
+# write int reserved GDT Blocks
+$ echo "TOP SECRET" | fishy -d testfs-ext4.dd reserved_gdt_blocks -m metadata.json -w
+
+# read hidden data from reserved GDT Blocks
+$ fishy -d testfs-ext4.dd reserved_gdt_blocks -m metadata.json -r
+TOP SECRET
+
+# clean up reserved GDT Blocks
+$ fishy -d testfs-ext4.dd reserved_gdt_blocks -m metadata.json -c
+```
+
+## Superblock Slack
+
+The `superblock_slack` subcommand provides methods to read, write and clean
+the slack of superblocks in an ext4 filesystem
+
+Available for these filesystem types:
+
+* EXT4
+
+```bash
+# write int Superblock Slack
+$ echo "TOP SECRET" | fishy -d testfs-ext4.dd superblock_slack -m metadata.json -w
+
+# read hidden data from Superblock Slack
+$ fishy -d testfs-ext4.dd superblock_slack -m metadata.json -r
+TOP SECRET
+
+# clean up Superblock Slack
+$ fishy -d testfs-ext4.dd superblock_slack -m metadata.json -c
+```
+	
+## OSD2
+
+The `osd2` subcommand provides methods to read, write and clean
+the unused last two bytes of the inode field osd2
+
+Available for these filesystem types:
+
+* EXT4
+
+```bash
+# write int osd2 inode field
+$ echo "TOP SECRET" | fishy -d testfs-ext4.dd osd2 -m metadata.json -w
+
+# read hidden data from osd2 inode field
+$ fishy -d testfs-ext4.dd osd2 -m metadata.json -r
+TOP SECRET
+
+# clean up osd2 inode field
+$ fishy -d testfs-ext4.dd osd2 -m metadata.json -c	
+```
+	
+## obso_faddr
+
+The `obso_faddr` subcommand provides methods to read, write and clean
+the unused inode field obso_faddr
+
+Available for these filesystem types:
+
+* EXT4
+
+```bash
+# write int obso_faddr inode field
+$ echo "TOP SECRET" | fishy -d testfs-ext4.dd obso_faddr -m metadata.json -w
+
+# read hidden data from obso_faddr inode field
+$ fishy -d testfs-ext4.dd obso_faddr -m metadata.json -r
+TOP SECRET
+
+# clean up obso_faddr inode field
+$ fishy -d testfs-ext4.dd obso_faddr -m metadata.json -c	
+```
+    
+## Encryption and Checksumming
+
+Currently, fishy does not provide on the fly encryption and does not apply any
+data integrity methods to the hidden data. Thus its left to the user, to add
+those extra functionality before hiding the data. The following listing gives
+two examples, on how to use pipes to easily get these features.
+
+To encrypt data with a password, one can use gnupg:
+
+```
+$ echo "TOP SECRET" | gpg2 --symmetric - | fishy -d testfs-fat12.dd badcluster -m metadata.json -w
+```
+
+To detect corruption of the hidden data, there exist many possibilities and tools.
+The following code listing gives an easy example on how to use zip for this purpose.
+
+```
+$ echo "TOP SECRET" | gzip | fishy -d testfs-fat12.dd badcluster -m metadata.json -w
 ```
 
 
@@ -249,6 +371,7 @@ To build all images that might be necessary for unittests, run
 ```
 $ ./create_testfs.sh -t all
 ```
+
 
 ## How to implement a hiding technique
 

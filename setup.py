@@ -14,7 +14,7 @@ setup(
     },
     install_requires=[
         "argparse",
-        "construct",
+        "construct < 2.9",
         "pytsk3",
         "simple-crypt",
     ],
