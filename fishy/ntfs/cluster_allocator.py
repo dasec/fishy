@@ -180,7 +180,7 @@ class ClusterAllocator:
         #Search for the requested amount of unallocated clusters
         new_runs = []
         clusters_found = []
-        cluster_pos = 0
+        cluster_pos = 50
 
         #TODO Ignore the first few clusters
         #Go through every bit of the bitmap

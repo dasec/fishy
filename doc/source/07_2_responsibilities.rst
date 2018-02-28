@@ -9,6 +9,7 @@ The People who worked on this tool:
     * ext4: filesystem detector
 * Tim Christen:
     * NTFS filesystem parser
+    * NTFS Additional Cluster Allocation
     * Additional Cluster Allocation Documentation
 * Matthias Greune:
     * Architecture, overall tool design
