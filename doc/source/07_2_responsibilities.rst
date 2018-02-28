@@ -11,6 +11,7 @@ The People who worked on this tool:
     * NTFS filesystem parser
 * Matthias Greune:
     * Architecture, overall tool design
+    * `create_testfs.sh` script
     * FAT filesystem parser and corresponding Tests
     * FAT and NTFS filesystem detector
     * FAT Hiding Technique FileSlack and corresponding Tests
