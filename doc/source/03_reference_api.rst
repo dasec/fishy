@@ -27,6 +27,29 @@ This filesystem instance provides some important methods.
 .. autoclass:: fishy.fat.fat_filesystem.fat.FAT
         :members:
 
+NTFS Filesystem
+***************
+
+This is an implementation of a parser for NTFS, wich can give various
+information about the low level structure and content of the filesystem.
+
+To parse a filesystem image you just need to provide the NTFS class with a stream
+of the image.
+
+.. code-block:: python
+
+        from fishy.ntfs.ntfs_filesystem.ntfs import NTFS
+
+        f = open('testfs.dd', 'rb')
+        fs = NTFS(f)
+
+
+This instance of the NTFS class provides functions to get all parsed information
+about the filesystem
+
+.. autoclass:: fishy.ntfs.ntfs_filesystem.ntfs.NTFS
+        :members:
+
 Metadata
 --------
 
