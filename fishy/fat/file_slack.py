@@ -6,8 +6,9 @@ Implementation is mainly realized as described by [1], but
 extended in terms of respecting RAM slack padding of Windows
 and Linux FAT implementations [2].
 
-[1]: Shu-fen-2009
-[2]: Berghel2008
+[1]: Shu-fen, L.; Sheng, P.; Xing-yan, H. & Lu, T. File Hiding Based on FAT File System 2009 IEEE International Symposium on IT in Medicine&Education, 2009
+
+[2]: Berghel, H.; Hoelzer, D. & Sthultz, M. Data Hiding Tactics for Windows and Unix File Systems Link to the Published Version in Advances in Computers, 2008, 74
 
 :Example:
 
@@ -114,9 +115,10 @@ class FileSlack:
 
         :param entry: DirEntry, directory entry of the file
 
-        :return: tuple of (occupation, free_slack), whereas occupation
-                 is the occupied size of the last cluster by the file.
-                 And free_slack is the size of the slack space
+        :return: tuple of (occupation, ram_slack, free_slack), whereas
+                 occupation is the occupied size of the last cluster by the
+                 file. ram_slack is the size of the (padded) ram slack
+                 and free_slack is the size of the slack space.
         """
         # calculate how many bytes belong to a cluster
         cluster_size = self.fatfs.pre.sector_size * \
@@ -234,7 +236,7 @@ class FileSlack:
 
     def clear(self, metadata: FileSlackMetadata) -> None:
         """
-        clears the slackspace of a files
+        clears the slackspace of a file
 
         :param metadata: FileSlackMetadata object
         """

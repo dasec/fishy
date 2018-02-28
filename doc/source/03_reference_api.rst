@@ -72,6 +72,12 @@ MFT Slack
 .. automodule:: fishy.ntfs.ntfs_mft_slack
         :members:
 
+Bad Cluster Allocation
+......................
+
+.. automodule:: fishy.ntfs.bad_cluster
+        :members:
+
 Ext4
 ****
 

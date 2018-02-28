@@ -65,10 +65,6 @@ Additional Cluster Allocation
   will be overwritten or partially truncated. So, this technique should be used
   preferably with non-changing filesystems or files that don't change.
 
-* **Gained capacity**: 
-* **Detection probability**: 
-* **Stability**: High Medium Low
-  
 Reserved Group Descriptor Tables
 --------------------------------
 
