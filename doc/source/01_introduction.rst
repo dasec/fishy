@@ -1,10 +1,12 @@
 Introduction
 ============
 
-.. include:: 01_description.rst
-
-Why fishy
----------
+fishy is a toolkit for filesystem based data hiding techniques implemented in
+Python. It collects various common exploitation methods that make use of
+existing data structures on the filesystem layer, for hiding data from
+conventional file access methods. This toolkit is intended to introduce people
+to the concept of established anti-forensic methods associated with data
+hiding.
 
 In our research regarding existing tools for filesystem based data hinding
 techniques we only came up with a hand full of tool. None of these provide a
@@ -15,7 +17,6 @@ With this background, there is no currently active framework for filesystem
 based data hinding techniques, other than fishy. As fishy aimes to provide an
 easy to use framework for creating new hiding techniques, this project might be
 useful for all security researchers, which are concerned with data hiding.
-
 
 Limitations
 -----------
