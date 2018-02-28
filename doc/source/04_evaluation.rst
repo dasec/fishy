@@ -2,7 +2,14 @@ Evaluation
 ==========
 
 This section summarizes some evaluations we made for the different implemented
-hiding techniques.
+hiding techniques. It offers an overview about the possible capacity gain of
+each hiding technique. Also it gives a founded rating of its stability. Lastly
+we checked the detection propability for each technique. The scenario we
+questioned was, if a regular filesystem check would detect inconsistencies and
+therefore hints to a suspicious modification. Accordingly we used the standard
+os filesystem check utilities to perform our evaluation. For the FAT filesystem
+we used `fsck.fat`. The Ext4 filesystems were tested with `fsck.ext4`. To check
+NTFS filesystems, we used the windows `CHKNTFS` utility.
 
 FileSlack
 ---------
