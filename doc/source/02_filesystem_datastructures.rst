@@ -336,7 +336,20 @@ To hide data in a bad cluster:
 4. For NTFS: Add address of the used clusters to $BadClus, mark their positions in $Bitmap as allocated.
    For FAT: Set the cluster values of the corresponding File Allocation entries  to 'bad' marker
 
+Additional Cluster Allocation
+.............................
 
+Clusters are either unallocated or allocated to a file. By allocating an actually unallocated cluster
+to a file, the filesystem will not try to allocate that cluster and write file data to it, and data can be hidden
+in that cluster. If the file the cluster is allocated to grows in size and exceeds the boundary of
+its originally allocated clusters, the file will grow into the additionally allocated cluster
+and overwrite the hidden data, so a file which is unlikely to grow should be chosen.
+
+The procedure is as follows:
+
+1. Calculate how many additional clusters to allocate
+2. Find that many unallocated clusters and allocate them to a file
+3. For NTFS: Change the allocated size attribute of that file depending on how many clusters were added
 
 Reserved Group Descriptor Tables
 ................................
