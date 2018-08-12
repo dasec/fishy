@@ -9,7 +9,7 @@ hiding.
 
 ## Code Authors and Project
 
-fishy is a projet initiated by several bachelor students of the Hochschule Darmstadt (h_da), University of Applied Sciences and the da/sec research group.
+`fishy` is a project initiated by the da/sec research group and several bachelor students of the Hochschule Darmstadt (h_da), University of Applied Sciences.
 
 Student members: Adrian Kailus, Christian Hecht, Matthias Greune, Deniz Celik, Tim Christen, Dustin Kern, Yannick Mau und Patrick Naili.
 
