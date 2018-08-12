@@ -7,29 +7,26 @@ conventional file access methods. This toolkit is intended to introduce people
 to the concept of established anti-forensic methods associated with data
 hiding.
 
-# Techniques we found
+## Code Authors and Project
 
-* FAT:
-	* File Slack [✓]
-	* Bad Cluster Allocation [✓]
-	* Allocate More Clusters for a file [✓]
+fishy is a projet initiated by several bachelor students of the Hochschule Darmstadt (h_da), University of Applied Sciences and the da/sec research group.
 
-* NTFS:
-	* File Slack [✓]
-	* MFT Slack [✓]
-	* Allocate More Clusters for File [✓]
-	* Bad Cluster Allocation [✓]
-	* Add data attribute to directories
-	* Alternate Data Streams
-* Ext4:
-	* Superblock Slack [✓]
-	* reserved GDT blocks [✓]
-	* File Slack [✓]
-	* inode:
-		* osd2 [✓]
-		* obso_faddr [✓]
-	
-# Requirements
+Student members: Adrian Kailus, Christian Hecht, Matthias Greune, Deniz Celik, Tim Christen, Dustin Kern, Yannick Mau und Patrick Naili.
+
+da/sec members: Thomas Göbel, Sebastian Gärtner and Lorenz Liebler.
+
+
+## References
+
+* [1] Adrian V. Kailus, Christian Hecht, Thomas Göbel und Lorenz Liebler, „fishy – Ein Framework zur Umsetzung von Verstecktechniken in Dateisystemen“, in D-A-CH Security, Gelsenkirchen (Germany), September 2018.
+* [2] Thomas Göbel and Harald Baier, „fishy – A Framework for Implementing Filesystem-based Data Hiding Techniques“, in Proceedings of the 10th EAI International Conference on Digital Forensics & Cyber Crime (ICDF2C), New Orleans (United States), September 2018.
+
+## Attribution
+
+Any publications using the code must cite and reference the conference paper [1] and [2].
+
+
+## Requirements
 
 * Build:
 	* Python version 3.5 or higher
@@ -45,7 +42,7 @@ hiding.
 	* sphinx-argparse - cli parameter documentation
 	* graphviz - unix tool. generates graphs, used in the documentation
 
-# Installation
+## Installation
 
 ```bash
 # To run unit tests before installing
@@ -69,7 +66,31 @@ $ sudo apt-get install latexmk
 $ sudo apt-get install texlive-formats-extra
 ```
 
-# Usage
+# Usage and Hiding Techniques
+
+## Techniques we found
+
+* FAT:
+	* File Slack [✓]
+	* Bad Cluster Allocation [✓]
+	* Allocate More Clusters for a file [✓]
+
+* NTFS:
+	* File Slack [✓]
+	* MFT Slack [✓]
+	* Allocate More Clusters for File [✓]
+	* Bad Cluster Allocation [✓]
+	* Add data attribute to directories
+	* Alternate Data Streams
+* Ext4:
+	* Superblock Slack [✓]
+	* reserved GDT blocks [✓]
+	* File Slack [✓]
+	* inode:
+		* osd2 [✓]
+		* obso_faddr [✓]
+
+## CLI
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
 * [`fattools`](#fattools) - Provides some information about a FAT filesystem
@@ -81,6 +102,8 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`reserved_gdt_blocks`](#reserved-gdt-blocks) - Exploitation of reserved GDT blocks
 * [`osd2`](#osd2) - Exploitation of inode's osd2 field
 * [`obso_faddr`](#obso_faddr) - Exploitation of inode's obso_faddr field
+
+
 
 ## FATtools
 
@@ -373,7 +396,7 @@ $ ./create_testfs.sh -t all
 ```
 
 
-## How to implement a hiding technique
+# How to implement a hiding technique
 
 Here some general rules an hints, how one can integrate a hiding technique into the
 existing project structure:
