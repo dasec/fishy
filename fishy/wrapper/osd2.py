@@ -91,6 +91,7 @@ class OSD2:
                 file_metadata = file_entry['metadata']
                 file_metadata = EXT4OSD2Metadata(file_metadata)
                 self.fs.clear(file_metadata)
+
         else:
             raise NotImplementedError()
 

@@ -8,6 +8,9 @@ from fishy.filesystem_detector import get_filesystem_type
 from fishy.metadata import Metadata
 from fishy.ext4.superblock_slack import EXT4SuperblockSlack
 from fishy.ext4.superblock_slack import EXT4SuperblockSlackMetadata
+from fishy.APFS.Superblock_Slack import APFSSuperblockSlack
+from fishy.APFS.Superblock_Slack import APFSSuperblockSlackMetaData
+
 
 LOGGER = logging.getLogger("SuperblockSlack")
 
@@ -28,6 +31,9 @@ class SuperblockSlack:
         if self.fs_type == 'EXT4':
             self.metadata.set_module("ext4-superblock-slack")
             self.fs = EXT4SuperblockSlack(fs_stream, dev)  # pylint: disable=invalid-name
+        elif self.fs_type == 'APFS':
+            self.metadata.set_module("apfs-superblock-slack")
+            self.fs = APFSSuperblockSlack(fs_stream)
         else:
             raise NotImplementedError()
 
@@ -49,6 +55,10 @@ class SuperblockSlack:
             LOGGER.info("Write into ext4")
             superblock_slack_metadata = self.fs.write(instream)
             self.metadata.add_file(filename, superblock_slack_metadata)
+        elif self.fs_type == 'APFS':
+            LOGGER.info("Write into APFS")
+            superblock_slack_metadata = self.fs.write(instream)
+            self.metadata.add_file(filename, superblock_slack_metadata)
         else:
             raise NotImplementedError()
 
@@ -62,6 +72,9 @@ class SuperblockSlack:
         file_metadata = self.metadata.get_file("0")['metadata']
         if self.fs_type == 'EXT4':
             superblock_slack_metadata = EXT4SuperblockSlackMetadata(file_metadata)
+            self.fs.read(outstream, superblock_slack_metadata)
+        elif self.fs_type == 'APFS':
+            superblock_slack_metadata = APFSSuperblockSlackMetaData(file_metadata)
             self.fs.read(outstream, superblock_slack_metadata)
         else:
             raise NotImplementedError()
@@ -77,6 +90,9 @@ class SuperblockSlack:
         if self.fs_type == 'EXT4':
             with open(outfilepath, 'wb+') as outfile:
                 self.read(outfile)
+        if self.fs_type == 'APFS':
+            with open(outfilepath, 'wb+') as outfile:
+                self.read(outfile)
         else:
             raise NotImplementedError()
 
@@ -90,6 +106,11 @@ class SuperblockSlack:
             for file_entry in self.metadata.get_files():
                 file_metadata = file_entry['metadata']
                 file_metadata = EXT4SuperblockSlackMetadata(file_metadata)
+                self.fs.clear(file_metadata)
+        elif self.fs_type == 'APFS':
+            for file_entry in self.metadata.get_files():
+                file_metadata = file_entry['metadata']
+                file_metadata = APFSSuperblockSlackMetaData(file_metadata)
                 self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()

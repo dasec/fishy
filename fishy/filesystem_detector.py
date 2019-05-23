@@ -4,6 +4,7 @@ Basic filesystem detector for FAT and NTFS
 
 import typing as typ
 
+from fishy.APFS.APFS_filesystem import APFS_Detector
 from fishy.ext4.ext4_filesystem import ext4_detector
 from .fat.fat_filesystem import fat_detector
 from .ntfs import ntfs_detector
@@ -32,5 +33,7 @@ def get_filesystem_type(stream: typ.BinaryIO) -> str:
         return "NTFS"
     elif ext4_detector.is_ext4(stream):
         return "EXT4"
+    elif APFS_Detector.is_apfs(stream):
+        return "APFS"
     else:
         raise UnsupportedFilesystemError()

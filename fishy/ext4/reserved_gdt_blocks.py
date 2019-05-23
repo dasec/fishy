@@ -76,6 +76,7 @@ class EXT4ReservedGDTBlocks:
 
         total_block_count = self.ext4fs.superblock.data['total_block_count']
         blocks_per_group = self.ext4fs.superblock.data['blocks_per_group']
+		#todo maybe add block group 0 here or with separate function due to different structure; 1024 byte boot sector
         if self._check_if_sparse_super_is_set():
             block_ids = self._get_block_ids_for_sparse_super(total_block_count, blocks_per_group)
         else:
@@ -197,6 +198,9 @@ class EXT4ReservedGDTBlocks:
         else:
             architecture = 32
         gdt_size = int(math.ceil((architecture * total_block_group_count) / self.ext4fs.blocksize))
+		
+        # block group 0
+        # todo; 1024 buffer at beginning, 
 
         # 3^x
         block_group_id = 3
@@ -227,12 +231,15 @@ class EXT4ReservedGDTBlocks:
             for i in range(block_id, (block_id + number_of_reserved_gdt_blocks)):
                 block_ids.append(i)
             block_group_id = 7 * block_group_id
-
+			
+        #todo sort block ids list?
+        block_ids.sort()
         return block_ids
 
     def _get_block_ids_for_non_sparse_super(self, total_block_count, blocks_per_group) \
             -> []:
         block_ids = []
+		#todo block id group 0, 1024 byte buffer at beginning
         block_group_id = 1
         total_block_group_count = int(math.ceil(total_block_count / blocks_per_group))
         if self.ext4fs.gdt.is_64bit:
@@ -248,4 +255,5 @@ class EXT4ReservedGDTBlocks:
                 block_ids.append(i)
             block_group_id += 1
 
+        block_ids.sort()
         return block_ids

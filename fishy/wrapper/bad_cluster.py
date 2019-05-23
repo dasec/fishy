@@ -47,7 +47,8 @@ class BadClusterWrapper:
             self.fs = FATBadCluster(fs_stream)  # pylint: disable=invalid-name
         elif self.fs_type == 'NTFS':
             self.metadata.set_module("ntfs-bad-cluster")
-            self.fs = NTFSBadCluster(dev)
+            #self.fs = NTFSBadCluster(dev)
+            self.fs = NTFSBadCluster(dev, fs_stream)
         else:
             raise NotImplementedError()
 

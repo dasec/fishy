@@ -55,9 +55,10 @@ class ClusterAllocator:
         :return: The created AllocatorMetadata
         """
         metadata = AllocatorMetadata()
-        size = instream.seek(0, 2)
+        size = len(instream.peek())
+        #size = instream.seek(0, 2)
         runs = self.allocate_clusters(path, ceil(size/self.ntfs.cluster_size))
-        instream.seek(0)
+        #instream.seek(0)
         written = 0
         for run in runs:
             self.ntfs.stream.seek(self.ntfs.start_offset + \

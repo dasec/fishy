@@ -92,6 +92,7 @@ class FADDR:
                 file_metadata = file_entry['metadata']
                 file_metadata = EXT4FADDRMetadata(file_metadata)
                 self.fs.clear(file_metadata)
+
         else:
             raise NotImplementedError()
 
