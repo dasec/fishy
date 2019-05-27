@@ -243,6 +243,86 @@ The journal guarantees a successful write operation. After a committed data tran
 it is saved to a 128MiB big section on the disk, the journal. From there it gets written to its final 
 destination and can be restored in case of a power outage or data corruption during the write operation.
 
+
+APFS
+....
+
+APFS is Apple's new proprietary file system, introduced in 2017 with macOS version 10.13. Despite allowing data migration, it bares minimal resemblance to its predecessor HFS+. More so it is comparable to other modern file systems such as ZFS, BTRFS and newer iterations of XFS.
+
+APFS can be described as a double layered file system. The outer layer is the `Container layer`. A `Container` is equivalent to one implementation of APFS. It acts as a managing instance of the file system, supervising higher level functions and information like block allocation (using the `Space Manager` structure) and the checkpoint functionality. The most crucial information is stored in the `Container Superblock`. There are multiple instances of this structure present with a copy of the newest version always in block 0 of the `Container`.
+
+The inner layer is the `Volume layer` and usually consists of multiple `Volumes`. `Volumes` are somewhat comparable to traditional partitions, as they manage user data and operating systems. What separates them from traditional partitions is their lack of fixed size, as they all share the free space made available by the container. Like the container, the `Volume` has its most crucial information stored in a `Volume Superblock`.
+
+Object Header
+*************
+
+All file system structures (the only exception being the allocation bitmap) are stored as objects and assigned 32 byte headers containing general information about the object like its type, subtype and version. More importantly, the first 8 byte contain the calculated checksum of the object. The checksum is calculated by using a for 64 bit optimized version of Fletcher's checksum, with the entire object (minus the first 8 byte) serving as the functions input.
+
+All implemented hiding techniques recalculate and overwrite the checksum whenever an object is modified by a write or clear function. The used calculation of the checksum comes from and is under copyright by Jonas Plum's tool afro which can be found can be found here: https://github.com/cugu/afro/blob/master/afro/checksum.py and is licensed under GPL3.0.
+
+Container and Volume and their Superblocks
+******************************************
+
+The `Container` can generally be split into 3 distinct parts. The first part contains the `Container` metadata, which consists of the `Checkpoint Areas` managing past states of the `Container`. A major part of the `Container` metadata is the `Container Superblock`. The `Container Superblock` contains a signature of 4 magic bytes (`NXSB`) as well as important elementary information such as:
+
+- block count
+- block size
+- `Volume Superblock IDs`
+- feature compatibilities
+
+They also manage information needed for further traversal of the file system such as pointers to the object map and information about size and location of the `Checkpoint Areas`.
+
+The second part contains the `Volume` metadata. The most important structures contained are the `Volume Superblocks`.
+The `Volume Superblocks` begin with their own magic byte signature (`APSB`) and manage information about their respective volumes, such as:
+
+- Reserved Blocks
+- Block Quota
+- Allocated Blocks
+- Feature compatibilities
+- Numbers of files and directories
+- `Volume` name
+
+Like the `Container Superblock`, the `Volume Superblock` also manages information needed for further traversal, such as pointers to the object map as well as  information about the extent tree.
+
+The third and last part is the `Volume` content. It is usually the largest area and contains all non-filesystem data such as user data and (potentially multiple) operating system(s). Despite potential (optional) lower and upper restrictions
+the `Volumes` filling this section have variable sizes.
+
+
+Nodes
+*****
+
+`Nodes` have multiple important tasks within the file system. Which specific tasks they fulfill is dependent on their type as well as on their `Entries`. Generally Nodes are part of a B-Tree and can therefore have one of two (major) types, `Leaf` or `Root`. While `Root Nodes` are generally only used to structure the B-Tree by pointing to other `Nodes` and managing general B-Tree information, `Leaf Nodes` contain the actual data in form of `Entries`. `Entries` are split into `Keys` and `Values`.
+
+The `Keys` determine the type of `Entry` and can contain additional information. There are 14 potential types used in APFS. Following is a list of all types:
+
+- 0 - This type is officially called "Any", but is used in very specific instances, as it indicates an `Object ID to Block address mapping`.
+- 1 - This type manages `Snapshot Metadata`.
+- 2 - This type indicated a  physical `Extent` record.
+- 3 - This type indicates an `Inode entry`. Inodes contain metadata of files. A unique attribute of `Inodes` (and Directory Records) is the addition of `Extended Fields`, which are implemented in multiples of 8 byte.
+- 4 - This type manages the `Extended Attributes` of objects.
+- 5 - Type 5 is  called `Sibling Link` - Here, an Inode is mapped to corresponding hard links.
+- 6 - This type manages information needed to read a `Data Stream`.
+- 7 - Type 7 manages the `Crypto State`.
+- 8 - This type indicates a `File Extent`.
+- 9 - This type represents a `Directory Record`. Like Inodes, they have an additional `Extended Fields` part after the common Value section.
+- 10 - This entry type manages `Directory Stats` like its name or the number of elements inside the directory.
+- 11 - Here, a Snapshot Name is saved.
+- 12 - This type is  called `Sibling Map`. Here, a hard link is mapped to corresponding inodes (the opposite of type 5).
+- 15 - This type indicates an `invalid` entry.
+
+The `Value` part of the entry usually contains all or most of the `Entries` information. Its structure depends solely on the previously mentioned type.
+
+Checkpoints
+***********
+
+The `Checkpoints` are split into 2 different areas, the `Checkpoint Descriptor Area` and the `Checkpoint Data Area`.
+
+In the `Checkpoint Descriptor Area`, previous (and the current) `Container Superblocks` and blocks of `Checkpoint Metadata` can be found. `Container Superblocks` have unique object maps, but not every checkpoint has a unique set of `Volume Superblocks`.
+
+The `Checkpoint Data Area` manages structures such as the `Space Manager` and `Reaper` as well as data that was in-memory when the `Checkpoint` was written to disk. Both areas are implemented as ring buffers and have a fixed size based on the `Container's` size.
+
+
+
 Hiding Techniques
 -----------------
 
@@ -416,5 +496,4 @@ The obso_faddr field in each inode at 0x70 is an obsolete fragment address field
 This technique works accordingly to the osd2 technique, but can hide twice the data.
 Taking the 235Mb example from above, this method could hide 240.000 bytes.
 Besides that it has the same flaws and advantages.
-
 
