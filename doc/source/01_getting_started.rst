@@ -10,11 +10,11 @@ Requirements
         * construct - parsing FAT filesystems
         * pytsk3 - parsing NTFS filesystems
         * simple-crypt - encryption of metadata using AES-CTR
-		* numpy - Calculating APFS checksums
-* Testing
+        * numpy - Calculating APFS checksums
+* Testing:
         * pytest - unit test framework
         * mount and dd - unix tools. needed for test image generation
-* Documentation
+* Documentation:
         * sphinx - generates the documentation
         * sphinx-argparse - cli parameter documentation
         * graphviz - unix tool. generates graphs, used in the documentation
@@ -63,17 +63,17 @@ subcommands. Following table gives an overview over all implemented hiding techn
 +---------------------+----+------+------+------+--------------------------------------------+
 |                     |FAT | NTFS | Ext4 | APFS |                                            |
 +---------------------+----+------+------+------+--------------------------------------------+
-| fileslack           | ✓  |  ✓  |  ✓    |      | Exploitation of File Slack                 |
+| fileslack           | ✓  |  ✓   | ✓    |      | Exploitation of File Slack                 |
 +---------------------+----+------+------+------+--------------------------------------------+
-| mftslack            |    |  ✓  |       |      | Exploitation of MFT entry Slack            |
+| mftslack            |    |  ✓   |      |      | Exploitation of MFT entry Slack            |
 +---------------------+----+------+------+------+--------------------------------------------+
-| addcluster          | ✓  |  ✓   |      |      | Allocate additional clusters for a file    |
+| addcluster          | ✓  |  ✓   |     |       | Allocate additional clusters for a file    |
 +---------------------+----+------+------+------+--------------------------------------------+
 | badcluster          | ✓  |  ✓   |      |      | Bad Cluster Allocation                     |
 +---------------------+----+------+------+------+--------------------------------------------+
 | reserved_gdt_blocks |    |      |  ✓   |      | Exploitation of Reserved GDT Blocks        |
 +---------------------+----+------+------+------+--------------------------------------------+
-| superblock_slack    |    |      |  ✓   |   ✓ | Exploitation of Superblock Slack            |
+| superblock_slack    |    |      |  ✓   |   ✓  | Exploitation of Superblock Slack           |
 +---------------------+----+------+------+------+--------------------------------------------+
 | osd2                |    |      |  ✓   |      | Use unused inode field osd2                |
 +---------------------+----+------+------+------+--------------------------------------------+
@@ -89,28 +89,6 @@ subcommands. Following table gives an overview over all implemented hiding techn
 +---------------------+----+------+------+------+--------------------------------------------+
 
 
-+---------------------+------------------+-----------------------------------------+
-| Hiding technique    |  Filesystem      |     Description                         |
-| (Subcommand)        |                  |                                         |
-+---------------------+----+------+------+-----------------------------------------+
-|                     |FAT | NTFS | Ext4 |                                         |
-+---------------------+----+------+------+-----------------------------------------+
-| fileslack           | ✓  |  ✓   |  ✓   | Exploitation of File Slack              |
-+---------------------+----+------+------+-----------------------------------------+
-| mftslack            |    |  ✓   |      | Exploitation of MFT entry Slack         |
-+---------------------+----+------+------+-----------------------------------------+
-| addcluster          | ✓  |  ✓   |      | Allocate additional clusters for a file |
-+---------------------+----+------+------+-----------------------------------------+
-| badcluster          | ✓  |  ✓   |      | Bad Cluster Allocation                  |
-+---------------------+----+------+------+-----------------------------------------+
-| reserved_gdt_blocks |    |      |  ✓   | Exploitation of Reserved GDT Blocks     |
-+---------------------+----+------+------+-----------------------------------------+
-| superblock_slack    |    |      |  ✓   | Exploitation of Superblock Slack        |
-+---------------------+----+------+------+-----------------------------------------+
-| osd2                |    |      |  ✓   | Use unused inode field osd2             |
-+---------------------+----+------+------+-----------------------------------------+
-| obso_faddr          |    |      |  ✓   | Use unused inode field obso_faddr       |
-+---------------------+----+------+------+-----------------------------------------+
 
 
 Additionally to the hiding techniques above, there are following informational
