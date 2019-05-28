@@ -72,3 +72,15 @@ Currently, you have to generate the ext4 filesystem by hand.
     sudo mkdir -p /tmp/mount_tmp/ && sudo mount -o loop,rw,sync file.img /tmp/mount_tmp
     sudo chmod -R ug+rw /tmp/mount_tmp
     sudo mv <files> /tmp/mount_tmp/
+
+
+APFS
+....
+
+As of right now, you have manually create an APFS image using a macOS machine. This can be achieved through multiple means,
+though it might be the most comfortable to use an external tool like AutoDMG. An official guide to create .dmg images can be found here.
+Once you have acquired a .dmg image file, you need to convert it to a .dd raw image. This can be achieved following these steps:
+
+* Use sleuthkit's mmls command to find the starting point of the container.
+
+* Follow up by using sleuthkit's mmcat command. An example would be: mmcat apfs_image.dmg 4 > apfs_volume.dd In this example "apfs_image.dmg" would represent the name of the extracted image, "4" is the starting point found through mmls and "apfs_volume.dd" would be the name of the extracted image.

@@ -376,7 +376,7 @@ Available for these filesystem types:
 timestamp_hiding
 ......................
 
-The ``timestamp_hiding´´ subcommand provides methods to read, write and clean
+The ``timestamp_hiding`` subcommand provides methods to read, write and clean
 the nanosecond part of a timestamp.
 
 Available for these filesystem types:
@@ -398,7 +398,7 @@ Available for these filesystem types:
 inode_padding
 ......................
 
-The ``inode_padding´´ subcommand provides methods to read, write and clean
+The ``inode_padding`` subcommand provides methods to read, write and clean
 padding fields in inodes.
 
 Available for these filesystem types:
@@ -420,7 +420,7 @@ Available for these filesystem types:
 write_gen_counter
 ......................
 
-The ``write_gen´´ subcommand provides methods to read, write and clean
+The ``write_gen`` subcommand provides methods to read, write and clean
 the write counter found in inodes.
 
 Available for these filesystem types:
@@ -442,7 +442,7 @@ Available for these filesystem types:
 ext_field_padding
 ......................
 
-The ``xfield_padding subcommand provides methods to read, write and clean
+The ``xfield_padding`` subcommand provides methods to read, write and clean
 dynamically created padding fields in the extended field section of an inode.
 
 Available for these filesystem types:

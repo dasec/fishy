@@ -4,7 +4,7 @@ Background
 Filesystem Data Structures
 --------------------------
 
-This chapter summarizes the most important data structures of FAT, NTFS and ext4.
+This chapter summarizes the most important data structures of FAT, NTFS, ext4 and APFS.
 
 FAT
 ...
@@ -247,30 +247,44 @@ destination and can be restored in case of a power outage or data corruption dur
 APFS
 ....
 
-APFS is Apple's new proprietary file system, introduced in 2017 with macOS version 10.13. Despite allowing data migration, it bares minimal resemblance to its predecessor HFS+. More so it is comparable to other modern file systems such as ZFS, BTRFS and newer iterations of XFS.
+APFS is Apple's new proprietary file system, introduced in 2017 with macOS version 10.13.
+Despite allowing data migration, it bares minimal resemblance to its predecessor HFS+.
+More so it is comparable to other modern file systems such as ZFS, BTRFS and newer iterations of XFS.
 
-APFS can be described as a double layered file system. The outer layer is the `Container layer`. A `Container` is equivalent to one implementation of APFS. It acts as a managing instance of the file system, supervising higher level functions and information like block allocation (using the `Space Manager` structure) and the checkpoint functionality. The most crucial information is stored in the `Container Superblock`. There are multiple instances of this structure present with a copy of the newest version always in block 0 of the `Container`.
+APFS can be described as a double layered file system. The outer layer is the `Container layer`.
+A `Container` is equivalent to one implementation of APFS. It acts as a managing instance of the file system,
+supervising higher level functions and information like block allocation (using the `Space Manager` structure) and the checkpoint functionality.
+The most crucial information is stored in the `Container Superblock`.
+There are multiple instances of this structure present with a copy of the newest version always in block 0 of the `Container`.
 
-The inner layer is the `Volume layer` and usually consists of multiple `Volumes`. `Volumes` are somewhat comparable to traditional partitions, as they manage user data and operating systems. What separates them from traditional partitions is their lack of fixed size, as they all share the free space made available by the container. Like the container, the `Volume` has its most crucial information stored in a `Volume Superblock`.
+The inner layer is the `Volume layer` and usually consists of multiple `Volumes`.
+`Volumes` are somewhat comparable to traditional partitions, as they manage user data and operating systems.
+What separates them from traditional partitions is their lack of fixed size, as they all share the free space made available by the container. Like the container, the `Volume` has its most crucial information stored in a `Volume Superblock`.
 
 Object Header
 *************
 
-All file system structures (the only exception being the allocation bitmap) are stored as objects and assigned 32 byte headers containing general information about the object like its type, subtype and version. More importantly, the first 8 byte contain the calculated checksum of the object. The checksum is calculated by using a for 64 bit optimized version of Fletcher's checksum, with the entire object (minus the first 8 byte) serving as the functions input.
+All file system structures (the only exception being the allocation bitmap) are stored as objects and assigned 32 byte headers containing general information about the object like its type, subtype and version.
+More importantly, the first 8 byte contain the calculated checksum of the object.
+The checksum is calculated by using a for 64 bit optimized version of Fletcher's checksum, with the entire object (minus the first 8 byte) serving as the functions input.
 
-All implemented hiding techniques recalculate and overwrite the checksum whenever an object is modified by a write or clear function. The used calculation of the checksum comes from and is under copyright by Jonas Plum's tool afro which can be found can be found here: https://github.com/cugu/afro/blob/master/afro/checksum.py and is licensed under GPL3.0.
+All implemented hiding techniques recalculate and overwrite the checksum whenever an object is modified by a write or clear function.
+The used calculation of the checksum comes from and is under copyright by Jonas Plum's tool afro which can be found can be found here: https://github.com/cugu/afro/blob/master/afro/checksum.py and is licensed under GPL3.0.
 
 Container and Volume and their Superblocks
 ******************************************
 
-The `Container` can generally be split into 3 distinct parts. The first part contains the `Container` metadata, which consists of the `Checkpoint Areas` managing past states of the `Container`. A major part of the `Container` metadata is the `Container Superblock`. The `Container Superblock` contains a signature of 4 magic bytes (`NXSB`) as well as important elementary information such as:
+The `Container` can generally be split into 3 distinct parts. The first part contains the `Container` metadata, which consists of the `Checkpoint Areas` managing past states of the `Container`.
+A major part of the `Container` metadata is the `Container Superblock`.
+The `Container Superblock` contains a signature of 4 magic bytes (`NXSB`) as well as important elementary information such as:
 
 - block count
 - block size
 - `Volume Superblock IDs`
 - feature compatibilities
 
-They also manage information needed for further traversal of the file system such as pointers to the object map and information about size and location of the `Checkpoint Areas`.
+They also manage information needed for further traversal of the file system such as pointers to the object map
+and information about size and location of the `Checkpoint Areas`.
 
 The second part contains the `Volume` metadata. The most important structures contained are the `Volume Superblocks`.
 The `Volume Superblocks` begin with their own magic byte signature (`APSB`) and manage information about their respective volumes, such as:
@@ -282,18 +296,25 @@ The `Volume Superblocks` begin with their own magic byte signature (`APSB`) and 
 - Numbers of files and directories
 - `Volume` name
 
-Like the `Container Superblock`, the `Volume Superblock` also manages information needed for further traversal, such as pointers to the object map as well as  information about the extent tree.
+Like the `Container Superblock`, the `Volume Superblock` also manages information needed for further traversal,
+such as pointers to the object map as well as  information about the extent tree.
 
-The third and last part is the `Volume` content. It is usually the largest area and contains all non-filesystem data such as user data and (potentially multiple) operating system(s). Despite potential (optional) lower and upper restrictions
+The third and last part is the `Volume` content.
+It is usually the largest area and contains all non-filesystem data such as user data and (potentially multiple) operating system(s).
+Despite potential (optional) lower and upper restrictions
 the `Volumes` filling this section have variable sizes.
 
 
 Nodes
 *****
 
-`Nodes` have multiple important tasks within the file system. Which specific tasks they fulfill is dependent on their type as well as on their `Entries`. Generally Nodes are part of a B-Tree and can therefore have one of two (major) types, `Leaf` or `Root`. While `Root Nodes` are generally only used to structure the B-Tree by pointing to other `Nodes` and managing general B-Tree information, `Leaf Nodes` contain the actual data in form of `Entries`. `Entries` are split into `Keys` and `Values`.
+`Nodes` have multiple important tasks within the file system. Which specific tasks they fulfill is dependent on
+their type as well as on their `Entries`. Generally Nodes are part of a B-Tree and can therefore have one of two (major) types, `Leaf` or `Root`.
+While `Root Nodes` are generally only used to structure the B-Tree by pointing to other `Nodes` and managing general B-Tree information, `Leaf Nodes` contain the actual data in form of `Entries`.
+`Entries` are split into `Keys` and `Values`.
 
-The `Keys` determine the type of `Entry` and can contain additional information. There are 14 potential types used in APFS. Following is a list of all types:
+The `Keys` determine the type of `Entry` and can contain additional information. There are 14 potential types used in APFS.
+Following is a list of all types:
 
 - 0 - This type is officially called "Any", but is used in very specific instances, as it indicates an `Object ID to Block address mapping`.
 - 1 - This type manages `Snapshot Metadata`.
@@ -317,9 +338,11 @@ Checkpoints
 
 The `Checkpoints` are split into 2 different areas, the `Checkpoint Descriptor Area` and the `Checkpoint Data Area`.
 
-In the `Checkpoint Descriptor Area`, previous (and the current) `Container Superblocks` and blocks of `Checkpoint Metadata` can be found. `Container Superblocks` have unique object maps, but not every checkpoint has a unique set of `Volume Superblocks`.
+In the `Checkpoint Descriptor Area`, previous (and the current) `Container Superblocks` and blocks of `Checkpoint Metadata` can be found.
+`Container Superblocks` have unique object maps, but not every checkpoint has a unique set of `Volume Superblocks`.
 
-The `Checkpoint Data Area` manages structures such as the `Space Manager` and `Reaper` as well as data that was in-memory when the `Checkpoint` was written to disk. Both areas are implemented as ring buffers and have a fixed size based on the `Container's` size.
+The `Checkpoint Data Area` manages structures such as the `Space Manager` and `Reaper` as well as data that was
+in-memory when the `Checkpoint` was written to disk. Both areas are implemented as ring buffers and have a fixed size based on the `Container's` size.
 
 
 
@@ -458,6 +481,8 @@ overwritten in case of a filesystem expansion and its quite easy to find.
 Superblock Slack
 ................
 
+ext4
+****
 Depending on the block size, there is an acceptable amount of slack space following each copy of the superblock
 in each block group. This is not applicable in case the block size is 1024 due to the superblock's size of 1024
 byte, using all of its block alone. For the superblock's copies the sparse_super flag applies, too, which means
@@ -474,10 +499,31 @@ This hiding technique benefits from the superblock's characteristics, resulting 
 superblock slack space does not get overwritten. But like all slack space hiding methods this is easy to find,
 too.
 
+APFS
+****
+
+While both versions of this technique exploit the slackspace created by superblock structures, the APFS version of this
+technique is somewhat different from the EXT4 version. While the EXT4 implementation of this technique uses a single block type,
+the APFS version uses 4 block types of which 3 have unique amounts of slack space available.
+
+The potential hiding space is dependent on the size of the container, as a larger container has more potential checkpoints
+and therefore more superblocks and object maps to write to.
+The sizes of potential hiding places differ for every block type:
+- Container Superblocks can hide 2616 Bytes
+- Container Object Maps and Volume Object Maps can hide 3984 Bytes
+- Volume Superblocks can hide 3060 Bytes
+
+All needed blocks are gathered and sorted by version number in specific lists through a complimentary _Checkpoint_ class.
+The technique then writes into the first entry of each list, only using older structures if there is more data to hide.
+Potential growth of the blocks has been taken into account when calculating the potential hiding space. Therefore hidden
+data can not be overwritten that way. An issue considering the stability of this technique is the unknown factor of the
+checkpoint write and overwrite system. At some point the Checkpoint Descriptor Area will be full and the oldest checkpoint
+will have to be overwritten. It is unknown if this write process could affect data written to the slack space.
+
 Inode
 .....
-osd2
-****
+osd2 (ext4)
+***********
 
 The osd2 hiding technique uses the last two bytes of the 12 byte osd2 field, which is located at 0x74 in each inode.
 This field only uses 10 bytes at max, depending on the tag being whether `linux2`, `hurd2` or `masix2`.
@@ -489,11 +535,74 @@ In an ~235Mb image with 60.000 inodes this technique could hide 120.000 bytes.
 To hide data, the method writes data directly to the two bytes in the osd2 field in each inode, which address is
 taken from the inode table, until there is either no inode or no data left. The method is currently limited to 4Mb.
 
-obso_faddr
-**********
+obso_faddr (ext4)
+*****************
 
 The obso_faddr field in each inode at 0x70 is an obsolete fragment address field of 32bit length.
 This technique works accordingly to the osd2 technique, but can hide twice the data.
 Taking the 235Mb example from above, this method could hide 240.000 bytes.
 Besides that it has the same flaws and advantages.
 
+inode_padding (APFS)
+********************
+
+**Note**: In its current form, this technique is not usable as data hidden with it is detected by `fsck_apfs`.
+Specifically, two different errors are noticed. One indicating that the first padding field can not be filled with data
+at all and the second requiring an unknown and so far unreferenced `has_uncompressed_size` inode flag to be set.
+
+The ``inode_padding`` technique uses 2 unused padding fields that have a combined size of 10 bytes. The padding fields are
+always located at the end of the regular value part of an inode and separate it from the inodes' extended fields.
+As there are only 10 bytes of potential hiding space per inode available, only small amounts of data can be hidden.
+This technique is dependent on the size of the container and how many files it contains.
+
+This technique uses a complimentary class named **InodeTable** to gather all Inodes. The class traverses all
+Volume Object Maps and saves the node adresses and specific inode value offsets in a tuple list.
+The ``inode_padding`` technique then uses this list to calculate the offset to the padding fields and writes the given data to that address.
+
+
+write_gen (APFS)
+****************
+
+The field `write_gen_counter` is a counter the increases when the inode or its data is modified. This potentially impacts this technique's
+stability negatively. While the capacity is also quite low with only 4 bytes of possible hiding space per inode, it should be
+very hard to detect this method, as the field has no disallowed values and is usually surrounded by other used fields.
+
+The general structure of this technique resembles the previously mentioned `inode_padding` technique and functions in a very similar way.
+It uses the same complimentary class and its own structure is the same as `inode_padding's`, the only differences
+being the amount of data written, read or cleared and the address used.
+
+
+
+Timestamp Hiding (APFS)
+***********************
+
+APFS has multiple structures that include 64 bit nanosecond timestamps. This technique however focuses on the timestamps
+found in the systems' inodes. As of right now, all four timestamps are used:
+
+- Create Time - Time the record was created. Using only this timestamp would be the most stable version.
+- Mod Time - Date of the last time the record was modified.
+- Change Time - Date of the last time this records' attributes were modified.
+- Access Time - Date of the last time this record was accessed.
+
+While this lowers the overall stability, it increases the capacity of this technique. Changing the technique to use only
+certain timestamps is easily doable as well.
+
+As of right now, this technique writes data to the first 4 bytes of each timestamp. This could cause slight complications,
+as the seconds might be affected when writing to all 4 bytes. It has been observed that the seconds area slightly increases
+or decreases by a few seconds when data is being written or removed. A workaround to this issue is to only use the first
+3 bytes instead of the first 4 bytes. Another workaround would be to use the exact amount of bits used by the nanosecond part of the timestamp.
+
+
+Extended Field Padding (APFS)
+*****************************
+
+The inode record entry types have a unique feature called Extended Fields that follow the regular entry contents.
+Usually, these fields’ sizes are a multiple of 8 bytes. However, some of these fields have variable sizes based on their content.
+If a field is not the right size, it is enlarged to the next possible multiple of 8 bytes by adding a padding field.
+
+While this technique is similar to the other APFS-specific techniques that hide data in the inodes, there are some additional
+steps for this technique. First, the table of contents for the extended field of an inode, which can be found at the end of the inode,
+has to be interpreted and the number of extended fields has to be extracted. Second, the sizes of the extended fields have to be
+extracted from the list of extended field headers. This list immediately follows the aforementioned table of contents.
+Third, the sizes have to be used to determine if there is any padding among this set of extended fields and if so, the size
+of the padding has to be calculated. Once all padding fields have been found and calculated, the data can be hidden.
