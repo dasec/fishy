@@ -104,8 +104,8 @@ Bad Cluster Allocation
 Ext4
 ****
 
-Reseved GDT Blocks
-..................
+Reserved GDT Blocks
+...................
 
 .. automodule:: fishy.ext4.reserved_gdt_blocks
         :members:
@@ -134,5 +134,36 @@ obso_faddr
 .. automodule:: fishy.ext4.obso_faddr
         :members:
 
-			
+APFS
+****
+
+Superblock Slack
+................
+
+.. automodule:: fishy.APFS.Superblock_Slack
+        :members:
+
+Inode Padding
+.............
+
+.. automodule:: fishy.APFS.Inode_Padding
+        :members:
+
+Write-Gen-Counter
+.................
+
+.. automodule:: fishy.APFS.Write_Gen
+        :members:
+
+Timestamp Hiding
+................
+
+.. automodule:: fishy.APFS.Timestamp_Hiding
+        :members:
+
+Extended Field Padding
+......................
+
+.. automodule:: fishy.APFS.Xfield_Padding
+        :members:
 			

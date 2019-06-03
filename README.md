@@ -7,6 +7,9 @@ conventional file access methods. This toolkit is intended to introduce people
 to the concept of established anti-forensic methods associated with data
 hiding.
 
+This document will provide some basic information about `fishy`. For a more in-depth documentation, you can visit the [github wiki](https://github.com/dasec/fishy/wiki)
+or use the documentation within the repository.
+
 ## Code Authors and Project
 
 `fishy` is a project initiated by the da/sec research group and several bachelor students of the Hochschule Darmstadt (h_da), University of Applied Sciences.

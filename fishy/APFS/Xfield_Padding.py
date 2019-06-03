@@ -7,8 +7,14 @@ from fishy.APFS.APFS_filesystem.APFS import APFS
 
 
 class APFSXfieldPaddingMetadata:
+    """
+    holds information about calculated padding offsets and sizes as well as corresponding node offsets.
+    """
 
     def __init__(self, d: dict = None):
+        """
+        :param d: dict, dictionary representation of an APFSXfieldPaddingMetadata object.
+        """
         if d is None:
             self.paddingAddresses = []
             self.nodeAddresses = []
@@ -19,27 +25,54 @@ class APFSXfieldPaddingMetadata:
             self.sizes = d["sizes"]
 
     def add_paddingAddress(self, paddingAddress: int):
+        """
+        add calculated padding address to list of padding addresses.
+		:param paddingAddress: int, calculated padding offset
+        """
         self.paddingAddresses.append(paddingAddress)
 
     def add_nodeAddress(self, nodeAddress: int):
+        """
+        add node offset to list of node offsets.
+		:param nodeAddress: int, node offset
+        """
         self.nodeAddresses.append(nodeAddress)
 
     def get_nodeAddresses(self):
+        """
+        :returns: list of used node addresses
+        """
         return self.nodeAddresses
 
     def get_paddingAddresses(self):
+        """
+        :returns: list of used calculated padding offsets
+        """
         return self.paddingAddresses
 
     def add_size(self, size: int):
+        """
+        add size of a padding field to a list of sizes.
+        :param size: int, size of a padding field.
+        """
         self.sizes.append(size)
 
     def get_sizes(self):
+        """
+        :returns: list of used padding field sizes
+        """
         return self.sizes
 
 
 class APFSXfieldPadding:
+    """
+    contains methods to write, read and clean hidden data using the padding created by the inode extended fields in an APFS filesystem. 
+	"""
 
     def __init__(self, stream: typ.BinaryIO):
+        """
+        :param stream: typ.BinaryIO, filedescriptor of an APFS filesystem
+        """
         self.stream = stream
         self.apfs = APFS(stream)
         self.blocksize = self.apfs.getBlockSize()

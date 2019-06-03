@@ -54,6 +54,9 @@ class EXT4ReservedGDTBlocksMetadata:
         return self.length[0]
 
 class EXT4ReservedGDTBlocks:
+    """
+    contains and submethods to write, read and clean data using the reserved gdt blocks of an ext4 filesystem. 
+    """
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
