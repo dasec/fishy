@@ -34,7 +34,7 @@ Any publications using the code must cite and reference the conference paper [1]
 * Build:
 	* Python version 3.5 or higher
 	* argparse - command line argument parsing
-	* construct - parsing FAT filesystems
+	* construct - parsing FAT filesystems __Note__: Please install a version earlier than 2.9 (2.8.22 is recommended)
 	* pytsk3 - parsing NTFS filesystems
 	* simple-crypt - encryption of metadata using AES-CTR
 * Testing
