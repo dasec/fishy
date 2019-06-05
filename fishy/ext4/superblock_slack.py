@@ -25,6 +25,7 @@ class EXT4SuperblockSlackMetadata:
     def add_block(self, block_id: int) -> None:
         """
         adds a block to the list of blocks
+
         :param block_id: int, id of the block
         """
         self.blocks.append(block_id)
@@ -32,6 +33,7 @@ class EXT4SuperblockSlackMetadata:
     def add_length(self, length: int) -> None:
         """
         adds the length of the hidden data
+
         :param length: int, length of the data, which was written to superblock slack
         """
         self.length.append(length)
@@ -40,6 +42,7 @@ class EXT4SuperblockSlackMetadata:
             -> []:
         """
         returns list of block ids
+
         :returns: list of block_ids
         """
         return self.blocks
@@ -48,14 +51,20 @@ class EXT4SuperblockSlackMetadata:
             -> int:
         """
         returns length of the hidden data
+
         :returns: length of the hidden data
         """
         return self.length[0]
 
 class EXT4SuperblockSlack:
+    """
+    contains methods to write, read and clean data using ext4 superblocks
+    """
+
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
+
         :param stream: filedescriptor of an ext4 filesystem
         """
         self.dev = dev
@@ -66,7 +75,9 @@ class EXT4SuperblockSlack:
             -> EXT4SuperblockSlackMetadata:
         """
         writes from instream into superblock slack
+
         :param instream: stream to read from
+
         :return: EXT4SuperblockSlackMetadata
         """
         metadata = EXT4SuperblockSlackMetadata()
@@ -100,7 +111,9 @@ class EXT4SuperblockSlack:
             -> None:
         """
         writes data hidden in superblock slack into outstream
+
         :param outstream: stream to write into
+
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
         length = metadata.get_length()
@@ -124,6 +137,7 @@ class EXT4SuperblockSlack:
     def clear(self, metadata: EXT4SuperblockSlackMetadata) -> None:
         """
         clears the superblock slack in which data has been hidden
+
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
         block_size = self.ext4fs.blocksize
@@ -140,6 +154,7 @@ class EXT4SuperblockSlack:
     def info(self, metadata: EXT4SuperblockSlackMetadata = None) -> None:
         """
         shows info about the superblock slack and data hiding space
+
         :param metadata: EXT4SuperblockSlackMetadata object
         """
         total_block_count = self.ext4fs.superblock.data['total_block_count']
@@ -160,6 +175,7 @@ class EXT4SuperblockSlack:
             -> bool:
         """
         checks if the sparse superblock flag is set
+
         :return:bool
         """
         if (int(self.ext4fs.superblock.data['feature_ro_compat'], 0) & 0x1) == 0x1:
@@ -170,10 +186,14 @@ class EXT4SuperblockSlack:
     def _get_block_ids_for_sparse_super(self, total_block_count, blocks_per_group) \
             -> []:
         """
-        calculates the blockid for the superblock copies
-        assuming the sparse superblock flag is set
+        calculates the blockid for the superblock copies 
+		
+		assuming the sparse superblock flag is set
+
         :param total_block_count:
+
         :param blocks_per_group:
+
         :return: list containing the blockids
         """
         block_ids = []
@@ -211,10 +231,14 @@ class EXT4SuperblockSlack:
     def _get_block_ids_for_non_sparse_super(self, total_block_count, blocks_per_group) \
             -> []:
         """
-        calculates the blockid for the superblock copies
-        assuming the sparse superblock flag is not set
+        calculates the blockid for the superblock copies 
+		
+		assuming the sparse superblock flag is not set
+
         :param total_block_count:
+
         :param blocks_per_group:
+
         :return: list containing the blockids
         """
         block_ids = []
@@ -232,7 +256,9 @@ class EXT4SuperblockSlack:
             -> int:
         """
         calculates avaible slackspace
+
         :param num_of_block_ids: number of superblock copies
+
         :return: total slackspace
         """
         total_space = (self.ext4fs.blocksize-1024) * num_of_block_ids
@@ -242,7 +268,9 @@ class EXT4SuperblockSlack:
     def _write_to_superblock(self, instream)->int:
         """
         writes from instream into Slackspace of primary superblock
+
         :param instream: stream to read data from
+
         :return: number of bytes written
         """
         block_size = self.ext4fs.blocksize
@@ -255,9 +283,13 @@ class EXT4SuperblockSlack:
     def _write_to_backup_superblock(self, instream, block_id,blocks_per_group)->int:
         """
         writes from instream into slackspace of superblock copy
+
         :param instream: instream: stream to read data from
+
         :param block_id: blockid of superblockcopy to write to
+
         :param blocks_per_group:
+
         :return: number of bytes written
         """
         block_size=self.ext4fs.blocksize

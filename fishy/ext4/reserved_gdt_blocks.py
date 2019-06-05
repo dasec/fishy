@@ -26,6 +26,7 @@ class EXT4ReservedGDTBlocksMetadata:
     def add_block(self, block_id: int) -> None:
         """
         adds a block to the list of blocks
+
         :param block_id: int, id of the block
         """
         self.blocks.append(block_id)
@@ -33,6 +34,7 @@ class EXT4ReservedGDTBlocksMetadata:
     def add_length(self, length: int) -> None:
         """
         adds the length of the hidden data
+
         :param length: int, length of the data, which was written to reserved GDT blocks
         """
         self.length.append(length)
@@ -41,6 +43,7 @@ class EXT4ReservedGDTBlocksMetadata:
             -> []:
         """
         returns list of block ids
+
         :returns: list of block_ids
         """
         return self.blocks
@@ -49,6 +52,7 @@ class EXT4ReservedGDTBlocksMetadata:
             -> int:
         """
         returns length of the hidden data
+
         :returns: length of the hidden data
         """
         return self.length[0]
@@ -60,6 +64,7 @@ class EXT4ReservedGDTBlocks:
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
+
         :param stream: filedescriptor of an ext4 filesystem
         """
         self.dev = dev
@@ -70,7 +75,9 @@ class EXT4ReservedGDTBlocks:
             -> EXT4ReservedGDTBlocksMetadata:
         """
         writes from instream into reserved GDT blocks
+
         :param instream: stream to read from
+
         :return: EXT4ReservedGDTBlocksMetadata
         """
         metadata = EXT4ReservedGDTBlocksMetadata()
@@ -112,7 +119,9 @@ class EXT4ReservedGDTBlocks:
             -> None:
         """
         writes data hidden in reserved GDT blocks into outstream
+
         :param outstream: stream to write into
+
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
         length = metadata.get_length()
@@ -130,6 +139,7 @@ class EXT4ReservedGDTBlocks:
     def clear(self, metadata: EXT4ReservedGDTBlocksMetadata) -> None:
         """
         clears the reserved GDT blocks in which data has been hidden
+
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
         block_size = self.ext4fs.blocksize
@@ -141,6 +151,7 @@ class EXT4ReservedGDTBlocks:
     def info(self, metadata: EXT4ReservedGDTBlocksMetadata = None) -> None:
         """
         shows info about the reserved GDT blocks and data hiding space
+
         :param metadata: EXT4ReservedGDTBlocksMetadata object
         """
         total_block_count = self.ext4fs.superblock.data['total_block_count']

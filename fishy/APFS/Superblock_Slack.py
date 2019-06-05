@@ -9,7 +9,13 @@ from fishy.APFS.APFS_filesystem.APFS import APFS
 from fishy.APFS.APFS_filesystem.Checkpoints import Checkpoints
 
 class APFSSuperblockSlackMetaData:
+    """
+    holds information about the offsets of all used blocks and the size of the hidden data.
+    """
     def __init__(self, d: dict = None):
+        """
+        :param d: dictionary representation of an APFSSuperblockSlackMetaData object
+        """
         if d is None:
             self.cblocks = []
             self.cmblocks = []
@@ -25,58 +31,113 @@ class APFSSuperblockSlackMetaData:
             self.length = d["length"]
 
     def add_cblock(self, block_address: int) -> None:
+        """
+        adds the address of a container superblock to the list of container superblock addresses.
+
+        :param block_address: int, address of a container superblock
+        """
         self.cblocks.append(block_address)
 
     def add_cmblock(self, block_address: int) -> None:
+        """
+        adds the address of a container object map to the list of container object map addresses.
 
+        :param block_address: int, address of a container object map
+        """
         self.cmblocks.append(block_address)
 
     def add_vblock(self, block_address: int) -> None:
+        """
+        adds the address of a volume superblock to the list of volume superblock addresses.
 
+        :param block_address: int, address of a volume superblock
+        """
         self.vblocks.append(block_address)
 
     def add_vmblock(self, block_address: int) -> None:
+        """
+        adds the address of a volume object map to the list of volume object map addresses.
 
+        :param block_address: int, address of a volume object map
+        """
         self.vmblocks.append(block_address)
 
     def add_length(self, length: int) -> None:
+        """
+        add size of hidden data to metadata object.
+
+        :param length: int, size of hidden data
+        """
 
         self.length.append(length)
 
     def get_cblocks(self) \
             -> []:
+        """
+        returns list of container superblock addresses.
 
+        :return: list of container superblock addresses
+        """
         return self.cblocks
 
     def get_cmblocks(self) \
             -> []:
+        """
+        returns list of container object map addresses.
 
+        :return: list of container object map addresses
+        """
         return self.cmblocks
 
     def get_vblocks(self) \
             -> []:
+        """
+        returns list of volume superblock addresses.
 
+        :return: list of volume superblock addresses
+        """
         return self.vblocks
 
     def get_vmblocks(self) \
             -> []:
+        """
+        returns list of volume object map addresses.
 
+        :return: list of volume object map addresses
+        """
         return self.vmblocks
 
     def get_length(self) \
             -> int:
+        """
+        return size of hidden data.
 
+        :return: size of hidden data
+        """
         return self.length[0]
 
 
 class APFSSuperblockSlack:
+    """
+    contains methods to write, read and clean hidden data using APFS superblocks and object map structures.
+    """
 
     def __init__(self, stream: typ.BinaryIO):
+        """
+        :param stream: typ.BinaryIO, filedescriptor of an APFS filesystem
+        """
         self.stream = stream
         self.apfs = APFS(stream)
         self.blocksize = self.apfs.getBlockSize()
 
     def write(self, instream: typ.BinaryIO):
+        """
+        writes data from instream to superblock and object map structures.
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :return: an APFSSuperblockSlackMetaData object
+        """
         metadata = APFSSuperblockSlackMetaData()
 
         checkpoints = Checkpoints(self.stream)
@@ -217,6 +278,15 @@ class APFSSuperblockSlack:
         return total_space
 
     def writeToContainerBlock(self, address, instream):
+        """
+        subfunction to write data to a container superblock.
+
+        :param address: offset of a container superblock
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :return: size of the chunk of data that was hidden in this structure
+        """
         cl_space = self.blocksize - 32 - 1448
         buf = instream.read(cl_space)
         self.stream.seek(address)
@@ -225,6 +295,15 @@ class APFSSuperblockSlack:
         return len(buf)
 
     def writeToContainerMap(self, address, instream):
+        """
+        subfunction to write data to a container object map.
+
+        :param address: offset of a container object map
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :return: size of the chunk of data that was hidden in this structure
+        """
         cml_space = self.blocksize - 32 - 80
         buf = instream.read(cml_space)
         self.stream.seek(address)
@@ -233,6 +312,15 @@ class APFSSuperblockSlack:
         return len(buf)
 
     def writeToVolumeBlock(self, address, instream):
+        """
+        subfunction to write data to a volume superblock.
+
+        :param address: offset of a volume superblock
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :return: size of the chunk of data that was hidden in this structure
+        """
         vl_space = self.blocksize - 32 - 1004
         buf = instream.read(vl_space)
         self.stream.seek(address)
@@ -241,6 +329,15 @@ class APFSSuperblockSlack:
         return len(buf)
 
     def writeToVolumeMap(self, address, instream):
+        """
+        subfunction to write data to a volume object map.
+
+        :param address: offset of a volume object map
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :return: size of the chunk of data that was hidden in this structure
+        """
         vml_space = self.blocksize - 32 - 80
         buf = instream.read(vml_space)
         self.stream.seek(address)
@@ -249,6 +346,11 @@ class APFSSuperblockSlack:
         return len(buf)
 
     def clear(self, metadata: APFSSuperblockSlackMetaData):
+        """
+        removes data from APFS superblock and object map structures.
+
+        :param metadata: an APFSSuperblockSlackMetaData object
+        """
 
         checkpoints = Checkpoints(self.stream)
 
@@ -338,6 +440,13 @@ class APFSSuperblockSlack:
             i += 1
 
     def read(self, outstream: typ.BinaryIO, metadata: APFSSuperblockSlackMetaData):
+        """
+        reads data hidden in APFS superblock and object map structures and writes that data to an outstream.
+
+        :param outstream: chosen outstream to display found hidden data
+
+        :param metadata: an APFSSuperblockSlackMetaData object
+        """
         length = metadata.get_length()
         foundlength = 0
         i = 0

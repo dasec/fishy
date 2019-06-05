@@ -26,7 +26,8 @@ class EXT4FADDRMetadata:
     def add_inode_number(self, inode_number: int) -> None:
         """
         adds a block to the list of blocks
-        :param block_id: int, id of the block
+        
+		:param block_id: int, id of the block
         """
         self.inode_numbers.append(inode_number)
 
@@ -34,7 +35,8 @@ class EXT4FADDRMetadata:
             -> []:
         """
         returns list of inode_numbers
-        :returns: list of inode_numbers
+        
+		:returns: list of inode_numbers
         """
         return self.inode_numbers
 
@@ -45,7 +47,8 @@ class EXT4FADDR:
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
-        :param stream: filedescriptor of an ext4 filesystem
+        
+		:param stream: filedescriptor of an ext4 filesystem
         """
         self.dev = dev
         self.stream = stream
@@ -56,8 +59,10 @@ class EXT4FADDR:
         """
         writes from instream into the last two bytes of inodes obso_faddr field.
         This method currently supports only data sizes less than 4000 bytes.
-        :param instream: stream to read from
-        :return: EXT4FADDRMetadata
+        
+		:param instream: stream to read from
+        
+		:return: EXT4FADDRMetadata
         """
         metadata = EXT4FADDRMetadata()
         instream = instream.read()
@@ -86,8 +91,10 @@ class EXT4FADDR:
             -> None:
         """
         writes data hidden in obso_faddr blocks into outstream
-        :param outstream: stream to write into
-        :param metadata: EXT4FADDRMetadata object
+        
+		:param outstream: stream to write into
+        
+		:param metadata: EXT4FADDRMetadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         # print(inode_numbers)
@@ -97,7 +104,8 @@ class EXT4FADDR:
     def clear(self, metadata: EXT4FADDRMetadata) -> None:
         """
         clears the obso_faddr field in which data has been hidden
-        :param metadata: EXT4FADDRMetadata object
+        
+		:param metadata: EXT4FADDRMetadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
@@ -106,7 +114,8 @@ class EXT4FADDR:
     def info(self, metadata: EXT4FADDRMetadata = None) -> None:
         """
         shows info about inode obso_faddr fields and data hiding space
-        :param metadata: EXT4FADDRMetadata object
+        
+		:param metadata: EXT4FADDRMetadata object
         """
         print("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
         print("Total hiding space in obso_faddr fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 4) + " Bytes")

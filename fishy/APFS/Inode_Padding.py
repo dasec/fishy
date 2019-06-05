@@ -28,6 +28,7 @@ class APFSInodePaddingMetadata:
     def add_inodeAddress(self, inodeAddress: int):
         """
         add an inode offset to the list.
+
         :param inodeAddress: int, exact inode offset
         """
         self.inodeAddresses.append(inodeAddress)
@@ -35,6 +36,7 @@ class APFSInodePaddingMetadata:
     def add_nodeAddress(self, nodeAddress: int):
         """
         add node offset to the list.
+
         :param nodeAddress: int, node offset		
         """
         self.nodeAddresses.append(nodeAddress)
@@ -42,14 +44,16 @@ class APFSInodePaddingMetadata:
     def get_nodeAddresses(self):
         """
         returns list of used node addresses.
-        :returns: list of node addresses 
+
+        :return: list of node addresses 
         """
         return self.nodeAddresses
 
     def get_inodeAddresses(self):
         """
         returns list of inode addresses.
-        :returns: list of inode addresses		
+
+        :return: list of inode addresses		
         """
         return self.inodeAddresses
 
@@ -71,8 +75,10 @@ class APFSInodePadding:
 
     def write(self, instream: typ.BinaryIO):
         """
-        writes from instream to inode padding fields.
-        :param instream: typ.BinaryIO, stream containing data that is supposed to be hidden
+        writes from instream to inode padding fields. 
+
+        :param instream: typ.BinaryIO, stream containing data that is supposed to be hidden 
+
 		:return: APFSInodePaddingMetadata
         """
         metadata = APFSInodePaddingMetadata()
@@ -103,8 +109,10 @@ class APFSInodePadding:
     def read(self, outstream: typ.BinaryIO, metadata: APFSInodePaddingMetadata):
         """
         writes previously hidden data into outstream.
-        :param outstream: stream to write to
-        :param metadata: APFSInodePaddingMetadata object
+
+        :param outstream: stream to write to 
+
+        :param metadata: APFSInodePaddingMetadata object 
         """
         inode_addresses = metadata.get_inodeAddresses()
         for adr in inode_addresses:
@@ -113,8 +121,9 @@ class APFSInodePadding:
 
     def clear(self, metadata: APFSInodePaddingMetadata):
         """
-        clears previously hidden data into outstream.
-        :param metadata: APFSInodePaddingMetadata object
+        clears previously hidden data into outstream. 
+
+        :param metadata: APFSInodePaddingMetadata object 
         """
         inode_addresses = metadata.get_inodeAddresses()
         node_addresses = metadata.get_nodeAddresses()
@@ -169,9 +178,11 @@ class APFSInodePadding:
 
     def readFromPadding(self, address):
         """
-        reads 10 bytes from one inode padding.
-        :param address: offset of a single inode padding
-        :returns: data to be written to outstream
+        reads 10 bytes from one inode padding. 
+
+        :param address: offset of a single inode padding 
+
+        :return: data to be written to outstream 
         """
         self.stream.seek(0)
         readAddress = self.getTotalOffset(address)
@@ -182,8 +193,9 @@ class APFSInodePadding:
 
     def clearPadding(self, address):
         """
-        clears 10 bytes from one inode padding.
-        :param address: offset of a single inode padding
+        clears 10 bytes from one inode padding. 
+
+        :param address: offset of a single inode padding 
         """
         self.stream.seek(0)
         clearAddress = self.getTotalOffset(address)
@@ -193,8 +205,10 @@ class APFSInodePadding:
     def writeToPadding(self, address, chunk):
         """
         writes 10 bytes to one inode padding.
+
         :param address: offset of a single inode padding
-        :param chunk: data that is supposed to be written to the inode padding referenced by address
+
+        :param chunk: 10 byte chunk of data that is supposed to be written to the inode padding referenced by address 
         """
         self.stream.seek(0)
         writeAddress = self.getTotalOffset(address)

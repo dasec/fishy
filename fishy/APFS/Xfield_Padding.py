@@ -27,6 +27,7 @@ class APFSXfieldPaddingMetadata:
     def add_paddingAddress(self, paddingAddress: int):
         """
         add calculated padding address to list of padding addresses.
+
 		:param paddingAddress: int, calculated padding offset
         """
         self.paddingAddresses.append(paddingAddress)
@@ -34,32 +35,34 @@ class APFSXfieldPaddingMetadata:
     def add_nodeAddress(self, nodeAddress: int):
         """
         add node offset to list of node offsets.
+
 		:param nodeAddress: int, node offset
         """
         self.nodeAddresses.append(nodeAddress)
 
     def get_nodeAddresses(self):
         """
-        :returns: list of used node addresses
+        :return: list of used node addresses
         """
         return self.nodeAddresses
 
     def get_paddingAddresses(self):
         """
-        :returns: list of used calculated padding offsets
+        :return: list of used calculated padding offsets
         """
         return self.paddingAddresses
 
     def add_size(self, size: int):
         """
         add size of a padding field to a list of sizes.
+
         :param size: int, size of a padding field.
         """
         self.sizes.append(size)
 
     def get_sizes(self):
         """
-        :returns: list of used padding field sizes
+        :return: list of used padding field sizes
         """
         return self.sizes
 
@@ -81,6 +84,15 @@ class APFSXfieldPadding:
 
 
     def write(self, instream: typ.BinaryIO):
+        """
+        writes from instream to extended field padding via subfunction.
+
+        also checks for availability and calculates the extended field padding size and offset.
+
+		:param instream: typ.BinaryIO, instream containing data that is supposed to be hidden
+
+        :return: APFSXfieldPaddingMetadata object
+        """
         metadata = APFSXfieldPaddingMetadata()
 
         padding = []
@@ -144,6 +156,13 @@ class APFSXfieldPadding:
         return metadata
 
     def read(self,outstream: typ.BinaryIO, metadata: APFSXfieldPaddingMetadata):
+        """
+        reads previously hidden data and writes it to outstream.
+
+		:param outstream: typ.BinaryIO, Outstream chosen to display hidden data
+
+        :param metadata: APFSXfieldPaddingMetadata, a metadata object
+        """
         paddingAddresses = metadata.get_paddingAddresses()
         sizes = metadata.get_sizes()
         totalsize = 0
@@ -163,6 +182,11 @@ class APFSXfieldPadding:
 
 
     def clear(self, metadata: APFSXfieldPaddingMetadata):
+        """
+        clears hidden data from extended field padding.
+
+        :param metadata: APFSXfieldPaddingMetadata, a metadata object.
+        """
         paddingAddresses = metadata.get_paddingAddresses()
         nodeAddresses = metadata.get_nodeAddresses()
         sizes = metadata.get_sizes()
@@ -207,6 +231,15 @@ class APFSXfieldPadding:
         return (check2 << 32) | check1
 
     def writeToPadding(self, instream, padding):
+        """
+        subfunction that writes to extended field padding.
+
+        :param instream: stream containing data that is supposed to be hidden
+
+        :param padding: tuple list containing padding offsets, sizes and respective node offsets
+
+        :returns: usedPadding, a tuple list containing only the used padding offsets, sizes and corresponding node offsets
+        """
         j = 0
         usedPadding = []
         total_size = 0
@@ -239,6 +272,15 @@ class APFSXfieldPadding:
         # returns "modified" padding tuple list with only the used offset, size and node address
 
     def clearPadding(self, adr, size):
+        """
+        subfunction that clears data from a single extended field padding.
+
+        :param adr: offset of one extended field padding
+
+        :param size: size of the extended field padding
+
+        :returns: l, size of the cleared extended field padding area 
+        """
         l = size
         address = adr
         self.stream.seek(address)
@@ -247,6 +289,15 @@ class APFSXfieldPadding:
         return l
 
     def readFromPadding(self, address, length):
+        """
+        subfunction that reads data from a single extended field padding.
+
+        :param address: offset of the extended field padding
+
+        :param length: size of the extended field padding
+
+        :returns: data, the data read from the extended field padding. 
+        """
         self.stream.seek(0)
         readAddress = address
         self.stream.seek(readAddress)

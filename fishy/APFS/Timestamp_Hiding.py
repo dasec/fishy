@@ -6,13 +6,16 @@ from fishy.APFS.APFS_filesystem.Node import Node
 from fishy.APFS.APFS_filesystem.APFS import APFS
 
 
-# TODO: IMPLEMENT MULTIPLE TIMESTAMP VERSION: NOW ONLY CREATE TIMESTAMP USED; USE 30 BIT INSTEAD OF 3 BYTE
-# TODO: ONLY READ HOW MUCH WAS WRITTEN -> CHANGE WRITE METADATA READ CLEAR; SIMILAR TO SUPERBLOCK SLACK;
-# TODO: TEST NEW TS HIDING IMPLEMENTATION WITH FRESH IMAGE, CHECK IF FUNCTIONS CORRECTLY
 
 class APFSTimestampHidingMetadata:
+    """
+    holds information about inode offsets, node offsets and sizes of hidden data chunks.
+    """
 
     def __init__(self, d: dict = None):
+        """
+        :param d: dictionary representation of APFSTimestampHidingMetadata
+        """
         if d is None:
             self.inodeAddresses = []
             self.nodeAddresses = []
@@ -23,31 +26,66 @@ class APFSTimestampHidingMetadata:
             self.length = d["length"]
 
     def add_length(self, length: int) -> None:
+        """
+        add size of the hidden data to metadata object.
+
+        :param length: int, size of hidden data
+        """
         self.length.append(length)
 
     def add_inodeAddress(self, inodeAddress: int):
+        """
+        add inode offset to list of inode offsets.
+
+        :param inodeAddress: int, offset of an inode
+        """
         self.inodeAddresses.append(inodeAddress)
 
     def add_nodeAddress(self, nodeAddress: int):
+        """
+        add node offset to list of node offsets.
+
+        :param nodeAddress: int, offset of a node
+        """
         self.nodeAddresses.append(nodeAddress)
 
     def get_nodeAddresses(self):
+        """
+        return list of node offsets.
+
+        :return: list of node offsets
+        """
         return self.nodeAddresses
 
     def get_inodeAddresses(self):
+        """
+        return list of inode offsets.
+
+        :return: list of inode offsets
+        """
         return self.inodeAddresses
 
     def get_length(self) \
             -> int:
+        """
+        return size of hidden data.
+
+        :return: size of hidden data
+        """
         return self.length[0]
 
 
 
 class APFSTimestampHiding:
-
+    """
+    contains methods to write, read and clear data using the nanosecond timestamp found in APFS inodes.
+    """
 
 
     def __init__(self, stream: typ.BinaryIO):
+        """
+        :param stream: typ.BinaryIO, filedescriptor of an APFS filesystem
+        """
         self.stream = stream
         self.apfs = APFS(stream)
         self.blocksize = self.apfs.getBlockSize()
@@ -55,6 +93,13 @@ class APFSTimestampHiding:
         self.inodelist = self.inodetable.getAllInodes(self.stream)
 
     def write(self, instream: typ.BinaryIO):
+        """
+        writes data from instream to chosen inode timestamps.
+
+        :param instream: typ.BinaryIO, stream containing data that is supposed to be hidden
+
+        :return: APFSTimestampHidingMetadata object
+        """
         metadata = APFSTimestampHidingMetadata()
        # instream = instream.read()
 
@@ -108,6 +153,13 @@ class APFSTimestampHiding:
         return metadata
 
     def read(self, outstream: typ.BinaryIO, metadata: APFSTimestampHidingMetadata):
+        """
+        reads data from chosen inode timestamps and writes the data to chosen outstream.
+
+        :param outstream: chosen outstream to display found data
+
+        :param metadata: an APFSTimestampHidingMetadata object
+        """
         inode_addresses = metadata.get_inodeAddresses()
         length = metadata.get_length()
         j = 0
@@ -123,6 +175,11 @@ class APFSTimestampHiding:
 
 
     def clear(self, metadata: APFSTimestampHidingMetadata):
+        """
+        clears data from chosen inode timestamps.
+
+        :params metadata: an APFSTimestampHidingMetadata object
+        """
         inode_addresses = metadata.get_inodeAddresses()
         node_addresses = metadata.get_nodeAddresses()
         length = metadata.get_length()
@@ -174,6 +231,15 @@ class APFSTimestampHiding:
         return (check2 << 32) | check1
 
     def getTotalOffset(self, a, j):
+        """
+        calculates offset of hiding space within an inode.
+
+        :param a: offset of an inode
+
+        :param j: indicating the chosen timestamp. j can be any valuable from 0 to 3 as there are 4 possible timestamps
+
+        :return: exact offset of hiding space
+        """
 
         if j == 0:
             inodePadAdd = a + 16
@@ -188,6 +254,17 @@ class APFSTimestampHiding:
 
 
     def readFromPadding(self, address, length, j):
+        """
+        subfunction that reads data from single timestamps.
+
+        :params address: offset of an inode
+
+        :params length: size of the hidden data
+
+        :param j: indicating the chosen timestamp. j can be any valuable from 0 to 3 as there are 4 possible timestamps
+
+        :return: data found in timestamp
+        """
         self.stream.seek(0)
         readAddress = self.getTotalOffset(address, j)
         self.stream.seek(readAddress)
@@ -202,6 +279,17 @@ class APFSTimestampHiding:
 
 
     def clearPadding(self, address, length, j):
+        """
+        subfunction that clears a single timestamp of previously hidden data.
+
+        :param address: offset of an inode
+
+        :param length: size of the hidden data
+
+        :param j: indicating the chosen timestamp. j can be any valuable from 0 to 3 as there are 4 possible timestamps
+
+        :return: size of removed data chunk
+        """
         self.stream.seek(0)
         l = 0
         if length > 4:
@@ -214,6 +302,17 @@ class APFSTimestampHiding:
         return l
 
     def writeToPadding(self, address, instream, j):
+        """
+        writes data to a single timestamp.
+
+        :param address: offset of an inode
+
+        :param instream: stream containing the data that is supposed to be hidden
+
+        :param j: indicating the chosen timestamp. j can be any valuable from 0 to 3 as there are 4 possible timestamps
+
+        :return: size of the hidden data chunk
+        """
 
         buf = instream.read(4)
         self.stream.seek(0)

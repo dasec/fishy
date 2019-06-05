@@ -7,7 +7,7 @@ Requirements
 * Build:
         * Python version 3.5 or higher
         * argparse - command line argument parsing
-        * construct - parsing FAT filesystems
+        * construct - parsing FAT filesystems (Currently, a version lower than 2.9 is needed. 2.8.22 was tested and is recommended.)
         * pytsk3 - parsing NTFS filesystems
         * simple-crypt - encryption of metadata using AES-CTR
         * numpy - Calculating APFS checksums

@@ -93,6 +93,13 @@ $ sudo apt-get install texlive-formats-extra
 		* osd2 [✓]
 		* obso_faddr [✓]
 
+* APFS:
+	* Superblock Slack [✓]
+	* Write-Gen-Counter [✓]
+	* Inode Padding [✓]
+	* Timestamp Hiding [✓]
+	* Extended Field Padding [✓]
+
 ## CLI
 
 The cli interface groups all hiding techniques (and others) into subcommands. Currently available subcommands are:
@@ -105,7 +112,10 @@ The cli interface groups all hiding techniques (and others) into subcommands. Cu
 * [`reserved_gdt_blocks`](#reserved-gdt-blocks) - Exploitation of reserved GDT blocks
 * [`osd2`](#osd2) - Exploitation of inode's osd2 field
 * [`obso_faddr`](#obso_faddr) - Exploitation of inode's obso_faddr field
-
+* [`write_gen`](#write_gen) - Exploitation of Write-Gen-Counter field found in inodes.
+* [`inode_padding`](#inode_padding) - Exploitation of inode padding fields.
+* [`timestamp_hiding`](#timestamp_hiding) - Exploitation of nanosecond timestamps.
+* [`xfield_padding`](#xfield_padding) - Exploitation of dynamically created extended fields. 
 
 
 ## FATtools
@@ -285,11 +295,13 @@ $ fishy -d testfs-ext4.dd reserved_gdt_blocks -m metadata.json -c
 ## Superblock Slack
 
 The `superblock_slack` subcommand provides methods to read, write and clean
-the slack of superblocks in an ext4 filesystem
+the slack of superblocks in an ext4 filesystem or the superblock and object map structures
+in an APFS filesystem
 
 Available for these filesystem types:
 
 * EXT4
+* APFS
 
 ```bash
 # write int Superblock Slack
@@ -344,6 +356,83 @@ TOP SECRET
 # clean up obso_faddr inode field
 $ fishy -d testfs-ext4.dd obso_faddr -m metadata.json -c	
 ```
+
+## Write-Gen-Counter
+
+The `write_gen` subcommand provides methods to read, write and clean the Write-Gen-Counter
+field found in APFS inodes
+
+Available for these filesystem types:
+
+* APFS
+
+```bash
+# write into inode write_gen_counter fields
+$ echo "TOP SECRET" | fishy -d testfs-apfs.dd write_gen -m metadata.json -w
+# read hidden data from inode write_gen_counter fields
+$ fishy -d testfs-apfs.dd write_gen -m metadata.json -r
+TOP SECRET
+# clean up write_gen_counter fields
+$ fishy -d testfs-apfs.dd write_gen -m metadata.json -c
+```
+
+## Inode Padding
+
+The `inode_padding` subcommand provides methods to read, write and clean the inode padding fields
+found in APFS inodes
+
+Available for these filesystem types:
+
+* APFS
+
+```bash
+# write into inode padding fields
+$ echo "TOP SECRET" | fishy -d testfs-apfs.dd inode_padding -m metadata.json -w
+# read hidden data from inode padding fields
+$ fishy -d testfs-apfs.dd inode_padding -m metadata.json -r
+TOP SECRET
+# clean up inode padding field
+$ fishy -d testfs-apfs.dd inode_padding -m metadata.json -c
+```
+
+## Timestamp Hiding
+
+The `timestamp_hiding` subcommand provides methods to read, write and clean the nanosecond parts of 
+timestamps located in APFS inodes
+
+Available for these filesystem types:
+
+* APFS
+
+```bash
+# write into inode nanosecond timestamps
+$ echo "TOP SECRET" | fishy -d testfs-apfs.dd timestamp_hiding -m metadata.json -w
+# read hidden data from inode nanosecond timestamps
+$ fishy -d testfs-apfs.dd timestamp_hiding -m metadata.json -r
+TOP SECRET
+# clean up inode nanosecond timestamps
+$ fishy -d testfs-apfs.dd timestamp_hiding -m metadata.json -c
+```
+
+## Extended Field Padding
+
+The `xfield_padding`subcommand provides methods to read, write and clean the dynamically created
+extended field padding areas in APFS inodes
+
+Available for these filesystem types:
+
+* APFS
+
+```bash
+# write into inode extended field padding
+$ echo "TOP SECRET" | fishy -d testfs-apfs.dd xfield_padding -m metadata.json -w
+# read hidden data from inode extended field padding
+$ fishy -d testfs-apfs.dd xfield_padding -m metadata.json -r
+TOP SECRET
+# clean up inode extended field padding
+$ fishy -d testfs-apfs.dd xfield_padding -m metadata.json -c
+```
+
     
 ## Encryption and Checksumming
 

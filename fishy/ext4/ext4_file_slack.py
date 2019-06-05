@@ -24,7 +24,8 @@ class Ext4FileSlackMetadata:
         adds an address to the list of addresses
 
         :param address: int, start of slack
-        :param length: int, length of the data, which was written
+        
+		:param length: int, length of the data, which was written
                        to fileslack
         """
         self.addrs.append((addr, length))
@@ -45,7 +46,8 @@ class EXT4FileSlack:
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
-        :param stream: filedescriptor of an ext4 filesystem
+        
+		:param stream: filedescriptor of an ext4 filesystem
         """
         self.dev = dev
         self.stream = stream
@@ -57,9 +59,12 @@ class EXT4FileSlack:
             -> Ext4FileSlackMetadata:
         """
         writes from instream into Fileslack of files passed in filepaths
-        :param instream: stream to read from
-        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
-        :return: Ext4FileSlackMetadata
+        
+		:param instream: stream to read from
+        
+		:param filepaths: list of strings, path to files or directories containing files which slackspace will be used
+        
+		:return: Ext4FileSlackMetadata
         """
         meta = Ext4FileSlackMetadata()
         if filepaths is None:
@@ -83,8 +88,10 @@ class EXT4FileSlack:
             -> None:
         """
         writes data hidden in Fileslack into outstream
-        :param outstream: stream to write into
-        :param metadata: Ext4FileSlackMetadata object
+        
+		:param outstream: stream to write into
+        
+		:param metadata: Ext4FileSlackMetadata object
         """
         for address, length in metadata.get_addr():
             self.stream.seek(address)
@@ -94,7 +101,8 @@ class EXT4FileSlack:
     def clear(self, metadata: Ext4FileSlackMetadata) -> None:
         """
         clears fileslack in which data has been hidden
-        :param metadata: Ext4FileSlackMetadata object
+        
+		:param metadata: Ext4FileSlackMetadata object
         """
         for address, length in metadata.get_addr():
             self.stream.seek(address)
@@ -103,8 +111,10 @@ class EXT4FileSlack:
     def info(self, filepaths):
         """
         prints avaible slackspace
-        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
-        :return: amount of slackspace
+        
+		:param filepaths: list of strings, path to files or directories containing files which slackspace will be used
+        
+		:return: amount of slackspace
         """
         if filepaths is None:
             filepaths = ["/"]
@@ -117,8 +127,10 @@ class EXT4FileSlack:
     def get_Slackspace_list(self, filepaths):
         """
         creates a list of the location of slackspace
-        :param filepaths: list of strings, path to files or directories containing files which slackspace will be used
-        :return: list containing physical addresses and length of slackspace
+        
+		:param filepaths: list of strings, path to files or directories containing files which slackspace will be used
+        
+		:return: list containing physical addresses and length of slackspace
         """
         filelist = list()
         slackspace = list()
@@ -149,8 +161,10 @@ class EXT4FileSlack:
     def get_dir_content(self, dir):
         """
         lists all files contained in a given directory, recursively entering subdirectories
-        :param dir: pytsk3 directory object
-        :return: list of pytsk3 file objects
+        
+		:param dir: pytsk3 directory object
+        
+		:return: list of pytsk3 file objects
         """
         filelist = []
         for file in dir:

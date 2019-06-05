@@ -26,7 +26,8 @@ class EXT4OSD2Metadata:
     def add_inode_number(self, inode_number: int) -> None:
         """
         adds a block to the list of blocks
-        :param block_id: int, id of the block
+        
+		:param block_id: int, id of the block
         """
         self.inode_numbers.append(inode_number)
 
@@ -34,7 +35,8 @@ class EXT4OSD2Metadata:
             -> []:
         """
         returns list of inode_numbers
-        :returns: list of inode_numbers
+        
+		:returns: list of inode_numbers
         """
         return self.inode_numbers
 
@@ -45,7 +47,8 @@ class EXT4OSD2:
     def __init__(self, stream: typ.BinaryIO, dev: str):
         """
         :param dev: path to an ext4 filesystem
-        :param stream: filedescriptor of an ext4 filesystem
+        
+		:param stream: filedescriptor of an ext4 filesystem
         """
         self.dev = dev
         self.stream = stream
@@ -56,8 +59,10 @@ class EXT4OSD2:
         """
         writes from instream into the last two bytes of inodes osd2 field.
         This method currently supports only data sizes less than 4000 bytes.
-        :param instream: stream to read from
-        :return: EXT4OSD2Metadata
+        
+		:param instream: stream to read from
+        
+		:return: EXT4OSD2Metadata
         """
         metadata = EXT4OSD2Metadata()
         instream = instream.read()
@@ -86,8 +91,10 @@ class EXT4OSD2:
             -> None:
         """
         writes data hidden in osd2 blocks into outstream
-        :param outstream: stream to write into
-        :param metadata: EXT4OSD2Metadata object
+        
+		:param outstream: stream to write into
+        
+		:param metadata: EXT4OSD2Metadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         # print(inode_numbers)
@@ -97,7 +104,8 @@ class EXT4OSD2:
     def clear(self, metadata: EXT4OSD2Metadata) -> None:
         """
         clears the osd2 field in which data has been hidden
-        :param metadata: EXT4OSD2Metadata object
+        
+		:param metadata: EXT4OSD2Metadata object
         """
         inode_numbers = metadata.get_inode_numbers()
         for nr in inode_numbers:
@@ -106,7 +114,8 @@ class EXT4OSD2:
     def info(self, metadata: EXT4OSD2Metadata = None) -> None:
         """
         shows info about inode osd2 fields and data hiding space
-        :param metadata: EXT4OSD2Metadata object
+        
+		:param metadata: EXT4OSD2Metadata object
         """
         print("Inodes: " + str(self.ext4fs.superblock.data["inode_count"]))
         print("Total hiding space in osd2 fields: " + str((self.ext4fs.superblock.data["inode_count"]) * 2) + " Bytes")
