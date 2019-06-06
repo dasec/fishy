@@ -213,8 +213,12 @@ class EXT4ReservedGDTBlocks:
             architecture = 32
         gdt_size = int(math.ceil((architecture * total_block_group_count) / self.ext4fs.blocksize))
 		
-        # block group 0
-        # todo; 1024 buffer at beginning, 
+        #block group 1
+        block_id = (1 * blocks_per_group)
+        block_id = block_id + 2 + gdt_size
+        number_of_reserved_gdt_blocks = self.ext4fs.superblock.data['res_gdt_blocks']
+        for i in range (block_id, (block_id + number_of_reserved_gdt_blocks)):
+            block_ids.append(i)
 
         # 3^x
         block_group_id = 3
