@@ -14,7 +14,7 @@ or use the documentation within the repository.
 
 `fishy` is a project initiated by the da/sec research group and several bachelor students of the Hochschule Darmstadt (h_da), University of Applied Sciences.
 
-Student members: Adrian Kailus, Christian Hecht, Matthias Greune, Deniz Celik, Tim Christen, Dustin Kern, Yannick Mau and Patrick Naili.
+Student members: Adrian Kailus, Christian Hecht, Matthias Greune, Deniz Celik, Tim Christen, Dustin Kern, Yannick Mau, Patrick Naili and Jan Türr.
 
 da/sec members: Thomas Göbel, Sebastian Gärtner and Lorenz Liebler.
 
