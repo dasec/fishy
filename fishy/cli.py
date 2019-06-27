@@ -835,7 +835,7 @@ def build_parser() -> argparse.ArgumentParser:
     # FileSlack
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
     fileslack.set_defaults(which='fileslack')
-    fileslack.add_argument('-d', '--dest', dest='destination', action='append', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
+    fileslack.add_argument('-t', '--target', dest='destination', action='append', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
     fileslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
     fileslack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from slackspace to stdout')
     fileslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
@@ -861,7 +861,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Additional Cluster Allocation
     addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
     addcluster.set_defaults(which='addcluster')
-    addcluster.add_argument('-d', '--dest', dest='destination', required=False, help='absolute path to file or directory on filesystem')
+    addcluster.add_argument('-t', '--target', dest='destination', required=False, help='absolute path to file or directory on filesystem')
     addcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
     addcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
     addcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')

@@ -191,7 +191,7 @@ Available for these filesystem types:
 
 ```bash
 # write into slack space
-$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fileslack -d myfile.txt -m metadata.json -w
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd fileslack -t myfile.txt -m metadata.json -w
 
 # read from slack space
 $ fishy -d testfs-fat12.dd fileslack -m metadata.json -r
@@ -201,7 +201,7 @@ TOP SECRET
 $ fishy -d testfs-fat12.dd fileslack -m metadata.json -c
 
 # show info about slack space of a file
-$ fishy -d testfs-fat12.dd fileslack -m metadata.json -d myfile.txt -i
+$ fishy -d testfs-fat12.dd fileslack -m metadata.json -t myfile.txt -i
 File: myfile.txt
   Occupied in last cluster: 4
   Ram Slack: 508
@@ -240,7 +240,7 @@ Available for these filesystem types:
 
 ```bash
 # Allocate additional clusters for a file and hide data in it
-$ echo "TOP SECRET" | fishy -d testfs-fat12.dd addcluster -d myfile.txt -m metadata.json -w
+$ echo "TOP SECRET" | fishy -d testfs-fat12.dd addcluster -t myfile.txt -m metadata.json -w
 
 # read hidden data from additionally allocated clusters
 $ fishy -d testfs-fat12.dd addcluster -m metadata.json -r
