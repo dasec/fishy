@@ -112,8 +112,8 @@ obso_faddr (ext4)
 inode_padding (APFS)
 ********************
 
-* **Gained capacity**: `number of inodes * 10 bytes`
-* **Detection probability**: High. As of right now, this technique is detected by fsck_apfs and should not be used to hide sensible data.
+* **Gained capacity**: `number of inodes * 8 bytes`
+* **Detection probability**: Medium. While the data is reasonably well hidden within the usually unused inode padding field, a manual investigation or forensic tools with a focus on APFS could detect it. An additional hint towards an easier detection could the changed inode flag.
 * **Stability**: High. The data can only be lost if the inode is deleted. Even in that case the data may be preserved in a snapshot.
 
 write_gen_counter (APFS)
