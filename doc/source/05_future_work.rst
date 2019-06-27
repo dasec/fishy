@@ -15,10 +15,6 @@ Likewise, at present the clearing method for all hiding techniques just
 overwrites the hidden data with zero bytes. This does not apply to any security
 standards for save data removal. This area offers much room for improvements.
 
-The `inode_padding` technique is not usable at the moment as data hidden with it is
-found by the filesystem check. This can be fixed by finding and manipulating the corresponding
-flag.
-
 At the current state `fishy` does not provide on the fly data encryption and has
 no data integrity methods implemented. As finding unencrypted data is
 relatively easy with forensic tools - regardless of the hiding technique -
