@@ -383,7 +383,7 @@ Available for these filesystem types:
 
 - APFS
 
-..code:: bash
+.. code:: bash
 
 	# write to inode padding
 	$ echo "TOP SECRET" | fishy -d testfs-apfs.dd inode_padding -m metadata.json -w
@@ -405,7 +405,7 @@ Available for these filesystem types:
 
 - APFS
 
-..code:: bash
+.. code:: bash
 
 	# write to write counter
 	$ echo "TOP SECRET" | fishy -d testfs-apfs.dd write_gen -m metadata.json -w
@@ -427,7 +427,7 @@ Available for these filesystem types:
 
 - APFS
 
-..code:: bash
+.. code:: bash
 
 	# write to extended field padding
 	$ echo "TOP SECRET" | fishy -d testfs-apfs.dd xfield_padding -m metadata.json -w
