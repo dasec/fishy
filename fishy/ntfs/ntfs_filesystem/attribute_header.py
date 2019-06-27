@@ -32,4 +32,5 @@ ATTRIBUTE_HEADER = Struct(
     "id" / Int16ul,
     Embedded(IfThenElse(this.nonresident, ATTR_NONRESIDENT, \
             ATTR_RESIDENT))
+    # TODO Construct compatibility update here: Embedded IfThenElse no longer allowed -> EmbeddedSwitch alternative?
 )

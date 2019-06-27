@@ -36,6 +36,7 @@ def get_12_bit_cluster_address() -> Mapping:
                    encdefault=default,
                    decdefault=default,
                   )
+    # TODO: Construct compatibility update here: Mapping syntax/function changed (original functionality removed and Mapping merged with Symmetric Mapping function) -> alternative? also: decoders before encoders
 
 
 def get_16_bit_cluster_address() -> Mapping:
@@ -63,6 +64,7 @@ def get_16_bit_cluster_address() -> Mapping:
                    encdefault=default,
                    decdefault=default,
                   )
+    # TODO: Construct compatibility update here: Mapping syntax/function changed (original functionality removed and Mapping merged with Symmetric Mapping function) -> alternative? also: decoders before encoders
 
 
 def get_32_bit_cluster_address() -> Mapping:
@@ -90,6 +92,7 @@ def get_32_bit_cluster_address() -> Mapping:
                    encdefault=default,
                    decdefault=default,
                   )
+    # TODO: Construct compatibility update here: Mapping syntax/function changed (original functionality removed and Mapping merged with Symmetric Mapping function) -> alternative? also: decoders before encoders
 
 
 FAT12Entry = get_12_bit_cluster_address()  # pylint: disable=invalid-name

@@ -96,6 +96,10 @@ class APFSInodePadding:
             self.writeToPadding(writeaddress, chunk)
             metadata.add_inodeAddress(self.inodelist[i][0] + self.inodelist[i][1])
             hidden_chunks += 1
+            # change has-uncompressed-size-flag. TODO mor elegant solution? (flag+0x4 instead of overwrite) 
+            self.stream.seek(self.inodelist[i][0] + self.inodelist[i][1] + 50)
+            self.stream.write(b'\x04')
+
             self.stream.seek(self.inodelist[i][0]+8)
             data = self.stream.read(4088)
             chksm = self.calcChecksum(data)
