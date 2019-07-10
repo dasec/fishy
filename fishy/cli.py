@@ -67,6 +67,8 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         slacker = FileSlack(device, Metadata(), args.dev)
         slacker.info(args.destination)
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             slacker = FileSlack(device, Metadata(), args.dev)
         else:
@@ -83,6 +85,8 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             slacker.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read file slack of a single hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -95,6 +99,8 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker = FileSlack(device, meta, args.dev)
             slacker.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden data in fileslack into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -107,6 +113,8 @@ def do_fileslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker = FileSlack(device, meta, args.dev)
             slacker.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear fileslack
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -130,6 +138,8 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         slacker = MftSlack(device, Metadata(), args.dev)
         slacker.info(args.offset, args.limit)
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             slacker = MftSlack(device, Metadata(), args.dev, args.domirr)
         else:
@@ -146,6 +156,8 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             slacker.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read file slack of a single hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -158,6 +170,8 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker = MftSlack(device, meta, args.dev)
             slacker.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden data in fileslack into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -170,6 +184,8 @@ def do_mftslack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slacker = MftSlack(device, meta, args.dev)
             slacker.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear fileslack
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -190,6 +206,8 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             allocator = ClusterAllocation(device, Metadata(), args.dev)
         else:
@@ -206,6 +224,8 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             allocator.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read file slack of a single hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -218,6 +238,8 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden data from additional clusters into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -230,6 +252,8 @@ def do_addcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = ClusterAllocation(device, meta, args.dev)
             allocator.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear additional clusters
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -249,6 +273,8 @@ def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             allocator = BadClusterWrapper(device, Metadata(), args.dev)
         else:
@@ -265,6 +291,8 @@ def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             allocator.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read bad cluster to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -277,6 +305,8 @@ def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = BadClusterWrapper(device, meta, args.dev)
             allocator.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden data from bad cluster into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -289,6 +319,8 @@ def do_badcluster(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             allocator = BadClusterWrapper(device, meta, args.dev)
             allocator.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear bad cluster
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -309,6 +341,8 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
         else:
@@ -325,6 +359,8 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
         with open(args.metadata, 'wb+') as metadata_out:
             reserve.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -337,6 +373,8 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -349,6 +387,8 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             reserve = ReservedGDTBlocks(device, meta, args.dev)
             reserve.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear reserved GDT blocks
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -362,16 +402,20 @@ def do_reserved_gdt_blocks(args: argparse.Namespace, device: typ.BinaryIO) -> No
             reserve.clear()
     elif args.info:
         # show info
-        with open(args.metadata, 'rb') as metadata_file:
-            if args.password is False:
-                meta = Metadata()
-            else:
-                print("Please enter password: ")
-                pw = getpass.getpass()
-                meta = Metadata(password=pw)
-            meta.read(metadata_file)
-            reserve = ReservedGDTBlocks(device, meta, args.dev)
-            reserve.info()
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                reserve = ReservedGDTBlocks(device, meta, args.dev)
+                reserve.info()
+        else:
+                reserve = ReservedGDTBlocks(device, Metadata(), args.dev)
+                reserve.info()
 
 
 def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
@@ -381,6 +425,8 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             slack = SuperblockSlack(device, Metadata(), args.dev)
         else:
@@ -397,6 +443,8 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             slack.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -409,6 +457,8 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -421,6 +471,8 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slack = SuperblockSlack(device, meta, args.dev)
             slack.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear superblock slack
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -434,17 +486,20 @@ def do_superblock_slack(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             slack.clear()
     elif args.info:
         # show info
-        with open(args.metadata, 'rb') as metadata_file:
-            if args.password is False:
-                meta = Metadata()
-            else:
-                print("Please enter password: ")
-                pw = getpass.getpass()
-                meta = Metadata(password=pw)
-            meta.read(metadata_file)
-            slack = SuperblockSlack(device, meta, args.dev)
-            slack.info()
-
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                slack = SuperblockSlack(device, meta, args.dev)
+                slack.info()
+        else:
+                slack = SuperblockSlack(device, Metadata(), args.dev)
+                slack.info()            
 
 def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
@@ -453,6 +508,8 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             osd2 = OSD2(device, Metadata(), args.dev)
         else:
@@ -469,6 +526,8 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             osd2.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -481,6 +540,8 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             osd2 = OSD2(device, meta, args.dev)
             osd2.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -493,6 +554,8 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             osd2 = OSD2(device, meta, args.dev)
             osd2.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear osd2 fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -506,16 +569,20 @@ def do_osd2(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             osd2.clear()
     elif args.info:
         # show info
-        with open(args.metadata, 'rb') as metadata_file:
-            if args.password is False:
-                meta = Metadata()
-            else:
-                print("Please enter password: ")
-                pw = getpass.getpass()
-                meta = Metadata(password=pw)
-            meta.read(metadata_file)
-            osd2 = OSD2(device, meta, args.dev)
-            osd2.info()
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                osd2 = OSD2(device, meta, args.dev)
+                osd2.info()
+        else:
+                osd2 = OSD2(device, Metadata(), args.dev)
+                osd2.info()
 
 def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     """
@@ -524,6 +591,8 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     :param device: stream of the filesystem
     """
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             faddr = FADDR(device, Metadata(), args.dev)
         else:
@@ -540,6 +609,8 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             faddr.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -552,6 +623,8 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             faddr = FADDR(device, meta, args.dev)
             faddr.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -564,6 +637,8 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             faddr = FADDR(device, meta, args.dev)
             faddr.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear faddr fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -577,20 +652,26 @@ def do_obso_faddr(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             faddr.clear()
     elif args.info:
         # show info
-        with open(args.metadata, 'rb') as metadata_file:
-            if args.password is False:
-                meta = Metadata()
-            else:
-                print("Please enter password: ")
-                pw = getpass.getpass()
-                meta = Metadata(password=pw)
-            meta.read(metadata_file)
-            faddr = FADDR(device, meta, args.dev)
-            faddr.info()
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                faddr = FADDR(device, meta, args.dev)
+                faddr.info()
+        else:
+                faddr = FADDR(device, Metadata(), args.dev)
+                faddr.info()
 			
 def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             ipad = inodePadding(device, Metadata(), args.dev)
         else:
@@ -605,6 +686,8 @@ def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             ipad.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -617,6 +700,8 @@ def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             ipad = inodePadding(device, meta, args.dev)
             ipad.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -629,6 +714,8 @@ def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             ipad = inodePadding(device, meta, args.dev)
             ipad.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear faddr fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -644,6 +731,8 @@ def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
 def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             wgen = write_gen(device, Metadata(), args.dev)
         else:
@@ -658,6 +747,8 @@ def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             wgen.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -670,6 +761,8 @@ def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             wgen = write_gen(device, meta, args.dev)
             wgen.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -682,6 +775,8 @@ def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             wgen = write_gen(device, meta, args.dev)
             wgen.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear faddr fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -697,6 +792,8 @@ def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
 def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             timestamp = timestampHiding(device, Metadata(), args.dev)
         else:
@@ -711,6 +808,8 @@ def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             timestamp.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -723,6 +822,8 @@ def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             timestamp = timestampHiding(device, meta, args.dev)
             timestamp.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -735,6 +836,8 @@ def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             timestamp = timestampHiding(device, meta, args.dev)
             timestamp.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear faddr fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -750,6 +853,8 @@ def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
 def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
     if args.write:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         if args.password is False:
             xfield = xfieldPadding(device, Metadata(), args.dev)
         else:
@@ -764,6 +869,8 @@ def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
         with open(args.metadata, 'wb+') as metadata_out:
             xfield.metadata.write(metadata_out)
     elif args.read:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file to stdout
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -776,6 +883,8 @@ def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             xfield = xfieldPadding(device, meta, args.dev)
             xfield.read(sys.stdout.buffer)
     elif args.outfile:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # read hidden file into outfile
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -788,6 +897,8 @@ def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             xfield = xfieldPadding(device, meta, args.dev)
             xfield.read_into_file(args.outfile)
     elif args.clear:
+        if not args.metadata:
+            raise IOError("This method requires a metadata file. Please add -m [name of file] to the command.")
         # clear faddr fields
         with open(args.metadata, 'rb') as metadata_file:
             if args.password is False:
@@ -836,7 +947,7 @@ def build_parser() -> argparse.ArgumentParser:
     fileslack = subparsers.add_parser('fileslack', help='Operate on file slack')
     fileslack.set_defaults(which='fileslack')
     fileslack.add_argument('-t', '--target', dest='destination', action='append', required=False, help='absolute path to file or directory on filesystem, directories will be parsed recursively')
-    fileslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    fileslack.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     fileslack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from slackspace to stdout')
     fileslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     fileslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
@@ -848,7 +959,7 @@ def build_parser() -> argparse.ArgumentParser:
     mftslack = subparsers.add_parser('mftslack', help='Operate on mft slack')
     mftslack.set_defaults(which='mftslack')
     mftslack.add_argument('-s', '--seek', dest='offset', default=0, type=int, required=False, help='sector offset to the start of the first mft entry to be used when hiding data. To avoid overwriting data use the "Next position" provided by the last execution of this module.')
-    mftslack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    mftslack.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     mftslack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from slackspace to stdout')
     mftslack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from slackspace to OUTFILE')
     mftslack.add_argument('-w', '--write', dest='write', action='store_true', help='write to slackspace')
@@ -862,7 +973,7 @@ def build_parser() -> argparse.ArgumentParser:
     addcluster = subparsers.add_parser('addcluster', help='Allocate more clusters for a file')
     addcluster.set_defaults(which='addcluster')
     addcluster.add_argument('-t', '--target', dest='destination', required=False, help='absolute path to file or directory on filesystem')
-    addcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    addcluster.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     addcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
     addcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
     addcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
@@ -872,7 +983,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Additional Cluster Allocation
     badcluster = subparsers.add_parser('badcluster', help='Allocate more clusters for a file')
     badcluster.set_defaults(which='badcluster')
-    badcluster.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    badcluster.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     badcluster.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from allocated clusters to stdout')
     badcluster.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from allocated clusters to OUTFILE')
     badcluster.add_argument('-w', '--write', dest='write', action='store_true', help='write to additional allocated clusters')
@@ -882,7 +993,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Reserved GDT blocks
     reserved_gdt_blocks = subparsers.add_parser('reserved_gdt_blocks', help='hide data in reserved GDT blocks')
     reserved_gdt_blocks.set_defaults(which='reserved_gdt_blocks')
-    reserved_gdt_blocks.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    reserved_gdt_blocks.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     reserved_gdt_blocks.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from reserved GDT blocks to stdout')
     reserved_gdt_blocks.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from reserved GDT blocks to OUTFILE')
     reserved_gdt_blocks.add_argument('-w', '--write', dest='write', action='store_true', help='write to reserved GDT blocks')
@@ -893,7 +1004,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Superblock slack
     superblock_slack = subparsers.add_parser('superblock_slack', help='hide data in superblock slack')
     superblock_slack.set_defaults(which='superblock_slack')
-    superblock_slack.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    superblock_slack.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     superblock_slack.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from superblock slack to stdout')
     superblock_slack.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from superblock slack to OUTFILE')
     superblock_slack.add_argument('-w', '--write', dest='write', action='store_true', help='write to superblock slack')
@@ -904,7 +1015,7 @@ def build_parser() -> argparse.ArgumentParser:
     # OSD2
     osd2 = subparsers.add_parser('osd2', help='hide data in osd2 fields of inodes')
     osd2.set_defaults(which='osd2')
-    osd2.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    osd2.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     osd2.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from osd2 fields to stdout')
     osd2.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from osd2 fields to OUTFILE')
     osd2.add_argument('-w', '--write', dest='write', action='store_true', help='write to osd2 fields')
@@ -915,7 +1026,7 @@ def build_parser() -> argparse.ArgumentParser:
     # obso_faddr
     obso_faddr = subparsers.add_parser('obso_faddr', help='hide data in obso_faddr fields of inodes')
     obso_faddr.set_defaults(which='obso_faddr')
-    obso_faddr.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    obso_faddr.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     obso_faddr.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from obso_faddr fields to stdout')
     obso_faddr.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from obso_faddr fields to OUTFILE')
     obso_faddr.add_argument('-w', '--write', dest='write', action='store_true', help='write to obso_faddr fields')
@@ -926,7 +1037,7 @@ def build_parser() -> argparse.ArgumentParser:
 	# inode Padding
     inode_padding = subparsers.add_parser('inode_padding', help='hide data in padding fields of inodes')
     inode_padding.set_defaults(which='inode_padding')
-    inode_padding.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    inode_padding.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     inode_padding.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from padding fields to stdout')
     inode_padding.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from padding fields to OUTFILE')
     inode_padding.add_argument('-w', '--write', dest='write', action='store_true', help='write to padding fields')
@@ -936,7 +1047,7 @@ def build_parser() -> argparse.ArgumentParser:
 	# write gen
     write_gen = subparsers.add_parser('write_gen', help='hide data in write_gen fields of inodes')
     write_gen.set_defaults(which='write_gen')
-    write_gen.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    write_gen.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     write_gen.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from write_gen fields to stdout')
     write_gen.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from write_gen fields to OUTFILE')
     write_gen.add_argument('-w', '--write', dest='write', action='store_true', help='write to write_gen fields')
@@ -947,7 +1058,7 @@ def build_parser() -> argparse.ArgumentParser:
 	# timestamp hiding
     timestamp = subparsers.add_parser('timestamp_hiding', help='hide data in inode timestamps')
     timestamp.set_defaults(which='timestamp_hiding')
-    timestamp.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    timestamp.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     timestamp.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from timestamps to stdout')
     timestamp.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from timestamps to OUTFILE')
     timestamp.add_argument('-w', '--write', dest='write', action='store_true', help='write to timestamps')
@@ -958,7 +1069,7 @@ def build_parser() -> argparse.ArgumentParser:
 	# xfield padding
     xfield = subparsers.add_parser('xfield_padding', help='hide data in inode extended fields')
     xfield.set_defaults(which='xfield_padding')
-    xfield.add_argument('-m', '--metadata', dest='metadata', required=True, help='Metadata file to use')
+    xfield.add_argument('-m', '--metadata', dest='metadata', required=False, help='Metadata file to use')
     xfield.add_argument('-r', '--read', dest='read', action='store_true', help='read hidden data from extended fields to stdout')
     xfield.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from extended fields to OUTFILE')
     xfield.add_argument('-w', '--write', dest='write', action='store_true', help='write to extended fields')

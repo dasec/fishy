@@ -101,7 +101,7 @@ class ReservedGDTBlocks:
         :raises: NotImplementedError
         """
         if self.fs_type == 'EXT4':
-            if self.metadata.get_files():
+            if len(list(self.metadata.get_files())) > 0:
                 for file_entry in self.metadata.get_files():
                     file_metadata = file_entry['metadata']
                     file_metadata = EXT4ReservedGDTBlocksMetadata(file_metadata)
