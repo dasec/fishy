@@ -23,6 +23,7 @@ da/sec members: Thomas Göbel, Sebastian Gärtner and Lorenz Liebler.
 
 * [1] Adrian V. Kailus, Christian Hecht, Thomas Göbel und Lorenz Liebler, „fishy – Ein Framework zur Umsetzung von Verstecktechniken in Dateisystemen“, in D-A-CH Security, Gelsenkirchen (Germany), September 2018.
 * [2] Thomas Göbel and Harald Baier, „fishy – A Framework for Implementing Filesystem-based Data Hiding Techniques“, in Proceedings of the 10th EAI International Conference on Digital Forensics & Cyber Crime (ICDF2C), New Orleans (United States), September 2018.
+* [3] Thomas Göbel, Jan Türr and Harald Baier, „Revisiting Data Hiding Techniques for Apple File System“, in The 12th International Workshop on Digital Forensics to be held in conjunction with the 14th International Conference on Availability, Reliability and Security, Canterbury (UK), August 2019.
 
 ## Attribution
 
