@@ -55,3 +55,21 @@ class write_gen:
                 self.fs.clear(file_metadata)
         else:
             raise NotImplementedError()
+
+            
+    def info(self):
+        """
+        shows info about superblock slack and data hiding space
+        :param metadata: Metadata, object where metadata is stored in
+        :raises: NotImplementedError
+        """
+        if self.fs_type == 'APFS':
+            if len(list(self.metadata.get_files())) > 0:
+                for file_entry in self.metadata.get_files():
+                    file_metadata = file_entry['metadata']
+                    file_metadata = APFSWriteGenMetadata(file_metadata)
+                    self.fs.info(file_metadata)
+            else:
+                self.fs.info()
+        else:
+            raise NotImplementedError()

@@ -129,5 +129,13 @@ class SuperblockSlack:
                     self.fs.info(file_metadata)
             else:
                 self.fs.info()
+        if self.fs_type == 'APFS':
+            if len(list(self.metadata.get_files())) > 0:
+                for file_entry in self.metadata.get_files():
+                    file_metadata = file_entry['metadata']
+                    file_metadata = APFSSuperblockSlackMetaData(file_metadata)
+                    self.fs.info(file_metadata)
+            else:
+                self.fs.info()
         else:
             raise NotImplementedError()

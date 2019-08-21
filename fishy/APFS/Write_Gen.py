@@ -141,10 +141,17 @@ class APFSWriteGen:
             i+=1
 
 
+    def info(self, metadata:APFSWriteGenMetadata = None)->None:
+        print(str(len(self.inodelist))+ " inodes found.\n")
+        print(str(len(self.inodelist)*4) + " bytes of data usable.")
 
-    def info(self):
-        raise NotImplementedError("Not implemented for this filesystem")
+        if metadata != None:
+            maxUse = 0
+            iAddr = metadata.get_inodeAddresses()
+            maxUse = len(iAddr)*4
 
+            print(str(len(iAddr)) + " inodes used.\n")
+            print(str(maxUse) + " is the maximum amount of bytes used.")
 
 
 

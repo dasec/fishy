@@ -144,12 +144,19 @@ class APFSInodePadding:
 
 
 
-    def info(self):
-        """
-        not yet implemented for this technique
-        """
-        raise NotImplementedError("Not implemented for this filesystem")
 
+    def info(self, metadata: APFSInodePaddingMetadata = None) -> None:
+
+        print(str(len(self.inodelist))+ " inodes found.\n")
+        print(str(len(self.inodelist)*8) + " bytes of data usable.")
+
+        if metadata != None:
+            maxUse = 0
+            iAddr = metadata.get_inodeAddresses()
+            maxUse = len(iAddr)*8
+
+            print(str(len(iAddr)) + " inodes used.\n")
+            print(str(maxUse) + " is the maximum amount of bytes used.")
 
 
 

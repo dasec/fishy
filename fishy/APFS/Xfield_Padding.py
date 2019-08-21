@@ -305,4 +305,70 @@ class APFSXfieldPadding:
         data = self.stream.read(l)
 
         return data
+        
+
+    def info(self, metadata: APFSXfieldPaddingMetadata = None) -> None:
+
+        padding = []
+        nopadding = []
+        all = []
+
+        for i in range(0, len(self.inodelist)):
+            inodeaddress = self.inodelist[i][0] + self.inodelist[i][1]
+
+            # get xfield table of contents address & number of extended fields per inode:
+            inodeaddress += 92
+            self.stream.seek(inodeaddress)
+            xfield_nr = self.stream.read(2)
+            xfield_nr = int.from_bytes(xfield_nr, byteorder='little')
+            #print(self.inodelist[i][0]/4096)
+            #print("\n")
+
+            # print(xfield_nr)
+            # iterate over xfields, calculate space, use prev size to calculate offset if multiple xfields
+            prev_size = 0
+            self.stream.seek(0)
+            for j in range(0, xfield_nr):
+                xhdr_size_addr = inodeaddress + (j * 4) + 6
+                self.stream.seek(xhdr_size_addr)
+                xhdr_size = self.stream.read(2)
+                xhdr_size = int.from_bytes(xhdr_size, byteorder='little')
+                all.append(xhdr_size)
+                # print(xhdr_size)
+                # add xfield size & potential padding size to prev_size;
+                prev_size += xhdr_size
+                self.stream.seek(0)
+                if not (xhdr_size % 8):
+                    nopadding.append(xhdr_size)
+                if (xhdr_size % 8):
+                    prev_size += (8 - xhdr_size % 8)
+                    # calculate slack address & size
+                    if j > 0:
+                        slack_address = inodeaddress + 4 + (xfield_nr * 4) + xhdr_size + prev_size
+                    if j == 0:
+                        slack_address = inodeaddress + 4 + (xfield_nr * 4) + xhdr_size
+                    #print(slack_address)
+                    slack_size = (xhdr_size + (8 - xhdr_size % 8)) - xhdr_size
+                    #print(slack_size)
+                    #print("\n")
+
+                    padding.append([slack_address, slack_size, self.inodelist[i][0]])
+
+        size = 0
+
+        for i in range (0, len(padding)):
+            size += padding[i][1]
+
+        print(str(len(self.inodelist)))
+        print(str(size) + " bytes of usable space.")
+
+
+        if metadata != None:
+            uSize = 0
+            sizes = metadata.get_sizes()
+            for i in range(0, len(sizes)):
+                uSize += sizes[i]
+            print(str(uSize) + " bytes of used space.")
+
+
 

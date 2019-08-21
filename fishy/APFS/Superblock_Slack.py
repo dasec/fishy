@@ -168,7 +168,7 @@ class APFSSuperblockSlack:
             else:
                 if csb > 0:
                     containerblock = al.pop(0)
-                    caddress = containerblock[0] + 32 + 1448
+                    caddress = containerblock[0] + 1376
                     tempsize = self.writeToContainerBlock(caddress, instream)
                     opensize -= tempsize
                     filesize += tempsize
@@ -183,7 +183,7 @@ class APFSSuperblockSlack:
                         break
                 if csbml > 0:
                     containermap = cml.pop(0)
-                    cmaddress = containermap[0] + 32 + 80
+                    cmaddress = containermap[0] + 88
                     tempsize = self.writeToContainerMap(cmaddress, instream)
                     opensize -= tempsize
                     filesize += tempsize
@@ -198,7 +198,7 @@ class APFSSuperblockSlack:
                         break
                 if vsb > 0:
                     volumeblock = vl.pop(0)
-                    vaddress = volumeblock[0] + 32 + 1004
+                    vaddress = volumeblock[0] + 984
                     tempsize = self.writeToVolumeBlock(vaddress, instream)
                     opensize -= tempsize
                     filesize += tempsize
@@ -213,7 +213,7 @@ class APFSSuperblockSlack:
                         break
                 if vsbml > 0:
                     volumemap = vml.pop(0)
-                    vmaddress = volumemap[0] + 32 + 80
+                    vmaddress = volumemap[0] + 88
                     tempsize = self.writeToVolumeMap(vmaddress, instream)
                     opensize -= tempsize
                     filesize += tempsize
@@ -259,12 +259,12 @@ class APFSSuperblockSlack:
     def calculateHidingSpace(self, cl, cml, vl, vml):
         # Not needed as of right now; stays implemented in case info method or other method gets added and needs it
 
-        cl_space = self.blocksize - 32 - 1448
+        cl_space = self.blocksize - 1376
         #container superblocks: used biggest possible container superblock : 1448 bytes or 0x5A8 hex
-        cml_space = self.blocksize - 32 - 80
-        vml_space = self.blocksize - 32 - 80
+        cml_space = self.blocksize - 88
+        vml_space = self.blocksize - 88
         #object map largest possible + 56 potentially reserved space: 80 bytes or 0x50
-        vl_space = self.blocksize - 32 - 1004
+        vl_space = self.blocksize - 984
 
 
         total_cl_space = len(cl) * cl_space
@@ -287,7 +287,7 @@ class APFSSuperblockSlack:
 
         :return: size of the chunk of data that was hidden in this structure
         """
-        cl_space = self.blocksize - 32 - 1448
+        cl_space = self.blocksize - 1376
         buf = instream.read(cl_space)
         self.stream.seek(address)
         self.stream.write(buf)
@@ -304,7 +304,7 @@ class APFSSuperblockSlack:
 
         :return: size of the chunk of data that was hidden in this structure
         """
-        cml_space = self.blocksize - 32 - 80
+        cml_space = self.blocksize - 88
         buf = instream.read(cml_space)
         self.stream.seek(address)
         self.stream.write(buf)
@@ -321,7 +321,7 @@ class APFSSuperblockSlack:
 
         :return: size of the chunk of data that was hidden in this structure
         """
-        vl_space = self.blocksize - 32 - 1004
+        vl_space = self.blocksize - 984
         buf = instream.read(vl_space)
         self.stream.seek(address)
         self.stream.write(buf)
@@ -338,7 +338,7 @@ class APFSSuperblockSlack:
 
         :return: size of the chunk of data that was hidden in this structure
         """
-        vml_space = self.blocksize - 32 - 80
+        vml_space = self.blocksize - 88
         buf = instream.read(vml_space)
         self.stream.seek(address)
         self.stream.write(buf)
@@ -387,7 +387,7 @@ class APFSSuperblockSlack:
         while length >= 0:
             containerblock = al.pop(0)
             caddress = cblocks[i]
-            cspace = blocksize - 32 - 1448
+            cspace = blocksize - 1376
             self.stream.seek(caddress)
             self.stream.write(cspace * b'\x00')
             length -= cspace
@@ -400,7 +400,7 @@ class APFSSuperblockSlack:
                 break
             containermap = cml.pop(0)
             cmaddress = cmblocks[i]
-            cmspace = blocksize - 32 - 80
+            cmspace = blocksize - 88
             self.stream.seek(cmaddress)
             self.stream.write(cmspace * b'\x00')
             length -= cmspace
@@ -413,7 +413,7 @@ class APFSSuperblockSlack:
                 break
             volumeblock = vl.pop(0)
             vaddress = vblocks[i]
-            vspace = blocksize - 32 - 1004
+            vspace = blocksize - 984
             self.stream.seek(vaddress)
             self.stream.write(vspace * b'\x00')
             length -= vspace
@@ -426,7 +426,7 @@ class APFSSuperblockSlack:
                 break
             volumemap = vml.pop(0)
             vmaddress = vmblocks[i]
-            vmspace = blocksize - 32 - 80
+            vmspace = blocksize - 88
             self.stream.seek(vmaddress)
             self.stream.write(vmspace * b'\x00')
             length -= vmspace
@@ -460,7 +460,7 @@ class APFSSuperblockSlack:
             raise IOError("Nothing has been hidden")
 
         while length > 0:
-            cspace = blocksize - 32 - 1448
+            cspace = blocksize - 1376
             caddress = cblocks[i]
             self.stream.seek(caddress)
             if length <= cspace:
@@ -471,7 +471,7 @@ class APFSSuperblockSlack:
             length -= cspace
             if length <= 0:
                 break
-            cmspace = blocksize - 32 - 80
+            cmspace = blocksize - 88
             cmaddress = cmblocks[i]
             self.stream.seek(cmaddress)
             if length <= cmspace:
@@ -482,7 +482,7 @@ class APFSSuperblockSlack:
             length -= cmspace
             if length <= 0:
                 break
-            vspace = blocksize - 32 - 1004
+            vspace = blocksize - 984
             vaddress = vblocks[i]
             if length <= vspace:
                 buf = self.stream.read(length)
@@ -492,7 +492,7 @@ class APFSSuperblockSlack:
             length -= vspace
             if length <= 0:
                 break
-            vmspace = blocksize - 32 - 80
+            vmspace = blocksize - 88
             vmaddress = vmblocks[i]
             self.stream.seek(vmaddress)
             if length <= vmaddress:
@@ -505,14 +505,34 @@ class APFSSuperblockSlack:
                 break
             i += 1
 
-    def info(self):
-        raise NotImplementedError("Not implemented for this file system")
+    def info(self, metadata: APFSSuperblockSlackMetaData = None) -> None:
 
+        checkpoints = Checkpoints(self.stream)
 
+        al = checkpoints.getCheckpointSuperblocks(self.stream)
+        csb = len(al)
 
+        cml = checkpoints.getCheckpointCMAP(self.stream, al)
+        csbml = len(cml)
 
+        vl = checkpoints.getCheckpointVolumes(self.stream, cml)
+        vsb = len(vl)
 
+        vml = checkpoints.getCheckpointVMAP(self.stream, vl)
+        vsbml = len(vl)
 
+        print(str(csb) + " Container Superblocks usable.\n")
+        print(str(csbml) + " Container Object Maps usable.\n")
+        print(str(vsb) + " Volume Superblocks usable.\n")
+        print(str(vsbml) + " Volume Object Maps usable.\n")
+
+        space = self.calculateHidingSpace(al, cml, vl, vml)
+
+        print(str(space) + " bytes of space usable.\n")
+
+        if metadata != None:
+            uSpace = metadata.get_length()
+            print(str(uSpace) + " bytes of space used.")
 
 
 

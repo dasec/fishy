@@ -202,11 +202,16 @@ class APFSTimestampHiding:
             if length <= 0:
                 break
 
+    def info(self, metadata:APFSTimestampHidingMetadata = None)->None:
+        print(str(len(self.inodelist))+ " inodes found.\n")
+        print("Up to " + str(len(self.inodelist)*16) + " bytes of data usable.")
 
-    def info(self):
-        raise NotImplementedError("Not implemented for this filesystem")
-
-
+        if metadata != None:
+            maxUse = 0
+            iAddr = metadata.get_inodeAddresses()
+            maxUse = metadata.get_length()
+            print(str(len(iAddr)) + " inodes used.\n")
+            print(str(maxUse) + " is the amount of bytes used.")
 
 
     def calcChecksum(self, data):

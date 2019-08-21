@@ -727,6 +727,22 @@ def do_inode_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             ipad = inodePadding(device, meta, args.dev)
             ipad.clear()
+    elif args.info:
+        # show info
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                ipad = inodePadding(device, meta, args.dev)
+                ipad.info()
+        else:
+                ipad = inodePadding(device, Metadata(), args.dev)
+                ipad.info()
 
 def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
@@ -788,6 +804,22 @@ def do_write_gen(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             wgen = write_gen(device, meta, args.dev)
             wgen.clear()
+    elif args.info:
+        # show info
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                wgen = write_gen(device, meta, args.dev)
+                wgen.info()
+        else:
+                wgen = write_gen(device, Metadata(), args.dev)
+                wgen.info()
 
 def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
@@ -849,6 +881,22 @@ def do_timestamp_hiding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             timestamp = timestampHiding(device, meta, args.dev)
             timestamp.clear()
+    elif args.info:
+        # show info
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                timestamp = timestampHiding(device, meta, args.dev)
+                timestamp.info()
+        else:
+                timestamp = timestampHiding(device, Metadata(), args.dev)
+                timestamp.info()   
 
 def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
     
@@ -910,6 +958,22 @@ def do_xfield_padding(args: argparse.Namespace, device: typ.BinaryIO) -> None:
             meta.read(metadata_file)
             xfield = xfieldPadding(device, meta, args.dev)
             xfield.clear()
+    elif args.info:
+        # show info
+        if args.metadata:
+            with open(args.metadata, 'rb') as metadata_file:
+                if args.password is False:
+                    meta = Metadata()
+                else:
+                    print("Please enter password: ")
+                    pw = getpass.getpass()
+                    meta = Metadata(password=pw)
+                meta.read(metadata_file)
+                xfield = xfieldPadding(device, meta, args.dev)
+                xfield.info()
+        else:
+                xfield = xfieldPadding(device, Metadata(), args.dev)
+                xfield.info()
 
 			
 			
@@ -1042,6 +1106,7 @@ def build_parser() -> argparse.ArgumentParser:
     inode_padding.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from padding fields to OUTFILE')
     inode_padding.add_argument('-w', '--write', dest='write', action='store_true', help='write to padding fields')
     inode_padding.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear padding fields')
+    inode_padding.add_argument('-i', '--info', dest='info', action='store_true', help='show information about inode padding')
     inode_padding.add_argument('file', metavar='FILE', nargs='?', help="File to write into padding fields, if nothing provided, use stdin")
 
 	# write gen
@@ -1052,6 +1117,7 @@ def build_parser() -> argparse.ArgumentParser:
     write_gen.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from write_gen fields to OUTFILE')
     write_gen.add_argument('-w', '--write', dest='write', action='store_true', help='write to write_gen fields')
     write_gen.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear write_gen fields')
+    write_gen.add_argument('-i', '--info', dest='info', action='store_true', help='show information about write-gen')
     write_gen.add_argument('file', metavar='FILE', nargs='?', help="File to write into write_gen fields, if nothing provided, use stdin")
 
 	
@@ -1063,6 +1129,7 @@ def build_parser() -> argparse.ArgumentParser:
     timestamp.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from timestamps to OUTFILE')
     timestamp.add_argument('-w', '--write', dest='write', action='store_true', help='write to timestamps')
     timestamp.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear timestamps')
+    timestamp.add_argument('-i', '--info', dest='info', action='store_true', help='show information about timestamps')
     timestamp.add_argument('file', metavar='FILE', nargs='?', help="File to write into timestamps, if nothing provided, use stdin")
 
 
@@ -1074,6 +1141,7 @@ def build_parser() -> argparse.ArgumentParser:
     xfield.add_argument('-o', '--outfile', dest='outfile', metavar='OUTFILE', help='read hidden data from extended fields to OUTFILE')
     xfield.add_argument('-w', '--write', dest='write', action='store_true', help='write to extended fields')
     xfield.add_argument('-c', '--clear', dest='clear', action='store_true', help='clear extended fields')
+    xfield.add_argument('-i', '--info', dest='info', action='store_true', help='show information about xfield padding')
     xfield.add_argument('file', metavar='FILE', nargs='?', help="File to write into extended fields, if nothing provided, use stdin")
 	
 	

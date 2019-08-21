@@ -38,6 +38,7 @@ class InodeTable:
                                                                                                         volumeMapList[i]
                                                                                                         *self.blocksize)
             vmapList.append(vmap)
+        #Liste alles Volume Object Maps
 
         for i in range (0, len(vmapList)):
             vrootnode = Node(fs_stream, vmapList[i]["root"]*self.blocksize, self.blocksize).parseNode(fs_stream,
@@ -45,6 +46,8 @@ class InodeTable:
                                                                                                           "root"] * self
                                                                                                       .blocksize)
             vmapRootNode.append(vrootnode)
+        #Liste aller Volume Map Root Nodes
+
 
 
         oidList = []
@@ -56,10 +59,16 @@ class InodeTable:
             if oidList[0][0] == rootNodeList[i]:
                 notNeeded = oidList.pop(0)
                 #get rid of rootnode since it has nothing of value for inode table
+                #TODO pop other root nodes
+
+        for j in range(0, len(rootNodeList)):
+            oidList = [i for i in oidList if i[0] != rootNodeList[j]]
 
         for i in range(0, len(oidList)):
             temp = Node(fs_stream, oidList[i][1]*self.blocksize, self.blocksize).parseNode(fs_stream, oidList[i][1]*
                                                                                            self.blocksize)
+            #Überprüft ob ein Entry eine Inode ist und fügt diese dann der Tupelliste als Tupel Node Adresse|Inode Adresse
+            #hinzu
             for j in range(0, temp["entry_count"]):
                 if temp["kind " + str(j)] >> 28 == 3:
                     inodeAddressList.append((oidList[i][1]*self.blocksize, self.blocksize -
