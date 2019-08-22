@@ -168,7 +168,7 @@ class APFSSuperblockSlack:
             else:
                 if csb > 0:
                     containerblock = al.pop(0)
-                    caddress = containerblock[0] + 1376
+                    caddress = containerblock[0] + 1384
                     tempsize = self.writeToContainerBlock(caddress, instream)
                     opensize -= tempsize
                     filesize += tempsize
@@ -259,7 +259,7 @@ class APFSSuperblockSlack:
     def calculateHidingSpace(self, cl, cml, vl, vml):
         # Not needed as of right now; stays implemented in case info method or other method gets added and needs it
 
-        cl_space = self.blocksize - 1376
+        cl_space = self.blocksize - 1384
         #container superblocks: used biggest possible container superblock : 1448 bytes or 0x5A8 hex
         cml_space = self.blocksize - 88
         vml_space = self.blocksize - 88
@@ -287,7 +287,7 @@ class APFSSuperblockSlack:
 
         :return: size of the chunk of data that was hidden in this structure
         """
-        cl_space = self.blocksize - 1376
+        cl_space = self.blocksize - 1384
         buf = instream.read(cl_space)
         self.stream.seek(address)
         self.stream.write(buf)
@@ -387,7 +387,7 @@ class APFSSuperblockSlack:
         while length >= 0:
             containerblock = al.pop(0)
             caddress = cblocks[i]
-            cspace = blocksize - 1376
+            cspace = blocksize - 1384
             self.stream.seek(caddress)
             self.stream.write(cspace * b'\x00')
             length -= cspace
