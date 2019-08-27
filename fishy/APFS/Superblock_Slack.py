@@ -460,7 +460,7 @@ class APFSSuperblockSlack:
             raise IOError("Nothing has been hidden")
 
         while length > 0:
-            cspace = blocksize - 1376
+            cspace = blocksize - 1384
             caddress = cblocks[i]
             self.stream.seek(caddress)
             if length <= cspace:
@@ -519,7 +519,7 @@ class APFSSuperblockSlack:
         vsb = len(vl)
 
         vml = checkpoints.getCheckpointVMAP(self.stream, vl)
-        vsbml = len(vl)
+        vsbml = len(vml)
 
         print(str(csb) + " Container Superblocks usable.\n")
         print(str(csbml) + " Container Object Maps usable.\n")
